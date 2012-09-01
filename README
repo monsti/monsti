@@ -53,5 +53,5 @@ file. If a node changes, it clears the cache of each node in its
 This allows for long term caching even if the server
 restarts. Caches only have to be rebuild if really needed. This
 should work well for sites which consist of mostly static pages
-which seldomly change.
+which seldom change.
    
