@@ -24,14 +24,6 @@ func get_settings() Settings {
 	return settings
 }
 
-func get(w http.ResponseWriter, r *http.Request, node *brassica.Node) {
-	
-}
-
-func post(w http.ResponseWriter, r *http.Request, node *brassica.Node) {
-	
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.Method, r.URL.Path) 
 	settings := get_settings()
