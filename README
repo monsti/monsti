@@ -44,11 +44,11 @@ file describing the node. A typical structure might look like this
 
 ** Caching
 
-Brassica tries to cache each page until its content changes in a
-file called _cached.html. To keep track of changes of nodes on
-which this node depends, the adds itself to the other nodes'
-'_rdeps' file. If a node changes, it clears the cache of each node
-in its '_rdeps' (and removes the _rdeps).
+Brassica tries to cache each page until its content changes in a file
+called _cached.html. To keep track of changes of nodes on which this
+node depends, the node adds itself to the other nodes' '_rdeps'
+file. If a node changes, it clears the cache of each node in its
+'_rdeps' (and removes the _rdeps).
 
 This allows for long term caching even if the server
 restarts. Caches only have to be rebuild if really needed. This
