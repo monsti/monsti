@@ -14,9 +14,6 @@ brassica-serve: $(shell find brassica/ -name "*.go")
 	go get launchpad.net/goyaml
 	go install datenkarussell.de/brassica/brassica-serve
 
-bootstrap:
-	echo "Implement me!"
-
 .PHONY:
 clean:
 	rm go/ -Rf
