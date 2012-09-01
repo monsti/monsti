@@ -54,6 +54,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	http.Handle("/static/", http.FileServer(http.Dir("/home/cneumann/dev/brassica/")))
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8080", nil)
 }
