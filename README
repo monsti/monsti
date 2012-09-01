@@ -1,0 +1,57 @@
+* brassica
+
+Brassica is a simple and resource efficient CMS for low dynamic
+private and small business sites with mostly static pages and simple
+structure.
+
+** Design goals
+
+ - Simple design.
+ - Low resource usage, especially memory usage.
+ - Simple access control: Objects are private or public, no groups,
+   only authenticated users which may access private objects.
+ - Allow aggressive long-term caching, expect pages to be mostly
+   static.
+ - Simple architecture: use flat files instead of a DBMS.
+ - Simple and intuitive web user interface.
+
+
+** Flat files
+
+Brassica doesn't use a DBMS but flat files. Sites are organized as
+trees where each node corresponds to a subdirectory in the flat file
+directory tree. Each node's subdirectory contains its data and
+meta-data. Every subdirectory consists of a node.yml YAML formatted
+file describing the node. A typical structure might look like this
+('/' is the root of the site's data directory):
+
+/about
+/about/body.html
+/about/node.yml
+/body.html
+/_rdeps
+/_cached.html
+/contact
+/contact/body.html
+/contact/_cached.html
+/contact
+/contact/node.yml
+/navigation
+/navigation/node.yml
+/navigation/_rdeps
+/node.yml
+
+
+** Caching
+
+Brassica tries to cache each page until its content changes in a
+file called _cached.html. To keep track of changes of nodes on
+which this node depends, the adds itself to the other nodes'
+'_rdeps' file. If a node changes, it clears the cache of each node
+in its '_rdeps' (and removes the _rdeps).
+
+This allows for long term caching even if the server
+restarts. Caches only have to be rebuild if really needed. This
+should work well for sites which consist of mostly static pages
+which seldomly change.
+   
