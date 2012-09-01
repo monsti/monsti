@@ -1,6 +1,6 @@
 GOPATH=$(PWD)/go/
 
-all: go/ brassica-serve bootstrap
+all: go/ brassica-serve
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
