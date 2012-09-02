@@ -7,12 +7,12 @@ go/:
 	mkdir -p go/bin
 	mkdir -p go/pkg
 	ln -s -t go/src/datenkarussell.de/ ../../../brassica/
+	GOPATH=$(GOPATH) go get github.com/hoisie/mustache
+	GOPATH=$(GOPATH) go get launchpad.net/goyaml
 
 .PHONY: brassica-serve
 brassica-serve: $(shell find brassica/ -name "*.go")
-	go get github.com/hoisie/mustache
-	go get launchpad.net/goyaml
-	go install datenkarussell.de/brassica/brassica-serve
+	GOPATH=$(GOPATH) go install datenkarussell.de/brassica/brassica-serve
 
 .PHONY:
 clean:
