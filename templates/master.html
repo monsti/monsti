@@ -14,18 +14,20 @@
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
   </head>
   <body>
-    <div id="top-wrap" class="one-column">
+    <div id="top-wrap">
       <div id="header-wrap">
-        <div id="header">
+        <div id="header" class="container">
           <div id="logo">
             <a href="/"><img alt="Logo" src="/site-static/logo.png"/></a>
           </div>
           <div id="primary-navigation-wrap">
             <div id="primary-navigation">
               <ul>
-                <li class="active">
-                  <a href="http://www.datenkarussell.de"><span>Startseite</span></a>
+                {{#primary-nav}}
+                <li {{#Active}}class="active"{{/Active}}>
+                  <a href="{{Target}}"><span>{{Name}}</span></a>
                 </li>
+                {{/primary-nav}}
               </ul>
             </div>
           </div>
@@ -37,17 +39,41 @@
           </div>
         </div>
       </div>
-      <div id="content-wrap">
+      <div id="content-wrap" class="container">
         <div id="messages" class="">
         </div>
-        <div id="content">
-          <article class="document-view content">
-            <p class="description">
-            </p>
-            <div class="body">
-              {{{content}}}
+        <div class="row-fluid">
+          <div id="content" class="span8">
+            <article class="document-view content">
+              <p class="description">
+              </p>
+              <div class="body">
+                {{{content}}}
+              </div>
+            </article>        
+          </div>
+          <div id="sidebar" class="span4">
+            <div id="sidebar-bg">
+              <div id="sidebar-bgtop">
+                <div id="sidebar-bgbtm">
+                  <div id="box2" class="box-style1">
+                    <div>
+                      <div id="local-navigation">
+                        <ul class="nav nav-pills nav-stacked">
+                          {{#secondary-nav}}
+                          <li {{#Active}}class="active"{{/Active}}>
+                            <a href="{{Target}}"><span>{{Name}}</span></a>
+                          </li>
+                          {{/secondary-nav}}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="clearfix">&nbsp;</div>
+                </div>
+              </div>
             </div>
-          </article>        
+          </div>
         </div>
       </div>
       <div id="footer-push"></div>

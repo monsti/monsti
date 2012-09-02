@@ -9,17 +9,36 @@ package brassica
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"net/http"
-	"launchpad.net/goyaml"
 	"github.com/hoisie/mustache"
+	"io/ioutil"
+	"launchpad.net/goyaml"
+	"net/http"
+	"os"
+	"path/filepath"
 )
 
+// Settings for the application and the site.
+type Settings struct {
+	// Path to the data directory
+	Root string
+}
+
+// GetSettings returns application and site settings.
+func GetSettings() Settings {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	settings := Settings{Root: wd}
+	return settings
+}
+
+// Renderer represents a template renderer.
 type Renderer interface {
 	// RenderInMaster renders the named template with the given context
 	// in the master template.
-	RenderInMaster(name, title string, context map[string]string) string
+	RenderInMaster(name, title string, primaryNav, secondaryNav []navLink,
+		context map[string]string) string
 }
 
 type renderer struct {
@@ -51,12 +70,41 @@ func NewRenderer(root string) Renderer {
 	return r
 }
 
-func (r renderer) RenderInMaster(name, title string,
-	context map[string]string) string {
+func (r renderer) RenderInMaster(name, title string, primaryNav []navLink,
+	secondaryNav []navLink,context map[string]string) string {
 	content := r.Render(name, context)
-	return r.MasterTemplate.Render(map[string]string{
+	return r.MasterTemplate.Render(map[string]interface{}{
 		"title":   title,
-		"content": content})
+		"content": content,
+	  "primary-nav": primaryNav,
+	  "secondary-nav": secondaryNav})
+}
+
+// navLink represents a link in the navigation.
+type navLink struct {
+	Name, Target string
+	Active bool
+}
+
+// getNav returns the navigation for the given node.
+// 
+// The keys of the returned map are the link titles, the values are
+// the link targets.
+func getNav(node, root string) []navLink {
+	path := filepath.Join(root, node, "navigation.yaml")
+  content, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic("Navigation not found: " + path)
+	}
+	var navLinks []navLink
+	goyaml.Unmarshal(content, &navLinks)
+	for i, link := range navLinks {
+		if link.Target == node {
+			navLinks[i].Active = true
+			break
+		}
+	}
+	return navLinks
 }
 
 // Node is the interface implemented by the various node types
@@ -72,10 +120,12 @@ type Node interface {
 	Description() string
 
 	// Get handles a GET request on the node.
-	Get(w http.ResponseWriter, r *http.Request, renderer Renderer)
+	Get(w http.ResponseWriter, r *http.Request, renderer Renderer,
+		settings Settings)
 
 	// Post handles a POST request on the node.
-	Post(w http.ResponseWriter, r *http.Request, renderer Renderer)
+	Post(w http.ResponseWriter, r *http.Request, renderer Renderer,
+		settings Settings)
 }
 
 // node is the base implementation for nodes.
@@ -109,14 +159,16 @@ type Document struct {
 }
 
 func (n Document) Get(w http.ResponseWriter, r *http.Request,
-	renderer Renderer) {
-	content := renderer.RenderInMaster("view/document.html", n.Title(), map[string]string{
-		"body": n.Body})
+  renderer Renderer, settings Settings) {
+	prinav := getNav("/", settings.Root)
+	secnav := getNav(n.Path(), settings.Root)
+	content := renderer.RenderInMaster("view/document.html", n.Title(), prinav, secnav,
+		map[string]string{"body": n.Body})
 	fmt.Fprint(w, content)
 }
 
 func (n Document) Post(w http.ResponseWriter, r *http.Request,
-	renderer Renderer) {
+	renderer Renderer, settings Settings) {
 	http.Error(w, "Implementation missing.", http.StatusInternalServerError)
 }
 
@@ -141,5 +193,6 @@ func LookupNode(root, path string) (Node, error) {
 	var data nodeData
 	goyaml.Unmarshal(content, &data)
 	node.data = data
+	node.path = path
 	return node, nil
 }
