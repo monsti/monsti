@@ -21,6 +21,12 @@ import (
 type Settings struct {
 	// Path to the data directory
 	Root string
+
+	// Path to the template directory
+	Templates string
+
+	// Path to the static files
+	Statics string
 }
 
 // GetSettings returns application and site settings.
@@ -29,7 +35,10 @@ func GetSettings() Settings {
 	if err != nil {
 		panic(err)
 	}
-	settings := Settings{Root: wd}
+	settings := Settings{
+  	Root: wd,
+	  Templates: filepath.Join(filepath.Dir(wd), "templates"),
+  	Statics: filepath.Join(filepath.Dir(wd), "static")}
 	return settings
 }
 
