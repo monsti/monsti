@@ -50,8 +50,8 @@ func GetSettings() Settings {
 type Renderer interface {
 	// RenderInMaster renders the named template with the given context
 	// in the master template.
-	RenderInMaster(name, title string, primaryNav, secondaryNav []navLink,
-		context map[string]string) string
+	RenderInMaster(name, title, description string, primaryNav,
+		secondaryNav []navLink, context map[string]string) string
 }
 
 type renderer struct {
@@ -83,11 +83,13 @@ func NewRenderer(root string) Renderer {
 	return r
 }
 
-func (r renderer) RenderInMaster(name, title string, primaryNav []navLink,
-	secondaryNav []navLink, context map[string]string) string {
+func (r renderer) RenderInMaster(name, title, description string,
+	primaryNav []navLink, secondaryNav []navLink,
+	context map[string]string) string {
 	content := r.Render(name, context)
 	return r.MasterTemplate.Render(map[string]interface{}{
 		"title":         title,
+		"description":   description,
 		"content":       content,
 		"primary-nav":   primaryNav,
 		"secondary-nav": secondaryNav})
@@ -179,8 +181,8 @@ func (n Document) Get(w http.ResponseWriter, r *http.Request,
 	renderer Renderer, settings Settings) {
 	prinav := getNav("/", n.Path(), settings.Root)
 	secnav := getNav(n.Path(), n.Path(), settings.Root)
-	content := renderer.RenderInMaster("view/document.html", n.Title(), prinav,
-		secnav, map[string]string{"body": n.Body})
+	content := renderer.RenderInMaster("view/document.html", n.Title(),
+		n.Description(), prinav, secnav, map[string]string{"body": n.Body})
 	fmt.Fprint(w, content)
 }
 
