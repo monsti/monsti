@@ -48,8 +48,6 @@ func GetSettings() Settings {
 
 type masterTmplEnv struct {
 	Node                     Node
-	BelowHeader              string
-	Footer                   string
 	PrimaryNav, SecondaryNav []navLink
 }
 
@@ -58,7 +56,7 @@ type Renderer interface {
 	// RenderInMaster renders the named template with the given context
 	// and master template environment in the master template.
 	RenderInMaster(name string, context map[string]string,
-		env *masterTmplEnv) string
+		env *masterTmplEnv, settings Settings) string
 }
 
 type renderer struct {
@@ -91,12 +89,70 @@ func NewRenderer(root string) Renderer {
 }
 
 func (r renderer) RenderInMaster(name string, context map[string]string,
-	env *masterTmplEnv) string {
+	env *masterTmplEnv, settings Settings) string {
 	content := r.Render(name, context)
-	showSidebar := len(env.SecondaryNav) > 0
+	sidebarContent := getSidebar(env.Node.Path(), settings.Root)
+	showSidebar := len(env.SecondaryNav) > 0 || len(sidebarContent) > 0
 	return r.MasterTemplate.Render(env, map[string]interface{}{
+		"BelowHeader": getBelowHeader(env.Node.Path(), settings.Root),
+		"Footer":      getFooter(settings.Root),
+		"Sidebar":     sidebarContent,
 		"Content":     content,
 		"ShowSidebar": showSidebar})
+}
+
+// getFooter retrieves the footer.
+//
+// root is the path to the data directory
+//
+// Returns an empty string if there is no footer.
+func getFooter(root string) string {
+	path := filepath.Join(root, "footer.html")
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// getBelowHeader retrieves the below header content for the given node.
+//
+// path is the node's path.
+// root is the path to the data directory.
+//
+// Returns an empty string if there is no below header content.
+func getBelowHeader(path, root string) string {
+	file := filepath.Join(root, path, "below_header.html")
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// getSidebar retrieves the sidebar content for the given node.
+//
+// path is the node's path.
+// root is the path to the data directory.
+//
+// It traverses up to the root until it finds a node with defined sidebar
+// content.
+//
+// Returns an empty string if there is no sidebar content.
+func getSidebar(path, root string) string {
+	for {
+		file := filepath.Join(root, path, "sidebar.html")
+		content, err := ioutil.ReadFile(file)
+		if err != nil {
+			if path == filepath.Dir(path) {
+				break
+			}
+			path = filepath.Dir(path)
+			continue
+		}
+		return string(content)
+	}
+	return ""
 }
 
 // navLink represents a link in the navigation.
@@ -192,11 +248,9 @@ func (n Document) Get(w http.ResponseWriter, r *http.Request,
 	env := masterTmplEnv{
 		Node:         n,
 		PrimaryNav:   prinav,
-		SecondaryNav: secnav,
-		Footer:       "The footer",
-		BelowHeader:  "Below header"}
+		SecondaryNav: secnav}
 	content := renderer.RenderInMaster("view/document.html",
-		map[string]string{"body": n.Body}, &env)
+		map[string]string{"body": n.Body}, &env, settings)
 	fmt.Fprint(w, content)
 }
 
