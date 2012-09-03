@@ -157,6 +157,7 @@ type node struct {
 	data nodeData
 }
 
+// nodeData is used for (un)marshaling from/to node.yaml.
 type nodeData struct {
 	Description string
 	Title       string
