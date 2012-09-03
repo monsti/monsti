@@ -23,7 +23,7 @@ func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Node: %T %q\n", node, node.Title())
-	renderer := brassica.NewRenderer(h.Settings.Templates)
+	r := brassica.NewRenderer(h.Settings.Templates)
 	switch r.Method {
 	case "GET":
 		node.Get(w, r, renderer, h.Settings)
