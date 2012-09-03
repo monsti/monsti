@@ -38,6 +38,8 @@ func main() {
 	settings := brassica.GetSettings()
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Statics))))
+	http.Handle("/site-static/", http.FileServer(http.Dir(
+		filepath.Dir(settings.SiteStatics))))
 	http.Handle("/", nodeHandler{settings})
 	http.ListenAndServe(":8080", nil)
 }

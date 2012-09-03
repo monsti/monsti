@@ -19,14 +19,17 @@ import (
 
 // Settings for the application and the site.
 type Settings struct {
-	// Path to the data directory
+	// Path to the data directory.
 	Root string
 
-	// Path to the template directory
+	// Path to the template directory.
 	Templates string
 
-	// Path to the static files
+	// Path to the static files.
 	Statics string
+
+	// Path to the site specific static files.
+	SiteStatics string
 }
 
 // GetSettings returns application and site settings.
@@ -36,9 +39,10 @@ func GetSettings() Settings {
 		panic(err)
 	}
 	settings := Settings{
-    Root: wd,
-	  Templates: filepath.Join(filepath.Dir(wd), "templates"),
-    Statics: filepath.Join(filepath.Dir(wd), "static")}
+		Root:        wd,
+		Templates:   filepath.Join(filepath.Dir(wd), "templates"),
+		Statics:     filepath.Join(filepath.Dir(wd), "static"),
+		SiteStatics: filepath.Join(filepath.Dir(wd), "site-static")}
 	return settings
 }
 
@@ -61,7 +65,7 @@ type renderer struct {
 func (r renderer) Render(name string, context map[string]string) string {
 	path := filepath.Join(r.Root, name)
 	content := mustache.RenderFile(path, context)
- 	return content
+	return content
 }
 
 // NewRenderer returns a new Renderer.
@@ -80,35 +84,39 @@ func NewRenderer(root string) Renderer {
 }
 
 func (r renderer) RenderInMaster(name, title string, primaryNav []navLink,
-	secondaryNav []navLink,context map[string]string) string {
+	secondaryNav []navLink, context map[string]string) string {
 	content := r.Render(name, context)
 	return r.MasterTemplate.Render(map[string]interface{}{
-		"title":   title,
-		"content": content,
-	  "primary-nav": primaryNav,
-	  "secondary-nav": secondaryNav})
+		"title":         title,
+		"content":       content,
+		"primary-nav":   primaryNav,
+		"secondary-nav": secondaryNav})
 }
 
 // navLink represents a link in the navigation.
 type navLink struct {
 	Name, Target string
-	Active bool
+	Active       bool
 }
 
 // getNav returns the navigation for the given node.
 // 
+// node is the path of the node for which to get the navigation.
+// active is the currently active node.
+// root is the path of the data directory.
+//
 // The keys of the returned map are the link titles, the values are
 // the link targets.
-func getNav(node, root string) []navLink {
+func getNav(node, active, root string) []navLink {
 	path := filepath.Join(root, node, "navigation.yaml")
-  content, err := ioutil.ReadFile(path)
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("Navigation not found: " + path)
+		return nil
 	}
 	var navLinks []navLink
 	goyaml.Unmarshal(content, &navLinks)
 	for i, link := range navLinks {
-		if link.Target == node {
+		if link.Target == active {
 			navLinks[i].Active = true
 			break
 		}
@@ -145,8 +153,8 @@ type node struct {
 
 type nodeData struct {
 	Description string
-	Title string
-	Type string
+	Title       string
+	Type        string
 }
 
 func (n node) Path() string {
@@ -168,11 +176,11 @@ type Document struct {
 }
 
 func (n Document) Get(w http.ResponseWriter, r *http.Request,
-  renderer Renderer, settings Settings) {
-	prinav := getNav("/", settings.Root)
-	secnav := getNav(n.Path(), settings.Root)
-	content := renderer.RenderInMaster("view/document.html", n.Title(), prinav, secnav,
-		map[string]string{"body": n.Body})
+	renderer Renderer, settings Settings) {
+	prinav := getNav("/", n.Path(), settings.Root)
+	secnav := getNav(n.Path(), n.Path(), settings.Root)
+	content := renderer.RenderInMaster("view/document.html", n.Title(), prinav,
+		secnav, map[string]string{"body": n.Body})
 	fmt.Fprint(w, content)
 }
 
@@ -188,13 +196,13 @@ const NodeFile = "node.yaml"
 // If no such node exists, return nil.
 func LookupNode(root, path string) (Node, error) {
 	node_path := filepath.Join(root, path[1:], NodeFile)
-  content, err := ioutil.ReadFile(node_path)
+	content, err := ioutil.ReadFile(node_path)
 	if err != nil {
 		return nil, err
 	}
 	var node = new(Document)
 	body_path := filepath.Join(root, path[1:], "body.html")
-  body, err := ioutil.ReadFile(body_path)
+	body, err := ioutil.ReadFile(body_path)
 	if err != nil {
 		panic("Body not found: " + body_path)
 	}
