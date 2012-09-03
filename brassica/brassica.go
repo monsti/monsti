@@ -36,9 +36,9 @@ func GetSettings() Settings {
 		panic(err)
 	}
 	settings := Settings{
-  	Root: wd,
+    Root: wd,
 	  Templates: filepath.Join(filepath.Dir(wd), "templates"),
-  	Statics: filepath.Join(filepath.Dir(wd), "static")}
+    Statics: filepath.Join(filepath.Dir(wd), "static")}
 	return settings
 }
 
@@ -182,7 +182,7 @@ func (n Document) Post(w http.ResponseWriter, r *http.Request,
 }
 
 // NodeFile is the filename of node description files.
-const NodeFile = "node.yml"
+const NodeFile = "node.yaml"
 
 // lookup_node look ups a node at the given path.
 // If no such node exists, return nil.
