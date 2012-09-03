@@ -7,7 +7,9 @@ html, body { height:100%; }
 #bottom-wrap { height:9em; }
 #footer-wrap { padding-top:1em; }
 #sidebar, #content { padding-top:30px; }
-#sidebar { min-height:100%; }
+#content { width:61.8%; }
+#content.without-sidebar { width:100%; }
+#sidebar { width:38.2%; min-height:100%; float:right; }
 #sidebar-bg { padding-left:2em; padding-right:2em; }
 h1, h2, h3, h4 { font-weight:normal; margin-bottom:0.5em; }
 h1 { margin-top:0em; padding-bottom:0.2em; }

@@ -87,10 +87,12 @@ func (r renderer) RenderInMaster(name, title, description string,
 	primaryNav []navLink, secondaryNav []navLink,
 	context map[string]string) string {
 	content := r.Render(name, context)
+	showSidebar := len(secondaryNav) > 0
 	return r.MasterTemplate.Render(map[string]interface{}{
 		"title":         title,
 		"description":   description,
 		"content":       content,
+		"show-sidebar":  showSidebar,
 		"primary-nav":   primaryNav,
 		"secondary-nav": secondaryNav})
 }
@@ -180,7 +182,10 @@ type Document struct {
 func (n Document) Get(w http.ResponseWriter, r *http.Request,
 	renderer Renderer, settings Settings) {
 	prinav := getNav("/", n.Path(), settings.Root)
-	secnav := getNav(n.Path(), n.Path(), settings.Root)
+	var secnav []navLink = nil
+	if n.Path() != "/" {
+		secnav = getNav(n.Path(), n.Path(), settings.Root)
+	}
 	content := renderer.RenderInMaster("view/document.html", n.Title(),
 		n.Description(), prinav, secnav, map[string]string{"body": n.Body})
 	fmt.Fprint(w, content)

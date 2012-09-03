@@ -44,40 +44,40 @@
       <div id="content-wrap" class="container">
         <div id="messages" class="">
         </div>
-        <div class="row-fluid">
-          <div id="content" class="span8">
-            <article class="document-view content">
-              <h1>{{title}}</h1>
-              <p class="description">
-                {{description}}
-              </p>
-              <div class="body">
-                {{{content}}}
-              </div>
-            </article>        
-          </div>
-          <div id="sidebar" class="span4">
-            <div id="sidebar-bg">
-              <div id="sidebar-bgtop">
-                <div id="sidebar-bgbtm">
-                  <div id="box2" class="box-style1">
-                    <div>
-                      <div id="local-navigation">
-                        <ul class="nav nav-pills nav-stacked">
-                          {{#secondary-nav}}
-                          <li {{#Active}}class="active"{{/Active}}>
-                            <a href="{{Target}}"><span>{{Name}}</span></a>
-                          </li>
-                          {{/secondary-nav}}
-                        </ul>
-                      </div>
+        {{#show-sidebar}}
+        <div id="sidebar">
+          <div id="sidebar-bg">
+            <div id="sidebar-bgtop">
+              <div id="sidebar-bgbtm">
+                <div id="box2" class="box-style1">
+                  <div>
+                    <div id="local-navigation">
+                      <ul class="nav nav-pills nav-stacked">
+                        {{#secondary-nav}}
+                        <li {{#Active}}class="active"{{/Active}}>
+                          <a href="{{Target}}"><span>{{Name}}</span></a>
+                        </li>
+                        {{/secondary-nav}}
+                      </ul>
                     </div>
                   </div>
-                  <div class="clearfix">&nbsp;</div>
                 </div>
+                <div class="clearfix">&nbsp;</div>
               </div>
             </div>
           </div>
+        </div>
+        {{/show-sidebar}}
+        <div id="content" {{^show-sidebar}}class="without-sidebar"{{/show-sidebar}}>
+          <article class="document-view content">
+            <h1>{{title}}</h1>
+            <p class="description">
+              {{description}}
+            </p>
+            <div class="body">
+              {{{content}}}
+            </div>
+          </article>
         </div>
       </div>
       <div id="footer-push"></div>
