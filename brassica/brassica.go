@@ -46,12 +46,19 @@ func GetSettings() Settings {
 	return settings
 }
 
+type masterTmplEnv struct {
+	Node                     Node
+	BelowHeader              string
+	Footer                   string
+	PrimaryNav, SecondaryNav []navLink
+}
+
 // Renderer represents a template renderer.
 type Renderer interface {
 	// RenderInMaster renders the named template with the given context
-	// in the master template.
-	RenderInMaster(name, title, description string, primaryNav,
-		secondaryNav []navLink, context map[string]string) string
+	// and master template environment in the master template.
+	RenderInMaster(name string, context map[string]string,
+		env *masterTmplEnv) string
 }
 
 type renderer struct {
@@ -83,18 +90,13 @@ func NewRenderer(root string) Renderer {
 	return r
 }
 
-func (r renderer) RenderInMaster(name, title, description string,
-	primaryNav []navLink, secondaryNav []navLink,
-	context map[string]string) string {
+func (r renderer) RenderInMaster(name string, context map[string]string,
+	env *masterTmplEnv) string {
 	content := r.Render(name, context)
-	showSidebar := len(secondaryNav) > 0
-	return r.MasterTemplate.Render(map[string]interface{}{
-		"title":         title,
-		"description":   description,
-		"content":       content,
-		"show-sidebar":  showSidebar,
-		"primary-nav":   primaryNav,
-		"secondary-nav": secondaryNav})
+	showSidebar := len(env.SecondaryNav) > 0
+	return r.MasterTemplate.Render(env, map[string]interface{}{
+		"Content":     content,
+		"ShowSidebar": showSidebar})
 }
 
 // navLink represents a link in the navigation.
@@ -186,8 +188,14 @@ func (n Document) Get(w http.ResponseWriter, r *http.Request,
 	if n.Path() != "/" {
 		secnav = getNav(n.Path(), n.Path(), settings.Root)
 	}
-	content := renderer.RenderInMaster("view/document.html", n.Title(),
-		n.Description(), prinav, secnav, map[string]string{"body": n.Body})
+	env := masterTmplEnv{
+		Node:         n,
+		PrimaryNav:   prinav,
+		SecondaryNav: secnav,
+		Footer:       "The footer",
+		BelowHeader:  "Below header"}
+	content := renderer.RenderInMaster("view/document.html",
+		map[string]string{"body": n.Body}, &env)
 	fmt.Fprint(w, content)
 }
 
