@@ -15,11 +15,11 @@ type nodeHandler struct {
 }
 
 func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.Method, r.URL.Path) 
+	log.Println(r.Method, r.URL.Path)
 	node, err := brassica.LookupNode(h.Settings.Root, r.URL.Path)
 	if err != nil {
 		log.Println("Node not found.")
-		http.Error(w, "Node not found: " + err.Error(), http.StatusNotFound)
+		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 	log.Printf("Node: %T %q\n", node, node.Title())
