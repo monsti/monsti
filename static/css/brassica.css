@@ -1,0 +1,22 @@
+body { margin:0; padding:0; }
+html, body { height:100%; }
+.subnav-fixed { top:0px; }
+#top-wrap { height:auto; min-height:100%; }
+#header, #content-wrap, #below-header, #footer { max-width: 979px; }
+#footer-push { margin-top:3em; height:9em; clear:both; }
+#bottom-wrap { height:9em; }
+#footer-wrap { padding-top:1em; }
+#sidebar, #content { padding-top:30px; }
+#sidebar { min-height:100%; }
+#sidebar-bg { padding-left:2em; padding-right:2em; }
+h1, h2, h3, h4 { font-weight:normal; margin-bottom:0.5em; }
+h1 { margin-top:0em; padding-bottom:0.2em; }
+h2 { padding-top:1em; }
+h2:first-child { padding-top:0; }
+h3 { padding-top:0.5em; }
+.inline-list { margin:0; list-style: square inside; }
+p.description { font-weight:bold; color:#666; }
+a, a:hover { font-weight:bold; }
+a:hover { text-decoration:underline; }
+#primary-navigation li { display:block; float:left; }
+#primary-navigation ul { margin: 0; }
