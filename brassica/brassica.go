@@ -92,7 +92,8 @@ func (r renderer) RenderInMaster(name string, context map[string]string,
 	env *masterTmplEnv, settings Settings) string {
 	content := r.Render(name, context)
 	sidebarContent := getSidebar(env.Node.Path(), settings.Root)
-	showSidebar := len(env.SecondaryNav) > 0 || len(sidebarContent) > 0
+	showSidebar := (len(env.SecondaryNav) > 0 || len(sidebarContent) > 0) &&
+		!env.Node.HideSidebar()
 	belowHeader := getBelowHeader(env.Node.Path(), settings.Root)
 	return r.MasterTemplate.Render(env, map[string]interface{}{
 		"ShowBelowHeader":  len(belowHeader) > 0,
@@ -201,6 +202,9 @@ type Node interface {
 	// Description returns the node's description.
 	Description() string
 
+	// HideSidebar returns if the node's sidebar should be hidden.
+	HideSidebar() bool
+
 	// Get handles a GET request on the node.
 	Get(w http.ResponseWriter, r *http.Request, renderer Renderer,
 		settings Settings)
@@ -218,9 +222,10 @@ type node struct {
 
 // nodeData is used for (un)marshaling from/to node.yaml.
 type nodeData struct {
-	Description string
-	Title       string
-	Type        string
+	Description  string
+	Title        string
+	Type         string
+	Hide_sidebar bool
 }
 
 func (n node) Path() string {
@@ -233,6 +238,10 @@ func (n node) Title() string {
 
 func (n node) Description() string {
 	return n.data.Description
+}
+
+func (n node) HideSidebar() bool {
+	return n.data.Hide_sidebar
 }
 
 // Document is a node consisting of a html body.
