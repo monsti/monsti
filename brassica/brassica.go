@@ -83,7 +83,7 @@ func NewRenderer(root string) Renderer {
 	tmpl, err := mustache.ParseFile(path)
 	r.MasterTemplate = tmpl
 	if err != nil {
-		panic("Could not load master template.")
+		panic("Could not load master template: " + err.Error())
 	}
 	return r
 }

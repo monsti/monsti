@@ -15,6 +15,13 @@ type nodeHandler struct {
 }
 
 func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("Panic:", err)
+			http.Error(w, "Application error.",
+				http.StatusInternalServerError)
+		}
+	}()
 	log.Println(r.Method, r.URL.Path)
 	node, err := brassica.LookupNode(h.Settings.Root, r.URL.Path)
 	if err != nil {
@@ -23,7 +30,7 @@ func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Node: %T %q\n", node, node.Title())
-	r := brassica.NewRenderer(h.Settings.Templates)
+	renderer := brassica.NewRenderer(h.Settings.Templates)
 	switch r.Method {
 	case "GET":
 		node.Get(w, r, renderer, h.Settings)
