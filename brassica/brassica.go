@@ -94,11 +94,12 @@ func (r renderer) RenderInMaster(name string, context map[string]string,
 	sidebarContent := getSidebar(env.Node.Path(), settings.Root)
 	showSidebar := len(env.SecondaryNav) > 0 || len(sidebarContent) > 0
 	return r.MasterTemplate.Render(env, map[string]interface{}{
-		"BelowHeader": getBelowHeader(env.Node.Path(), settings.Root),
-		"Footer":      getFooter(settings.Root),
-		"Sidebar":     sidebarContent,
-		"Content":     content,
-		"ShowSidebar": showSidebar})
+		"BelowHeader":      getBelowHeader(env.Node.Path(), settings.Root),
+		"Footer":           getFooter(settings.Root),
+		"Sidebar":          sidebarContent,
+		"Content":          content,
+		"ShowSecondaryNav": len(env.SecondaryNav) > 0,
+		"ShowSidebar":      showSidebar})
 }
 
 // getFooter retrieves the footer.
