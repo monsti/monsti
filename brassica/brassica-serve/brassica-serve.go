@@ -4,10 +4,13 @@
 package main
 
 import (
+	"bytes"
 	"datenkarussell.de/brassica"
+        "fmt"
 	"log"
 	"net/http"
 	"path/filepath"
+	"runtime/debug"
 )
 
 type nodeHandler struct {
@@ -17,7 +20,10 @@ type nodeHandler struct {
 func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("Panic:", err)
+			var buf bytes.Buffer
+			fmt.Fprintf(&buf, "panic: %v\n", err)
+			buf.Write(debug.Stack())
+			log.Print(buf.String())
 			http.Error(w, "Application error.",
 				http.StatusInternalServerError)
 		}
