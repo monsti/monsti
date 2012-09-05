@@ -8,28 +8,37 @@
 package brassica
 
 import (
+	"code.google.com/p/gorilla/schema"
+	"errors"
 	"fmt"
 	"github.com/hoisie/mustache"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
+	"net/smtp"
 	"os"
 	"path/filepath"
 )
 
+var schemaDecoder = schema.NewDecoder()
+
 // Settings for the application and the site.
 type Settings struct {
+	MailAuth smtp.Auth
+
+	MailServer string
+
 	// Path to the data directory.
 	Root string
-
-	// Path to the template directory.
-	Templates string
 
 	// Path to the static files.
 	Statics string
 
 	// Path to the site specific static files.
 	SiteStatics string
+
+	// Path to the template directory.
+	Templates string
 }
 
 // GetSettings returns application and site settings.
@@ -39,10 +48,12 @@ func GetSettings() Settings {
 		panic(err)
 	}
 	settings := Settings{
+                MailServer:  "localhost:12345",
+		MailAuth:    smtp.PlainAuth("", "joe", "secret!", "host"),
 		Root:        wd,
-		Templates:   filepath.Join(filepath.Dir(wd), "templates"),
 		Statics:     filepath.Join(filepath.Dir(wd), "static"),
-		SiteStatics: filepath.Join(filepath.Dir(wd), "site-static")}
+		SiteStatics: filepath.Join(filepath.Dir(wd), "site-static"),
+		Templates:   filepath.Join(filepath.Dir(wd), "templates")}
 	return settings
 }
 
@@ -53,10 +64,10 @@ type masterTmplEnv struct {
 
 // Renderer represents a template renderer.
 type Renderer interface {
-	// RenderInMaster renders the named template with the given context
+	// RenderInMaster renders the named template with the given contexts
 	// and master template environment in the master template.
-	RenderInMaster(name string, context map[string]string,
-		env *masterTmplEnv, settings Settings) string
+	RenderInMaster(name string, env *masterTmplEnv, settings Settings,
+		contexts ...interface{}) string
 }
 
 type renderer struct {
@@ -67,9 +78,11 @@ type renderer struct {
 }
 
 // Render renders the named template with given context. 
-func (r renderer) Render(name string, context map[string]string) string {
+func (r renderer) Render(name string, contexts ...interface{}) string {
 	path := filepath.Join(r.Root, name)
-	content := mustache.RenderFile(path, context)
+	globalFuns := map[string]interface{}{
+		"_": "implement me!"}
+	content := mustache.RenderFile(path, append(contexts, globalFuns)...)
 	return content
 }
 
@@ -88,9 +101,9 @@ func NewRenderer(root string) Renderer {
 	return r
 }
 
-func (r renderer) RenderInMaster(name string, context map[string]string,
-	env *masterTmplEnv, settings Settings) string {
-	content := r.Render(name, context)
+func (r renderer) RenderInMaster(name string, env *masterTmplEnv,
+	settings Settings, contexts ...interface{}) string {
+	content := r.Render(name, contexts...)
 	sidebarContent := getSidebar(env.Node.Path(), settings.Root)
 	showSidebar := (len(env.SecondaryNav) > 0 || len(sidebarContent) > 0) &&
 		!env.Node.HideSidebar()
@@ -250,6 +263,11 @@ type Document struct {
 	Body string
 }
 
+// ContactForm is a node including a body and a contact form.
+type ContactForm struct {
+	Document
+}
+
 func (n Document) Get(w http.ResponseWriter, r *http.Request,
 	renderer Renderer, settings Settings) {
 	prinav := getNav("/", n.Path(), settings.Root)
@@ -262,13 +280,135 @@ func (n Document) Get(w http.ResponseWriter, r *http.Request,
 		PrimaryNav:   prinav,
 		SecondaryNav: secnav}
 	content := renderer.RenderInMaster("view/document.html",
-		map[string]string{"body": n.Body}, &env, settings)
+		&env, settings, map[string]string{"body": n.Body})
 	fmt.Fprint(w, content)
 }
 
 func (n Document) Post(w http.ResponseWriter, r *http.Request,
 	renderer Renderer, settings Settings) {
 	http.Error(w, "Implementation missing.", http.StatusInternalServerError)
+}
+
+func fetchDocument(data nodeData, path, root string) *Document {
+	document := Document{node: node{path: path, data: data}}
+	body_path := filepath.Join(root, path[1:], "body.html")
+	body, err := ioutil.ReadFile(body_path)
+	if err != nil {
+		panic("Body not found: " + body_path)
+	}
+	document.Body = string(body)
+	return &document
+}
+
+func (n ContactForm) Render(data *contactFormData, submitted bool,
+	errors formErrors, renderer Renderer, settings Settings) string {
+	prinav := getNav("/", n.Path(), settings.Root)
+	env := masterTmplEnv{
+		Node:         n,
+		PrimaryNav:   prinav,
+		SecondaryNav: nil}
+	context := map[string]string{"body": n.Body}
+	if submitted {
+		context["submitted"] = "1"
+	}
+	return renderer.RenderInMaster("view/contactform.html",
+		&env, settings, context, errors, data)
+}
+
+func (n ContactForm) Get(w http.ResponseWriter, r *http.Request,
+	renderer Renderer, settings Settings) {
+	_, submitted := r.URL.Query()["submitted"]
+	fmt.Fprint(w, n.Render(nil, submitted, nil, renderer, settings))
+}
+
+// formValidator is a function which validates a string.
+type formValidator func(string) error
+
+//  required is a formValidator to check for non empty values.
+func required() formValidator {
+	return func(value string) error {
+		if len(value) == 0 {
+			return errors.New("Required.")
+		}
+		return nil
+	}
+}
+
+// formErrors holds errors for form fields.
+//
+// If field 'foo.bar' has an error err, then formErrors["foo.bar:error"] ==
+// err.
+type formErrors map[string]string
+
+// check if the given field's value is valid.
+//
+// If it's not valid, add an error to the formErrors.
+func (f *formErrors) Check(field string, value string, validators ...formValidator) {
+	for _, validator := range validators {
+		if err := validator(value); err != nil {
+			(*f)[field+":error"] = err.Error()
+		}
+	}
+}
+
+type contactFormData struct {
+	Name, Email, Subject, Message string
+}
+
+func (data *contactFormData) Check() (e formErrors) {
+	e = make(formErrors)
+	e.Check("Name", data.Name, required())
+	e.Check("Email", data.Email, required())
+	e.Check("Subject", data.Subject, required())
+	e.Check("Message", data.Message, required())
+	return
+}
+
+func sendMail(from string, to []string, subject string, message []byte, settings Settings) {
+	if err := smtp.SendMail(settings.MailServer, settings.MailAuth, from, to,
+		message); err != nil {
+		panic("monsti: Could not send email: " + err.Error())
+	}
+}
+
+func (n ContactForm) Post(w http.ResponseWriter, r *http.Request,
+	renderer Renderer, settings Settings) {
+	var form contactFormData
+	if err := r.ParseForm(); err != nil {
+		panic("monsti: Could not parse form.")
+	}
+	error := schemaDecoder.Decode(&form, r.Form)
+	switch e := error.(type) {
+	case nil:
+		fe := form.Check()
+		if len(fe) > 0 {
+			fmt.Println(fe)
+			fmt.Fprint(w, n.Render(&form, false, fe, renderer,
+				settings))
+			return
+		}
+		sendMail(form.Email, []string{"foo@bar.com"}, "foobar",
+			[]byte("blabla"), settings)
+		http.Redirect(w, r, n.Path()+"/?submitted", http.StatusSeeOther)
+	case schema.MultiError:
+		fmt.Fprint(w, n.Render(&form, false, toTemplateErrors(e), renderer,
+			settings))
+		return
+	default:
+		panic("monsti: Could not decode: " + e.Error())
+	}
+}
+
+// TemplateErrors converts a schema.MultiError to a string map.
+//
+// An error for the field Foo.Bar will be available under the key
+// Foo.Bar:error
+func toTemplateErrors(error schema.MultiError) map[string]string {
+	vs := make(map[string]string)
+	for field, msg := range error {
+		vs[field+":error"] = msg.Error()
+	}
+	return vs
 }
 
 // NodeFile is the filename of node description files.
@@ -282,16 +422,19 @@ func LookupNode(root, path string) (Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	var node = new(Document)
-	body_path := filepath.Join(root, path[1:], "body.html")
-	body, err := ioutil.ReadFile(body_path)
-	if err != nil {
-		panic("Body not found: " + body_path)
-	}
-	node.Body = string(body)
+	var ret Node
 	var data nodeData
 	goyaml.Unmarshal(content, &data)
-	node.data = data
-	node.path = path
-	return node, nil
+	switch data.Type {
+	case "Document":
+		document := fetchDocument(data, path, root)
+		ret = document
+	case "ContactForm":
+		contactForm := ContactForm{*fetchDocument(data, path, root)}
+		contactForm.data.Hide_sidebar = true
+		ret = contactForm
+	default:
+		panic("Unknown node type: " + data.Type)
+	}
+	return ret, nil
 }

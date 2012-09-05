@@ -1,0 +1,46 @@
+<div class="row-fluid">
+  <div class="span6">
+    {{{body}}}
+  </div>
+  <div class="span6">
+    <div>
+      {{#submitted}}
+        <p class="alert alert-success">
+          Thanks for your message!
+        </p>
+      {{/submitted}}
+      {{^submitted}}
+      <form class="form-horizontal" action="" method="POST" accept-charset="utf-8">
+        <fieldset>
+          <div class="control-group {{#Name:error}}error{{/Name:error}}">
+            <label class="control-label"
+              for="name">{{#_}}Name{{/_}}</label>
+            <div class="controls"><input id="name" type="text" name="Name"
+              value="{{Name}}"/><span class="help-block">{{Name:error}}</span></div>
+          </div>
+          <div class="control-group {{#Email:error}}error{{/Email:error}}">
+            <label class="control-label" for="email">{{#_}}Email{{/_}}</label>
+            <div class="controls"><input id="email" type="text" name="Email"
+              value="{{Email}}"/><span class="help-block">{{Email:error}}</span></div>
+          </div>
+          <div class="control-group {{#Subject:error}}error{{/Subject:error}}">
+            <label class="control-label" for="subject">{{#_}}Subject{{/_}}</label>
+            <div class="controls"><input id="subject" type="text"
+              name="Subject" value="{{Subject}}"/><span class="help-block">{{Subject:error}}</span></div>
+          </div>
+          <div class="control-group {{#Message:error}}error{{/Message:error}}">
+            <label class="control-label" for="message">{{#_}}Message{{/_}}</label>
+            <div class="controls"><textarea id="message" name="Message"
+                rows="5" cols="40">{{Message}}</textarea><span class="help-block">{{Message:error}}</span></div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-primary">{{#_}}Submit{{/_}}</button>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+      {{/submitted}}
+    </div>
+  </div>
+</div>
