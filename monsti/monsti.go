@@ -3,9 +3,9 @@
  private and small business sites with mostly static pages and simple
  structure.
 
- brassica/brassica-serve contains a command to start a httpd.
+ monsti/monsti-serve contains a command to start a httpd.
 */
-package brassica
+package monsti
 
 import (
 	"code.google.com/p/gorilla/schema"

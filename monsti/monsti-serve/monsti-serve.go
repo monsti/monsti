@@ -5,7 +5,7 @@ package main
 
 import (
 	"bytes"
-	"datenkarussell.de/brassica"
+	"datenkarussell.de/monsti"
         "fmt"
 	"log"
 	"net/http"
@@ -14,7 +14,7 @@ import (
 )
 
 type nodeHandler struct {
-	Settings brassica.Settings
+	Settings monsti.Settings
 }
 
 func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,14 +29,14 @@ func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	log.Println(r.Method, r.URL.Path)
-	node, err := brassica.LookupNode(h.Settings.Root, r.URL.Path)
+	node, err := monsti.LookupNode(h.Settings.Root, r.URL.Path)
 	if err != nil {
 		log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
 	log.Printf("Node: %T %q\n", node, node.Title())
-	renderer := brassica.NewRenderer(h.Settings.Templates)
+	renderer := monsti.NewRenderer(h.Settings.Templates)
 	switch r.Method {
 	case "GET":
 		node.Get(w, r, renderer, h.Settings)
@@ -48,7 +48,7 @@ func (h nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	settings := brassica.GetSettings()
+	settings := monsti.GetSettings()
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Statics))))
 	http.Handle("/site-static/", http.FileServer(http.Dir(
