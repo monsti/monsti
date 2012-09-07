@@ -1,4 +1,4 @@
-package monsti
+package template
 
 import (
 	"code.google.com/p/gorilla/schema"

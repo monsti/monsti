@@ -1,4 +1,6 @@
-package monsti
+package contactform
+
+/*
 
 import (
 	"code.google.com/p/gorilla/schema"
@@ -73,3 +75,5 @@ func (n contactForm) Post(w http.ResponseWriter, r *http.Request,
 		panic("monsti: Could not decode: " + e.Error())
 	}
 }
+
+*/
