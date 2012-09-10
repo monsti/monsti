@@ -75,7 +75,7 @@ func listenForRPC(tickets chan ticket, nodeType string) {
 	}
 	outPipe, err := cmd.StdinPipe()
 	if err != nil {
-		panic("monsti: Could not setup stdout pipe of worker: " + err.Error())
+		panic("monsti: Could not setup stdin pipe of worker: " + err.Error())
 	}
 	pipe := pipeConnection{inPipe, outPipe}
 	log.Println("Starting worker for " + nodeType)
