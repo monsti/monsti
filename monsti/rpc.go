@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"net/url"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -36,6 +37,16 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 	return err
 }
 
+func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
+	log.Println("RPC: GetFormData")
+	err := m.Ticket.Request.ParseForm()
+	if err != nil {
+		return err
+	}
+	*reply = m.Ticket.Request.Form
+	return nil
+}
+
 func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	log.Println("RPC: GetRequest")
 	if m.Ticket != nil {
@@ -46,7 +57,8 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	(*m.Ticket) = <-m.Tickets
 	*reply = client.Request{
 		Method: m.Ticket.Request.Method,
-		Node:   m.Ticket.Node}
+		Node:   m.Ticket.Node,
+		Query:  m.Ticket.Request.URL.Query()}
 	log.Println("Got ticket, sent to worker.")
 	return nil
 }
@@ -67,6 +79,16 @@ func (pipe pipeConnection) Close() (err error) {
 	panic("monsti: Close() on pipe connection. RPC error?")
 }
 
+// workerLog is a Writer used to log incoming worker errors.
+type workerLog struct {
+	Type string
+}
+
+func (w workerLog) Write(p []byte) (int, error) {
+	log.Printf("from %v: %v", w.Type, string(p))
+	return len(p), nil
+}
+
 func listenForRPC(tickets chan ticket, nodeType string) {
 	cmd := exec.Command(strings.ToLower(nodeType))
 	inPipe, err := cmd.StdoutPipe()
@@ -77,6 +99,7 @@ func listenForRPC(tickets chan ticket, nodeType string) {
 	if err != nil {
 		panic("monsti: Could not setup stdin pipe of worker: " + err.Error())
 	}
+	cmd.Stderr = workerLog{nodeType}
 	pipe := pipeConnection{inPipe, outPipe}
 	log.Println("Starting worker for " + nodeType)
 	err = cmd.Start()

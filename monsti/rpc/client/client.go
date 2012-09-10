@@ -5,26 +5,36 @@ import (
 	"io"
 	"log"
 	"net/rpc"
+        "net/url"
 	"os"
 )
 
 type Node struct {
 	Path        string
+        // Content type of the node.
 	Type        string
 	Title       string
 	Description string
-
-	// HideSidebar is true if the sidebar should be hidden on display.ñ
-	HideSidebar bool
 }
 
+// A request to be processed by a worker.
 type Request struct {
+        // The requested node.
 	Node   Node
+        // The query values of the request URL.
+        Query  url.Values
+        // Method of the request (GET,POST,...).
 	Method string
 }
 
+// Response to a node request.
 type Response struct {
+        // The html content to be embedded in the root template.
 	Body []byte
+        // If true, hide the sidebar in the root template.
+        HideSidebar bool
+        // If set, redirect to this target using error 303 'see other'.
+        Redirect string
 }
 
 // Write appends the given bytes to the body of the response.
@@ -38,6 +48,7 @@ type Connection struct {
 	cli *rpc.Client
 }
 
+// Bidirectional pipe used for RPC communication.
 type pipeConnection struct {
 	io.ReadCloser
 	io.WriteCloser
@@ -57,14 +68,27 @@ func NewConnection(nodeType string) Connection {
 	return Connection{client}
 }
 
+// GetFormData retrieves form data of the request, i.e. query string values and
+// possibly form data of POST and PUT requests.
+func (c Connection) GetFormData() url.Values {
+	log.Println("Calling NodeRPC.GetFormData")
+	var reply url.Values
+	log.Println("call in")
+	err := c.cli.Call("NodeRPC.GetFormData", 0, &reply)
+	log.Println("call out")
+	if err != nil {
+		log.Fatal("client: RPC GetFormData error:", err)
+	}
+	return reply
+}
+
 // GetRequests blocks until it receives a request to process.
 func (c Connection) GetRequest() Request {
 	log.Println("Calling NodeRPC.GetRequest")
 	var reply Request
-	err := c.cli.Call("NodeRPC.GetRequest", 42, &reply)
-	log.Printf("Reply %v", reply)
+	err := c.cli.Call("NodeRPC.GetRequest", 0, &reply)
 	if err != nil {
-		log.Fatal("client: monsti.GetRequest error:", err)
+		log.Fatal("client: RPC GetRequest error:", err)
 	}
 	return reply
 }
@@ -76,9 +100,8 @@ func (c Connection) GetNodeData(path, file string) []byte {
 	var reply []byte
 	err := c.cli.Call("NodeRPC.GetNodeData", args, &reply)
 	if err != nil {
-		log.Fatal("client: monsti.GetNodeData error:", err)
+		log.Fatal("client: RPC GetNodeData error:", err)
 	}
-	log.Println("data:", string(reply))
 	return reply
 }
 
@@ -86,10 +109,9 @@ func (c Connection) GetNodeData(path, file string) []byte {
 func (c Connection) SendResponse(r *Response) {
 	log.Println("Calling NodeRPC.SendResponse")
 	var reply int
-	log.Println(r)
 	err := c.cli.Call("NodeRPC.SendResponse", r, &reply)
 	if err != nil {
-		log.Fatal("client: monsti.SendResponse error:", err)
+		log.Fatal("client: RPC SendResponse error:", err)
 	}
 }
 

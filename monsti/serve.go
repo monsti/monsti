@@ -57,6 +57,9 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Request:      r})
 	log.Println("Sent ticket to node queue, wating to finish.")
 	res := <-c
+        if len(res.Redirect) > 0 {
+          http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
+        }
 	prinav := getNav("/", node.Path, h.Settings.Root)
 	var secnav []navLink = nil
 	if node.Path != "/" {
@@ -100,6 +103,7 @@ func main() {
 		Settings:   settings,
 		NodeQueues: make(map[string]chan ticket)}
         handler.AddNodeProcess("Document")
+        handler.AddNodeProcess("ContactForm")
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Statics))))
 	http.Handle("/site-static/", http.FileServer(http.Dir(

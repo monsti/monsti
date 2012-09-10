@@ -7,10 +7,10 @@ import (
 
 
 // FormValidator is a function which validates a string.
-type formValidator func(string) error
+type FormValidator func(string) error
 
 //  Required is a formValidator to check for non empty values.
-func required() formValidator {
+func Required() FormValidator {
 	return func(value string) error {
 		if len(value) == 0 {
 			return errors.New("Required.")
@@ -23,12 +23,12 @@ func required() formValidator {
 //
 // If field 'foo.bar' has an error err, then formErrors["foo.bar:error"] ==
 // err.
-type formErrors map[string]string
+type FormErrors map[string]string
 
 // check if the given field's value is valid.
 //
 // If it's not valid, add an error to the formErrors.
-func (f *formErrors) Check(field string, value string, validators ...formValidator) {
+func (f *FormErrors) Check(field string, value string, validators ...FormValidator) {
 	for _, validator := range validators {
 		if err := validator(value); err != nil {
 			(*f)[field+":error"] = err.Error()
@@ -37,11 +37,11 @@ func (f *formErrors) Check(field string, value string, validators ...formValidat
 }
 
 
-// TemplateErrors converts a schema.MultiError to a string map.
+// ToTemplateErrors converts a schema.MultiError to a string map.
 //
 // An error for the field Foo.Bar will be available under the key
 // Foo.Bar:error
-func toTemplateErrors(error schema.MultiError) map[string]string {
+func ToTemplateErrors(error schema.MultiError) map[string]string {
 	vs := make(map[string]string)
 	for field, msg := range error {
 		vs[field+":error"] = msg.Error()

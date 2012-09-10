@@ -8,13 +8,14 @@ import (
 type masterTmplEnv struct {
 	Node                     client.Node
 	PrimaryNav, SecondaryNav []navLink
+	HideSidebar              bool
 }
 
 func renderInMaster(r template.Renderer, content []byte, env *masterTmplEnv,
 	settings settings, contexts ...interface{}) string {
 	sidebarContent := getSidebar(env.Node.Path, settings.Root)
 	showSidebar := (len(env.SecondaryNav) > 0 || len(sidebarContent) > 0) &&
-		!env.Node.HideSidebar
+		!env.HideSidebar
 	belowHeader := getBelowHeader(env.Node.Path, settings.Root)
 	return r.Render("master.html", env, map[string]interface{}{
 		"ShowBelowHeader":  len(belowHeader) > 0,

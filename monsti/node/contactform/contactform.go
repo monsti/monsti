@@ -1,79 +1,72 @@
-package contactform
-
-/*
+package main
 
 import (
 	"code.google.com/p/gorilla/schema"
+	"datenkarussell.de/monsti/rpc/client"
+	"datenkarussell.de/monsti/template"
 	"fmt"
-	"net/http"
+	"log"
 )
 
-// ContactForm is a node including a body and a contact form.
-type contactForm struct {
-	Document
-}
-
-func (n contactForm) Render(data *contactFormData, submitted bool,
-	errors formErrors, renderer Renderer, settings Settings) string {
-	prinav := getNav("/", n.Path(), settings.Root)
-	env := masterTmplEnv{
-		Node:         n,
-		PrimaryNav:   prinav,
-		SecondaryNav: nil}
-	context := map[string]string{"body": n.Body}
-	if submitted {
-		context["submitted"] = "1"
-	}
-	return renderer.RenderInMaster("view/contactform.html",
-		&env, settings, context, errors, data)
-}
-
-func (n contactForm) Get(w http.ResponseWriter, r *http.Request,
-	renderer Renderer, settings Settings) {
-	_, submitted := r.URL.Query()["submitted"]
-	fmt.Fprint(w, n.Render(nil, submitted, nil, renderer, settings))
-}
-
+var renderer template.Renderer
+var schemaDecoder *schema.Decoder
 
 type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func (data *contactFormData) Check() (e formErrors) {
-	e = make(formErrors)
-	e.Check("Name", data.Name, required())
-	e.Check("Email", data.Email, required())
-	e.Check("Subject", data.Subject, required())
-	e.Check("Message", data.Message, required())
+func render(c client.Connection, node client.Node, data *contactFormData, submitted bool, errors template.FormErrors) string {
+	body := c.GetNodeData(node.Path, "body.html")
+	context := map[string]string{"body": string(body)}
+	if submitted {
+		context["submitted"] = "1"
+	}
+	return renderer.Render("view/contactform.html",
+		context, errors, data)
+}
+
+func (data *contactFormData) Check() (e template.FormErrors) {
+	e = make(template.FormErrors)
+	e.Check("Name", data.Name, template.Required())
+	e.Check("Email", data.Email, template.Required())
+	e.Check("Subject", data.Subject, template.Required())
+	e.Check("Message", data.Message, template.Required())
 	return
 }
 
-func (n contactForm) Post(w http.ResponseWriter, r *http.Request,
-	renderer Renderer, settings Settings) {
+func get(req client.Request, res *client.Response, c client.Connection) {
+	_, submitted := req.Query["submitted"]
+	res.HideSidebar = true
+	fmt.Fprint(res, render(c, req.Node, nil, submitted, nil))
+}
+
+func post(req client.Request, res *client.Response, c client.Connection) {
 	var form contactFormData
-	if err := r.ParseForm(); err != nil {
-		panic("monsti: Could not parse form.")
-	}
-	error := schemaDecoder.Decode(&form, r.Form)
+	data := c.GetFormData()
+        log.Println(data)
+	error := schemaDecoder.Decode(&form, data)
 	switch e := error.(type) {
 	case nil:
 		fe := form.Check()
 		if len(fe) > 0 {
-			fmt.Println(fe)
-			fmt.Fprint(w, n.Render(&form, false, fe, renderer,
-				settings))
+			fmt.Fprint(res, render(c, req.Node, &form, false, fe))
 			return
 		}
-		sendMail(form.Email, []string{"foo@bar.com"}, "foobar",
-			[]byte("blabla"), settings)
-		http.Redirect(w, r, n.Path()+"/?submitted", http.StatusSeeOther)
+		/*sendMail(form.Email, []string{"foo@bar.com"}, "foobar",
+		[]byte("blabla"), settings)*/
+		res.Redirect = req.Node.Path + "/?submitted"
 	case schema.MultiError:
-		fmt.Fprint(w, n.Render(&form, false, toTemplateErrors(e), renderer,
-			settings))
+		fmt.Fprint(res, render(c, req.Node, &form, false,
+			template.ToTemplateErrors(e)))
 		return
 	default:
-		panic("monsti: Could not decode: " + e.Error())
+		panic("contactform: Could not decode: " + e.Error())
 	}
 }
 
-*/
+func main() {
+        schemaDecoder = schema.NewDecoder()
+	renderer.Root = "/home/cneumann/dev/monsti/templates/"
+	log.Println("Setting up contactform.")
+	client.NewConnection("contactform").Serve(get, post)
+}

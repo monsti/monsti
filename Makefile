@@ -1,6 +1,6 @@
 GOPATH=$(PWD)/go/
 
-all: go/ document monsti
+all: go/ contactform document monsti
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
@@ -18,6 +18,10 @@ monsti: go/
 .PHONY: document
 document: go/
 	GOPATH=$(GOPATH) go install datenkarussell.de/monsti/node/document
+
+.PHONY: contactform
+contactform: go/
+	GOPATH=$(GOPATH) go install datenkarussell.de/monsti/node/contactform
 
 .PHONY: clean
 clean:
