@@ -71,6 +71,13 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, content)
 }
 
+func (h *nodeHandler) AddNodeProcess(nodeType string) {
+        if _, ok := h.NodeQueues[nodeType]; !ok {
+          h.NodeQueues[nodeType] = make(chan ticket)
+        }
+	go listenForRPC(h.NodeQueues[nodeType], nodeType)
+}
+
 // lookupNode look ups a node at the given path.
 // If no such node exists, return nil.
 func lookupNode(root, path string) (client.Node, error) {
@@ -92,8 +99,7 @@ func main() {
 		Renderer:   template.Renderer{Root: settings.Templates},
 		Settings:   settings,
 		NodeQueues: make(map[string]chan ticket)}
-	handler.NodeQueues["Document"] = make(chan ticket)
-	go listenForRPC(handler.NodeQueues["Document"])
+        handler.AddNodeProcess("Document")
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Statics))))
 	http.Handle("/site-static/", http.FileServer(http.Dir(

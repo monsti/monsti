@@ -11,10 +11,8 @@ var renderer template.Renderer
 
 func get(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
-        log.Println(body)
 	content := renderer.Render("view/document.html",
 		map[string]string{"body": string(body)}, req.Node)
-        log.Println(content)
 	fmt.Fprint(res, content)
 }
 

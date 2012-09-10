@@ -4,12 +4,14 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"errors"
+	"io"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/rpc"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // ticket represents an incoming request to be processed by the workers.
@@ -28,7 +30,6 @@ type NodeRPC struct {
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
 	log.Println("RPC: GetNodeData")
-	log.Println("%v", args)
 	path := filepath.Join(m.Settings.Root, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	*reply = ret
@@ -37,18 +38,15 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 
 func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	log.Println("RPC: GetRequest")
-	log.Printf("RPC: GetRequest arg: %v \n", arg)
 	if m.Ticket != nil {
 		return errors.New("monsti: Still waiting for response to last request.")
 	}
 	m.Ticket = new(ticket)
 	log.Println("Wating for ticket to send to worker.")
 	(*m.Ticket) = <-m.Tickets
-	log.Printf("%v", m.Ticket)
 	*reply = client.Request{
 		Method: m.Ticket.Request.Method,
 		Node:   m.Ticket.Node}
-	log.Printf("Reply %v", reply)
 	log.Println("Got ticket, sent to worker.")
 	return nil
 }
@@ -60,21 +58,35 @@ func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
 	return nil
 }
 
-func listenForRPC(tickets chan ticket) {
-	ln, err := net.Listen("tcp", ":12345")
-	log.Println("Waiting for worker on :12345.")
+type pipeConnection struct {
+	io.ReadCloser
+	io.WriteCloser
+}
+
+func (pipe pipeConnection) Close() (err error) {
+	panic("monsti: Close() on pipe connection. RPC error?")
+}
+
+func listenForRPC(tickets chan ticket, nodeType string) {
+	cmd := exec.Command(strings.ToLower(nodeType))
+	inPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		panic("monsti: Could not setup stdout pipe of worker: " + err.Error())
+	}
+	outPipe, err := cmd.StdinPipe()
+	if err != nil {
+		panic("monsti: Could not setup stdout pipe of worker: " + err.Error())
+	}
+	pipe := pipeConnection{inPipe, outPipe}
+	log.Println("Starting worker for " + nodeType)
+	err = cmd.Start()
 	if err != nil {
 		panic("monsti: Could not setup connection to worker: " + err.Error())
-	}
-	conn, err := ln.Accept()
-	log.Println("Connection to worker established.")
-	if err != nil {
-		panic("monsti: RPC setup error: " + err.Error())
 	}
 	server := rpc.NewServer()
 	nodeRPC := NodeRPC{
 		Tickets: tickets}
 	server.Register(&nodeRPC)
 	log.Println("Setting up RPC.")
-	server.ServeConn(conn)
+	server.ServeConn(pipe)
 }

@@ -2,9 +2,10 @@ package client
 
 import (
 	"datenkarussell.de/monsti/rpc/types"
+	"io"
 	"log"
-	"net"
 	"net/rpc"
+	"os"
 )
 
 type Node struct {
@@ -37,16 +38,21 @@ type Connection struct {
 	cli *rpc.Client
 }
 
+type pipeConnection struct {
+	io.ReadCloser
+	io.WriteCloser
+}
+
+func (pipe pipeConnection) Close() (err error) {
+	panic("client: Close() on pipe connection. RPC error?")
+}
+
 // NewConnection establishes a new rpc connection and registers the content
 // type.
 func NewConnection(nodeType string) Connection {
-	log.Println("Connecting to NodeRPC service...")
-	conn, err := net.Dial("tcp", "localhost:12345")
-	if err != nil {
-		panic("client: Could not connect to monsti RPC: " + err.Error())
-	}
+	pipe := &pipeConnection{os.Stdin, os.Stdout}
 	log.Println("Setting up RPC...")
-	client := rpc.NewClient(conn)
+	client := rpc.NewClient(pipe)
 	log.Println("Connection established.")
 	return Connection{client}
 }
@@ -56,7 +62,7 @@ func (c Connection) GetRequest() Request {
 	log.Println("Calling NodeRPC.GetRequest")
 	var reply Request
 	err := c.cli.Call("NodeRPC.GetRequest", 42, &reply)
-        log.Printf("Reply %v", reply)
+	log.Printf("Reply %v", reply)
 	if err != nil {
 		log.Fatal("client: monsti.GetRequest error:", err)
 	}
@@ -72,7 +78,7 @@ func (c Connection) GetNodeData(path, file string) []byte {
 	if err != nil {
 		log.Fatal("client: monsti.GetNodeData error:", err)
 	}
-        log.Println("data:", string(reply))
+	log.Println("data:", string(reply))
 	return reply
 }
 
@@ -80,7 +86,7 @@ func (c Connection) GetNodeData(path, file string) []byte {
 func (c Connection) SendResponse(r *Response) {
 	log.Println("Calling NodeRPC.SendResponse")
 	var reply int
-        log.Println(r)
+	log.Println(r)
 	err := c.cli.Call("NodeRPC.SendResponse", r, &reply)
 	if err != nil {
 		log.Fatal("client: monsti.SendResponse error:", err)
