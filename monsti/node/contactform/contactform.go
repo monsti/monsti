@@ -5,6 +5,7 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"fmt"
+	"github.com/chrneumann/g5t"
 	"log"
 )
 
@@ -36,17 +37,17 @@ func (data *contactFormData) Check() (e template.FormErrors) {
 
 func get(req client.Request, res *client.Response, c client.Connection) {
 	_, submitted := req.Query["submitted"]
-        res.Node = &req.Node
+	res.Node = &req.Node
 	res.Node.HideSidebar = true
 	fmt.Fprint(res, render(c, req.Node, nil, submitted, nil))
 }
 
 func post(req client.Request, res *client.Response, c client.Connection) {
-        res.Node = &req.Node
+	res.Node = &req.Node
 	res.Node.HideSidebar = true
 	var form contactFormData
 	data := c.GetFormData()
-        log.Println(data)
+	log.Println(data)
 	error := schemaDecoder.Decode(&form, data)
 	switch e := error.(type) {
 	case nil:
@@ -68,7 +69,11 @@ func post(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-        schemaDecoder = schema.NewDecoder()
+	err := g5t.Setup("monsti", "/home/cneumann/dev/monsti/locale/", "de", g5t.GettextParser)
+	if err != nil {
+		panic("Could not setup gettext: " + err.Error())
+	}
+	schemaDecoder = schema.NewDecoder()
 	renderer.Root = "/home/cneumann/dev/monsti/templates/"
 	log.Println("Setting up contactform.")
 	client.NewConnection("contactform").Serve(get, post)

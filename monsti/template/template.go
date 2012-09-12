@@ -1,8 +1,8 @@
 package template
 
 import (
+	"github.com/chrneumann/g5t"
 	"github.com/drbawb/mustache"
-	//	"github.com/hoisie/mustache"
 	"path/filepath"
 )
 
@@ -12,8 +12,8 @@ type Renderer struct {
 	Root string
 }
 
-func getText(foo string) string {
-  return "yay!"
+func getText(msg string) string {
+	return g5t.String(msg)
 }
 
 // Render the named template with given context. 

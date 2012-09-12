@@ -1,6 +1,6 @@
 GOPATH=$(PWD)/go/
 
-all: go/ contactform document monsti locales
+all: go/ contactform document monsti
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
@@ -9,15 +9,16 @@ go/:
 	ln -s -t go/src/datenkarussell.de/ ../../../monsti/
 	GOPATH=$(GOPATH) go get github.com/drbawb/mustache
 #	GOPATH=$(GOPATH) go get github.com/hoisie/mustache
+	GOPATH=$(GOPATH) go get github.com/chrneumann/g5t
 	GOPATH=$(GOPATH) go get launchpad.net/goyaml
 	GOPATH=$(GOPATH) go get code.google.com/p/gorilla/schema
 
-.PHONY: locales
-locales:
+.PHONY: extract-messages
+extract-messages:
 	mkdir -p locale/
-	find templates/ -name "*.html"| xargs cat \
+	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
 	  | sed 's|{{#_}}\(.*\){{/_}}|gettext("\1");|g' \
-	  | xgettext -d monsti -L C -p locale/ -
+	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
 
 .PHONY: monsti
 monsti: go/

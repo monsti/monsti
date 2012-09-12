@@ -1,0 +1,42 @@
+# German translations for PACKAGE package.
+# Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Christian Neumann <cneumann@datenkarussell.de>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-09-12 15:10+0200\n"
+"PO-Revision-Date: 2012-09-12 14:54+0200\n"
+"Last-Translator: Christian Neumann <cneumann@datenkarussell.de>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: Standardeingabe:18
+msgid "Name"
+msgstr "Name"
+
+#: Standardeingabe:23
+msgid "Email"
+msgstr "E-Mail"
+
+#: Standardeingabe:28
+msgid "Subject"
+msgstr "Betreff"
+
+#: Standardeingabe:33
+msgid "Message"
+msgstr "Nachricht"
+
+#: Standardeingabe:39
+msgid "Submit"
+msgstr "Senden"
+
+#: Standardeingabe:817
+msgid "Required."
+msgstr "Benötigte Angabe."

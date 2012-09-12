@@ -2,9 +2,11 @@ package template
 
 import (
 	"code.google.com/p/gorilla/schema"
+	"github.com/chrneumann/g5t"
 	"errors"
 )
 
+var G func(string) string = g5t.String
 
 // FormValidator is a function which validates a string.
 type FormValidator func(string) error
@@ -13,7 +15,7 @@ type FormValidator func(string) error
 func Required() FormValidator {
 	return func(value string) error {
 		if len(value) == 0 {
-			return errors.New("Required.")
+			return errors.New(G("Required."))
 		}
 		return nil
 	}
