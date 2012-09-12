@@ -15,6 +15,8 @@ type Node struct {
 	Type        string
 	Title       string
 	Description string
+        // If true, hide the sidebar in the root template.
+        HideSidebar bool
 }
 
 // A request to be processed by a worker.
@@ -31,10 +33,13 @@ type Request struct {
 type Response struct {
         // The html content to be embedded in the root template.
 	Body []byte
-        // If true, hide the sidebar in the root template.
-        HideSidebar bool
         // If set, redirect to this target using error 303 'see other'.
         Redirect string
+        // The node as received by GetRequest, possibly with some fields
+        // updated (e.g. modified title).
+        //
+        // If nil, the original node data is used.
+        Node *Node
 }
 
 // Write appends the given bytes to the body of the response.

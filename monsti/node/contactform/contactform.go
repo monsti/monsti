@@ -36,11 +36,14 @@ func (data *contactFormData) Check() (e template.FormErrors) {
 
 func get(req client.Request, res *client.Response, c client.Connection) {
 	_, submitted := req.Query["submitted"]
-	res.HideSidebar = true
+        res.Node = &req.Node
+	res.Node.HideSidebar = true
 	fmt.Fprint(res, render(c, req.Node, nil, submitted, nil))
 }
 
 func post(req client.Request, res *client.Response, c client.Connection) {
+        res.Node = &req.Node
+	res.Node.HideSidebar = true
 	var form contactFormData
 	data := c.GetFormData()
         log.Println(data)
