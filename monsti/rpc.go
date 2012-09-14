@@ -68,7 +68,7 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 	log.Println("RPC: SendMail")
 	auth := smtp.PlainAuth("", m.Settings.Mail.Username,
-		m.Settings.Mail.Password, m.Settings.Mail.Host)
+		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 	if err := smtp.SendMail(m.Settings.Mail.Host, auth,
 		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
 		panic("monsti: Could not send email: " + err.Error())
