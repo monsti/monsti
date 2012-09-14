@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/gorilla/schema"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
+	"github.com/chrneumann/mimemail"
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"log"
@@ -56,8 +57,11 @@ func post(req client.Request, res *client.Response, c client.Connection) {
 			fmt.Fprint(res, render(c, req.Node, &form, false, fe))
 			return
 		}
-		/*sendMail(form.Email, []string{"foo@bar.com"}, "foobar",
-		[]byte("blabla"), settings)*/
+		c.SendMail(mimemail.Mail{
+			From: mimemail.Address{form.Name, form.Email},
+			To: []mimemail.Address{mimemail.Address{Email: "test@example.com"}},
+			Subject: form.Subject,
+			Body: []byte(form.Message)})
 		res.Redirect = req.Node.Path + "/?submitted"
 	case schema.MultiError:
 		fmt.Fprint(res, render(c, req.Node, &form, false,

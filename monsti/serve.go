@@ -83,7 +83,7 @@ func (h *nodeHandler) AddNodeProcess(nodeType string) {
 	if _, ok := h.NodeQueues[nodeType]; !ok {
 		h.NodeQueues[nodeType] = make(chan ticket)
 	}
-	go listenForRPC(h.NodeQueues[nodeType], nodeType)
+	go listenForRPC(h.Settings, h.NodeQueues[nodeType], nodeType)
 }
 
 // lookupNode look ups a node at the given path.

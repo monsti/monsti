@@ -8,12 +8,11 @@
 package main
 
 import (
-        "code.google.com/p/gorilla/schema"
+	"code.google.com/p/gorilla/schema"
 	"net/smtp"
 	"os"
 	"path/filepath"
 )
-
 
 var schemaDecoder = schema.NewDecoder()
 
@@ -43,18 +42,11 @@ func getSettings() settings {
 		panic(err)
 	}
 	settings := settings{
-                MailServer:  "localhost:12345",
+		MailServer:  "localhost:12345",
 		MailAuth:    smtp.PlainAuth("", "joe", "secret!", "host"),
 		Root:        wd,
 		Statics:     filepath.Join(filepath.Dir(wd), "static"),
 		SiteStatics: filepath.Join(filepath.Dir(wd), "site-static"),
 		Templates:   filepath.Join(filepath.Dir(wd), "templates")}
 	return settings
-}
-
-func sendMail(from string, to []string, subject string, message []byte, settings settings) {
-	if err := smtp.SendMail(settings.MailServer, settings.MailAuth, from, to,
-		message); err != nil {
-		panic("monsti: Could not send email: " + err.Error())
-	}
 }

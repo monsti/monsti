@@ -4,11 +4,13 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"errors"
+	"github.com/chrneumann/mimemail"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/rpc"
+	"net/smtp"
 	"net/url"
 	"os/exec"
 	"path/filepath"
@@ -63,6 +65,15 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	return nil
 }
 
+func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
+	log.Println("RPC: SendMail")
+	if err := smtp.SendMail(m.Settings.MailServer, m.Settings.MailAuth,
+		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
+		panic("monsti: Could not send email: " + err.Error())
+	}
+	return nil
+}
+
 func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
 	log.Println("RPC: SendResponse")
 	m.Ticket.ResponseChan <- res
@@ -89,7 +100,7 @@ func (w workerLog) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func listenForRPC(tickets chan ticket, nodeType string) {
+func listenForRPC(settings settings, tickets chan ticket, nodeType string) {
 	cmd := exec.Command(strings.ToLower(nodeType))
 	inPipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -108,7 +119,8 @@ func listenForRPC(tickets chan ticket, nodeType string) {
 	}
 	server := rpc.NewServer()
 	nodeRPC := NodeRPC{
-		Tickets: tickets}
+		Settings: settings,
+		Tickets:  tickets}
 	server.Register(&nodeRPC)
 	log.Println("Setting up RPC.")
 	server.ServeConn(pipe)

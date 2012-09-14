@@ -10,6 +10,7 @@ go/:
 	GOPATH=$(GOPATH) go get github.com/drbawb/mustache
 #	GOPATH=$(GOPATH) go get github.com/hoisie/mustache
 	GOPATH=$(GOPATH) go get github.com/chrneumann/g5t
+	GOPATH=$(GOPATH) go get github.com/chrneumann/mimemail
 	GOPATH=$(GOPATH) go get launchpad.net/goyaml
 	GOPATH=$(GOPATH) go get code.google.com/p/gorilla/schema
 

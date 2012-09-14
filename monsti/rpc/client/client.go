@@ -2,44 +2,45 @@ package client
 
 import (
 	"datenkarussell.de/monsti/rpc/types"
+	"github.com/chrneumann/mimemail"
 	"io"
 	"log"
 	"net/rpc"
-        "net/url"
+	"net/url"
 	"os"
 )
 
 type Node struct {
-	Path        string
-        // Content type of the node.
+	Path string
+	// Content type of the node.
 	Type        string
 	Title       string
 	Description string
-        // If true, hide the sidebar in the root template.
-        HideSidebar bool
+	// If true, hide the sidebar in the root template.
+	HideSidebar bool
 }
 
 // A request to be processed by a worker.
 type Request struct {
-        // The requested node.
-	Node   Node
-        // The query values of the request URL.
-        Query  url.Values
-        // Method of the request (GET,POST,...).
+	// The requested node.
+	Node Node
+	// The query values of the request URL.
+	Query url.Values
+	// Method of the request (GET,POST,...).
 	Method string
 }
 
 // Response to a node request.
 type Response struct {
-        // The html content to be embedded in the root template.
+	// The html content to be embedded in the root template.
 	Body []byte
-        // If set, redirect to this target using error 303 'see other'.
-        Redirect string
-        // The node as received by GetRequest, possibly with some fields
-        // updated (e.g. modified title).
-        //
-        // If nil, the original node data is used.
-        Node *Node
+	// If set, redirect to this target using error 303 'see other'.
+	Redirect string
+	// The node as received by GetRequest, possibly with some fields
+	// updated (e.g. modified title).
+	//
+	// If nil, the original node data is used.
+	Node *Node
 }
 
 // Write appends the given bytes to the body of the response.
@@ -108,6 +109,16 @@ func (c Connection) GetNodeData(path, file string) []byte {
 		log.Fatal("client: RPC GetNodeData error:", err)
 	}
 	return reply
+}
+
+// Send given Mail.
+func (c Connection) SendMail(m mimemail.Mail) {
+	log.Println("Calling NodeRPC.SendMail")
+	var reply int
+	err := c.cli.Call("NodeRPC.SendMail", m, &reply)
+	if err != nil {
+		log.Fatal("client: RPC SendMail error:", err)
+	}
 }
 
 // SendResponse sends the repsonse of an earlier request.
