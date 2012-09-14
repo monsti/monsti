@@ -9,8 +9,8 @@ package main
 
 import (
 	"code.google.com/p/gorilla/schema"
-	"net/smtp"
-	"os"
+	"io/ioutil"
+	"launchpad.net/goyaml"
 	"path/filepath"
 )
 
@@ -18,9 +18,9 @@ var schemaDecoder = schema.NewDecoder()
 
 // Settings for the application and the site.
 type settings struct {
-	MailAuth smtp.Auth
-
-	MailServer string
+	Mail struct {
+		Host, Username, Password string
+	}
 
 	// Path to the data directory.
 	Root string
@@ -35,18 +35,15 @@ type settings struct {
 	Templates string
 }
 
-// GetSettings returns application and site settings.
-func getSettings() settings {
-	wd, err := os.Getwd()
+// GetSettings loads application and site settings from given configuration
+// directory.
+func getSettings(path string) settings {
+	path = filepath.Join(path, "monsti.yaml")
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		panic("Could not load configuration: " + err.Error())
 	}
-	settings := settings{
-		MailServer:  "localhost:12345",
-		MailAuth:    smtp.PlainAuth("", "joe", "secret!", "host"),
-		Root:        wd,
-		Statics:     filepath.Join(filepath.Dir(wd), "static"),
-		SiteStatics: filepath.Join(filepath.Dir(wd), "site-static"),
-		Templates:   filepath.Join(filepath.Dir(wd), "templates")}
-	return settings
+	var s settings
+	goyaml.Unmarshal(content, &s)
+	return s
 }

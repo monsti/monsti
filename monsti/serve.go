@@ -7,11 +7,13 @@ import (
 	"bytes"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime/debug"
 )
@@ -102,7 +104,16 @@ func lookupNode(root, path string) (client.Node, error) {
 
 func main() {
 	log.SetPrefix("monsti ")
-	settings := getSettings()
+	flag.Parse()
+	cfgPath := flag.Arg(0)
+	if !filepath.IsAbs(cfgPath) {
+		wd, err := os.Getwd()
+		if err != nil {
+			panic("Could not get working directory: " + err.Error())
+		}
+		cfgPath = filepath.Join(wd, cfgPath)
+	}
+	settings := getSettings(cfgPath)
 	handler := nodeHandler{
 		Renderer:   template.Renderer{Root: settings.Templates},
 		Settings:   settings,
