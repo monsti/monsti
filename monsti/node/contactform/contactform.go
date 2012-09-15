@@ -4,14 +4,27 @@ import (
 	"code.google.com/p/gorilla/schema"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
+	"datenkarussell.de/monsti/util"
+	"flag"
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"github.com/chrneumann/mimemail"
 	"log"
 )
 
+type cfsettings struct {
+	// Absolute paths to used directories.
+	Directories struct {
+		// HTML Templates
+		Templates string
+		// Locales, i.e. the gettext machine objects (.mo)
+		Locales string
+	}
+}
+
 var renderer template.Renderer
 var schemaDecoder *schema.Decoder
+var settings cfsettings
 
 type contactFormData struct {
 	Name, Email, Subject, Message string
@@ -72,12 +85,19 @@ func post(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-	err := g5t.Setup("monsti", "/home/cneumann/dev/monsti/locale/", "de", g5t.GettextParser)
+	log.SetPrefix("contactform ")
+	flag.Parse()
+	cfgPath := util.GetConfigPath("contactform", flag.Arg(0))
+	err := util.ParseYAML(cfgPath, &settings)
+	if err != nil {
+		panic("Could not load contactform configuration file: " + err.Error())
+	}
+	err = g5t.Setup("monsti", settings.Directories.Locales, "de", g5t.GettextParser)
 	if err != nil {
 		panic("Could not setup gettext: " + err.Error())
 	}
 	schemaDecoder = schema.NewDecoder()
-	renderer.Root = "/home/cneumann/dev/monsti/templates/"
+	renderer.Root = settings.Directories.Templates
 	log.Println("Setting up contactform.")
 	client.NewConnection("contactform").Serve(get, post)
 }

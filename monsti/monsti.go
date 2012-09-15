@@ -9,9 +9,6 @@ package main
 
 import (
 	"code.google.com/p/gorilla/schema"
-	"io/ioutil"
-	"launchpad.net/goyaml"
-	"path/filepath"
 )
 
 var schemaDecoder = schema.NewDecoder()
@@ -26,6 +23,8 @@ type settings struct {
 
 	// Absolute paths to used directories.
 	Directories struct {
+		// Config files
+		Config string
 		// Site content
 		Data string
 		// Monsti's static files
@@ -50,17 +49,4 @@ type settings struct {
 
 	// List of node types to be activated.
 	NodeTypes []string
-}
-
-// GetSettings loads application and site settings from given configuration
-// directory.
-func getSettings(path string) settings {
-	path = filepath.Join(path, "monsti.yaml")
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic("Could not load configuration: " + err.Error())
-	}
-	var s settings
-	goyaml.Unmarshal(content, &s)
-	return s
 }

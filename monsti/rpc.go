@@ -110,7 +110,7 @@ func (w workerLog) Write(p []byte) (int, error) {
 }
 
 func listenForRPC(settings settings, tickets chan ticket, nodeType string) {
-	cmd := exec.Command(strings.ToLower(nodeType))
+	cmd := exec.Command(strings.ToLower(nodeType), settings.Directories.Config)
 	inPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		panic("monsti: Could not setup stdout pipe of worker: " + err.Error())
