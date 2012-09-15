@@ -67,6 +67,13 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 	log.Println("RPC: SendMail")
+	owner := mimemail.Address{m.Settings.Owner.Name, m.Settings.Owner.Email}
+	if len(mail.From.Email) == 0 {
+		mail.From = owner
+	}
+	if mail.To == nil {
+		mail.To = []mimemail.Address{owner}
+	}
 	auth := smtp.PlainAuth("", m.Settings.Mail.Username,
 		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 	if err := smtp.SendMail(m.Settings.Mail.Host, auth,

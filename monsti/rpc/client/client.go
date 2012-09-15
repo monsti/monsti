@@ -112,6 +112,9 @@ func (c Connection) GetNodeData(path, file string) []byte {
 }
 
 // Send given Mail.
+//
+// An empty From or To field will be filled with the site owner's name and
+// address.
 func (c Connection) SendMail(m mimemail.Mail) {
 	log.Println("Calling NodeRPC.SendMail")
 	var reply int

@@ -21,6 +21,7 @@ func renderInMaster(r template.Renderer, content []byte, env *masterTmplEnv,
 		"BelowHeader":      belowHeader,
 		"Footer":           getFooter(settings.Root),
 		"Sidebar":          sidebarContent,
+		"SiteTitle":        settings.Title,
 		"Content":          string(content),
 		"ShowSecondaryNav": len(env.SecondaryNav) > 0,
 		"ShowSidebar":      showSidebar})

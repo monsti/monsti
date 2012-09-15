@@ -33,6 +33,16 @@ type settings struct {
 
 	// Path to the template directory.
 	Templates string
+
+	// Site title
+	Title string
+
+	// Name and email address of site owner.
+	//
+	// The owner's address is used as recipient of contact form submissions.
+	Owner struct {
+		Name, Email string
+	}
 }
 
 // GetSettings loads application and site settings from given configuration
