@@ -47,6 +47,9 @@ type settings struct {
 	Owner struct {
 		Name, Email string
 	}
+
+	// List of node types to be activated.
+	NodeTypes []string
 }
 
 // GetSettings loads application and site settings from given configuration

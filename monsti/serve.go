@@ -120,8 +120,9 @@ func main() {
 		Renderer:   template.Renderer{Root: settings.Directories.Templates},
 		Settings:   settings,
 		NodeQueues: make(map[string]chan ticket)}
-	handler.AddNodeProcess("Document")
-	handler.AddNodeProcess("ContactForm")
+	for _, ntype := range settings.NodeTypes {
+		handler.AddNodeProcess(ntype)
+	}
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Directories.Statics))))
 	http.Handle("/site-static/", http.FileServer(http.Dir(
