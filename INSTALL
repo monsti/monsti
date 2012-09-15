@@ -1,0 +1,34 @@
+Installation instructions
+=========================
+
+1) Install dependencies:
+
+- make
+- C compiler
+- Git and Bazaar (to fetch go packages)
+- Go compiler and tools
+
+2) Build:
+
+$ make
+
+To run tests:
+
+$ make tests
+
+To clean up:
+
+$ make clean
+
+3) Run:
+
+$ go/bin/monsti <configuration file>
+
+
+
+# Problems?
+
+Fill an issue at:
+https://github.com/chrneumann/monsti/issues
+
+Thanks and have fun!
