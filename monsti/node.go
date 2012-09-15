@@ -74,15 +74,28 @@ type navLink struct {
 //
 // The keys of the returned map are the link titles, the values are
 // the link targets.
-func getNav(node, active, root string) []navLink {
-	path := filepath.Join(root, node, "navigation.yaml")
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil
+//
+// If the node has no navigation defined (i.e. there exists no
+// navigation.yaml), a navigation is searched recursively for the parent node up
+// to the root.
+func getNav(path, active, root string) []navLink {
+	var content []byte
+	for {
+		file := filepath.Join(root, path, "navigation.yaml")
+		var err error
+		content, err = ioutil.ReadFile(file)
+		if err != nil {
+			if path == filepath.Dir(path) {
+				break
+			}
+			path = filepath.Dir(path)
+			continue
+		}
+		break
 	}
 	var navLinks []navLink
 	goyaml.Unmarshal(content, &navLinks)
-        for i, link := range navLinks {
+	for i, link := range navLinks {
 		if link.Target == active {
 			navLinks[i].Active = true
 			break
@@ -90,4 +103,3 @@ func getNav(node, active, root string) []navLink {
 	}
 	return navLinks
 }
-
