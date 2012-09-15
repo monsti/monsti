@@ -46,7 +46,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	log.Println(r.Method, r.URL.Path)
-	node, err := lookupNode(h.Settings.Root, r.URL.Path)
+	node, err := lookupNode(h.Settings.Directories.Data, r.URL.Path)
 	if err != nil {
 		log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
@@ -69,10 +69,10 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
 	}
 	prinav := getNav("/", "/"+strings.SplitN(node.Path[1:], "/", 2)[0],
-		h.Settings.Root)
+		h.Settings.Directories.Data)
 	var secnav []navLink = nil
 	if node.Path != "/" {
-		secnav = getNav(node.Path, node.Path, h.Settings.Root)
+		secnav = getNav(node.Path, node.Path, h.Settings.Directories.Data)
 	}
 	env := masterTmplEnv{
 		Node:         node,
@@ -117,15 +117,15 @@ func main() {
 	}
 	settings := getSettings(cfgPath)
 	handler := nodeHandler{
-		Renderer:   template.Renderer{Root: settings.Templates},
+		Renderer:   template.Renderer{Root: settings.Directories.Templates},
 		Settings:   settings,
 		NodeQueues: make(map[string]chan ticket)}
 	handler.AddNodeProcess("Document")
 	handler.AddNodeProcess("ContactForm")
 	http.Handle("/static/", http.FileServer(http.Dir(
-		filepath.Dir(settings.Statics))))
+		filepath.Dir(settings.Directories.Statics))))
 	http.Handle("/site-static/", http.FileServer(http.Dir(
-		filepath.Dir(settings.SiteStatics))))
+		filepath.Dir(settings.Directories.SiteStatics))))
 	http.Handle("/", &handler)
 	c := make(chan int)
 	go func() {

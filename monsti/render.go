@@ -12,14 +12,14 @@ type masterTmplEnv struct {
 
 func renderInMaster(r template.Renderer, content []byte, env *masterTmplEnv,
 	settings settings, contexts ...interface{}) string {
-	sidebarContent := getSidebar(env.Node.Path, settings.Root)
+	sidebarContent := getSidebar(env.Node.Path, settings.Directories.Data)
 	showSidebar := (len(env.SecondaryNav) > 0 || len(sidebarContent) > 0) &&
 		!env.Node.HideSidebar
-	belowHeader := getBelowHeader(env.Node.Path, settings.Root)
+	belowHeader := getBelowHeader(env.Node.Path, settings.Directories.Data)
 	return r.Render("master.html", env, map[string]interface{}{
 		"ShowBelowHeader":  len(belowHeader) > 0,
 		"BelowHeader":      belowHeader,
-		"Footer":           getFooter(settings.Root),
+		"Footer":           getFooter(settings.Directories.Data),
 		"Sidebar":          sidebarContent,
 		"SiteTitle":        settings.Title,
 		"Content":          string(content),

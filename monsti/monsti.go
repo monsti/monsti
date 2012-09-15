@@ -18,21 +18,25 @@ var schemaDecoder = schema.NewDecoder()
 
 // Settings for the application and the site.
 type settings struct {
+	// Settings for sending mail (outgoing SMTP).
 	Mail struct {
+		// Host may be specified as address:port
 		Host, Username, Password string
 	}
 
-	// Path to the data directory.
-	Root string
-
-	// Path to the static files.
-	Statics string
-
-	// Path to the site specific static files.
-	SiteStatics string
-
-	// Path to the template directory.
-	Templates string
+	// Absolute paths to used directories.
+	Directories struct {
+		// Site content
+		Data string
+		// Monsti's static files
+		Statics string
+		// Site specific static files
+		SiteStatics string
+		// HTML Templates
+		Templates string
+		// Locales, i.e. the gettext machine objects (.mo)
+		Locales string
+	}
 
 	// Site title
 	Title string

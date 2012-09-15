@@ -33,7 +33,7 @@ type NodeRPC struct {
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
 	log.Println("RPC: GetNodeData")
-	path := filepath.Join(m.Settings.Root, args.Path[1:], args.File)
+	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	*reply = ret
 	return err
