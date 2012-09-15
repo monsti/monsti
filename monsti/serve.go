@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"strings"
 )
 
 type nodeHandler struct {
@@ -67,7 +68,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(res.Redirect) > 0 {
 		http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
 	}
-	prinav := getNav("/", node.Path, h.Settings.Root)
+	prinav := getNav("/", "/"+strings.SplitN(node.Path[1:], "/", 2)[0],
+		h.Settings.Root)
 	var secnav []navLink = nil
 	if node.Path != "/" {
 		secnav = getNav(node.Path, node.Path, h.Settings.Root)
