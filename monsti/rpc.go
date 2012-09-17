@@ -4,6 +4,7 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"errors"
+	"fmt"
 	"github.com/chrneumann/mimemail"
 	"io"
 	"io/ioutil"
@@ -19,12 +20,15 @@ import (
 
 // ticket represents an incoming request to be processed by the workers.
 type ticket struct {
-	// The request handlers waits until some value gets over this channel.
-	Node         client.Node
-	Request      *http.Request
+	Node    client.Node
+	Request *http.Request
+	// The request handler waits until the response gets over this channel.
 	ResponseChan chan client.Response
 }
 
+// NodeRPC provides RPC methods for workers.
+//
+// See monsti/rpc/client for more documentation on the metods.
 type NodeRPC struct {
 	Settings settings
 	Ticket   *ticket
@@ -78,7 +82,8 @@ func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 	if err := smtp.SendMail(m.Settings.Mail.Host, auth,
 		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
-		panic("monsti: Could not send email: " + err.Error())
+		log.Println("monsti: Could not send email: " + err.Error())
+		return fmt.Errorf("Could not send email.")
 	}
 	return nil
 }
@@ -90,6 +95,7 @@ func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
 	return nil
 }
 
+// pipeConnection is a bidirectional pipe to a worker process.
 type pipeConnection struct {
 	io.ReadCloser
 	io.WriteCloser
@@ -109,22 +115,27 @@ func (w workerLog) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func listenForRPC(settings settings, tickets chan ticket, nodeType string) {
+// listenForRPC starts a worker process and listens for RPC request on a pipe to
+// the process.
+func listenForRPC(settings settings, tickets chan ticket, nodeType string) error {
 	cmd := exec.Command(strings.ToLower(nodeType), settings.Directories.Config)
 	inPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		panic("monsti: Could not setup stdout pipe of worker: " + err.Error())
+		return fmt.Errorf("Could not setup stdout pipe of worker: %v",
+			err.Error())
 	}
 	outPipe, err := cmd.StdinPipe()
 	if err != nil {
-		panic("monsti: Could not setup stdin pipe of worker: " + err.Error())
+		return fmt.Errorf("Could not setup stdin pipe of worker: %v",
+			err.Error())
 	}
 	cmd.Stderr = workerLog{nodeType}
 	pipe := pipeConnection{inPipe, outPipe}
 	log.Println("Starting worker for " + nodeType)
 	err = cmd.Start()
 	if err != nil {
-		panic("monsti: Could not setup connection to worker: " + err.Error())
+		return fmt.Errorf("Could not setup connection to worker: %v",
+			err.Error())
 	}
 	server := rpc.NewServer()
 	nodeRPC := NodeRPC{
@@ -132,5 +143,6 @@ func listenForRPC(settings settings, tickets chan ticket, nodeType string) {
 		Tickets:  tickets}
 	server.Register(&nodeRPC)
 	log.Println("Setting up RPC.")
-	server.ServeConn(pipe)
+	go server.ServeConn(pipe)
+	return nil
 }
