@@ -1,6 +1,3 @@
-/*
- HTTPd for Brassica.
-*/
 package main
 
 import (
@@ -14,17 +11,21 @@ import (
 	"launchpad.net/goyaml"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
 )
 
+// nodeHandler is a net/http handler to process incoming HTTP requests.
 type nodeHandler struct {
 	Renderer   template.Renderer
 	Settings   settings
 	NodeQueues map[string]chan ticket
 }
 
+// QueueTicket adds a ticket to the ticket queue of the corresponding
+// node type (ticket.Node.Type).
 func (h *nodeHandler) QueueTicket(ticket ticket) {
 	nodeType := ticket.Node.Type
 	log.Println("Queuing ticket for node type " + nodeType)
@@ -34,6 +35,7 @@ func (h *nodeHandler) QueueTicket(ticket ticket) {
 	h.NodeQueues[nodeType] <- ticket
 }
 
+// ServeHTTP handles incoming HTTP requests.
 func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -59,7 +61,12 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Node:         node,
 		Request:      r})
 	log.Println("Sent ticket to node queue, wating to finish.")
-	res := <-c
+	h.processResponse(<-c, node, w, r)
+}
+
+// Process response received via RPC from a worker.
+func (h *nodeHandler) processResponse(res client.Response, node client.Node,
+	w http.ResponseWriter, r *http.Request) {
 	if res.Node != nil {
 		oldPath := node.Path
 		node = *res.Node
@@ -78,11 +85,11 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Node:         node,
 		PrimaryNav:   prinav,
 		SecondaryNav: secnav}
-	content := renderInMaster(h.Renderer, res.Body, &env,
-		h.Settings)
+	content := renderInMaster(h.Renderer, res.Body, &env, h.Settings)
 	fmt.Fprint(w, content)
 }
 
+// AddNodeProcess starts a worker process to handle the given node type.
 func (h *nodeHandler) AddNodeProcess(nodeType string) {
 	if _, ok := h.NodeQueues[nodeType]; !ok {
 		h.NodeQueues[nodeType] = make(chan ticket)
@@ -107,11 +114,16 @@ func lookupNode(root, path string) (client.Node, error) {
 func main() {
 	log.SetPrefix("monsti ")
 	flag.Parse()
+	if flag.NArg() != 1 {
+		fmt.Printf("Usage: %v <config_directory>\n", filepath.Base(os.Args[0]))
+		os.Exit(1)
+	}
 	cfgPath := util.GetConfigPath("monsti", flag.Arg(0))
 	var settings settings
 	err := util.ParseYAML(cfgPath, &settings)
 	if err != nil {
-		panic("Could not load main configuration file: " + err.Error())
+		fmt.Println("Could not load configuration file: " + err.Error())
+		os.Exit(1)
 	}
 	settings.Directories.Config = filepath.Dir(cfgPath)
 	handler := nodeHandler{
@@ -126,11 +138,6 @@ func main() {
 	http.Handle("/site-static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Directories.SiteStatics))))
 	http.Handle("/", &handler)
-	c := make(chan int)
-	go func() {
-		http.ListenAndServe(":8080", nil)
-		c <- 1
-	}()
 	log.Println("Listening for http connections on :8080")
-	<-c
+	http.ListenAndServe(":8080", nil)
 }
