@@ -3,36 +3,24 @@ package main
 import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
+	"datenkarussell.de/monsti/worker"
 	"errors"
 	"fmt"
 	"github.com/chrneumann/mimemail"
-	"io"
 	"io/ioutil"
 	"log"
-	"net/http"
-	"net/rpc"
 	"net/smtp"
 	"net/url"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
-
-// ticket represents an incoming request to be processed by the workers.
-type ticket struct {
-	Node    client.Node
-	Request *http.Request
-	// The request handler waits until the response gets over this channel.
-	ResponseChan chan client.Response
-}
 
 // NodeRPC provides RPC methods for workers.
 //
 // See monsti/rpc/client for more documentation on the metods.
 type NodeRPC struct {
+	Worker   *worker.Worker
 	Settings settings
-	Ticket   *ticket
-	Tickets  chan ticket
 }
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
@@ -45,26 +33,26 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 
 func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
 	log.Println("RPC: GetFormData")
-	err := m.Ticket.Request.ParseForm()
+	err := m.Worker.Ticket.Request.ParseForm()
 	if err != nil {
 		return err
 	}
-	*reply = m.Ticket.Request.Form
+	*reply = m.Worker.Ticket.Request.Form
 	return nil
 }
 
 func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	log.Println("RPC: GetRequest")
-	if m.Ticket != nil {
+	if m.Worker.Ticket != nil {
 		return errors.New("monsti: Still waiting for response to last request.")
 	}
-	m.Ticket = new(ticket)
+	m.Worker.Ticket = new(worker.Ticket)
 	log.Println("Wating for ticket to send to worker.")
-	(*m.Ticket) = <-m.Tickets
+	(*m.Worker.Ticket) = <-m.Worker.Tickets
 	*reply = client.Request{
-		Method: m.Ticket.Request.Method,
-		Node:   m.Ticket.Node,
-		Query:  m.Ticket.Request.URL.Query()}
+		Method: m.Worker.Ticket.Request.Method,
+		Node:   m.Worker.Ticket.Node,
+		Query:  m.Worker.Ticket.Request.URL.Query()}
 	log.Println("Got ticket, sent to worker.")
 	return nil
 }
@@ -90,59 +78,7 @@ func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 
 func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
 	log.Println("RPC: SendResponse")
-	m.Ticket.ResponseChan <- res
-	m.Ticket = nil
-	return nil
-}
-
-// pipeConnection is a bidirectional pipe to a worker process.
-type pipeConnection struct {
-	io.ReadCloser
-	io.WriteCloser
-}
-
-func (pipe pipeConnection) Close() (err error) {
-	panic("monsti: Close() on pipe connection. RPC error?")
-}
-
-// workerLog is a Writer used to log incoming worker errors.
-type workerLog struct {
-	Type string
-}
-
-func (w workerLog) Write(p []byte) (int, error) {
-	log.Printf("from %v: %v", w.Type, string(p))
-	return len(p), nil
-}
-
-// listenForRPC starts a worker process and listens for RPC request on a pipe to
-// the process.
-func listenForRPC(settings settings, tickets chan ticket, nodeType string) error {
-	cmd := exec.Command(strings.ToLower(nodeType), settings.Directories.Config)
-	inPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("Could not setup stdout pipe of worker: %v",
-			err.Error())
-	}
-	outPipe, err := cmd.StdinPipe()
-	if err != nil {
-		return fmt.Errorf("Could not setup stdin pipe of worker: %v",
-			err.Error())
-	}
-	cmd.Stderr = workerLog{nodeType}
-	pipe := pipeConnection{inPipe, outPipe}
-	log.Println("Starting worker for " + nodeType)
-	err = cmd.Start()
-	if err != nil {
-		return fmt.Errorf("Could not setup connection to worker: %v",
-			err.Error())
-	}
-	server := rpc.NewServer()
-	nodeRPC := NodeRPC{
-		Settings: settings,
-		Tickets:  tickets}
-	server.Register(&nodeRPC)
-	log.Println("Setting up RPC.")
-	go server.ServeConn(pipe)
+	m.Worker.Ticket.ResponseChan <- res
+	m.Worker.Ticket = nil
 	return nil
 }

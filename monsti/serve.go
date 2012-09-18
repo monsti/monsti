@@ -5,6 +5,7 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
+	"datenkarussell.de/monsti/worker"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -21,12 +22,12 @@ import (
 type nodeHandler struct {
 	Renderer   template.Renderer
 	Settings   settings
-	NodeQueues map[string]chan ticket
+	NodeQueues map[string]chan worker.Ticket
 }
 
 // QueueTicket adds a ticket to the ticket queue of the corresponding
 // node type (ticket.Node.Type).
-func (h *nodeHandler) QueueTicket(ticket ticket) {
+func (h *nodeHandler) QueueTicket(ticket worker.Ticket) {
 	nodeType := ticket.Node.Type
 	log.Println("Queuing ticket for node type " + nodeType)
 	if _, ok := h.NodeQueues[nodeType]; !ok {
@@ -56,7 +57,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Node: %v %q\n", node.Type, node.Title)
 	c := make(chan client.Response)
-	h.QueueTicket(ticket{
+	h.QueueTicket(worker.Ticket{
 		ResponseChan: c,
 		Node:         node,
 		Request:      r})
@@ -92,11 +93,17 @@ func (h *nodeHandler) processResponse(res client.Response, node client.Node,
 // AddNodeProcess starts a worker process to handle the given node type.
 func (h *nodeHandler) AddNodeProcess(nodeType string) {
 	if _, ok := h.NodeQueues[nodeType]; !ok {
-		h.NodeQueues[nodeType] = make(chan ticket)
+		h.NodeQueues[nodeType] = make(chan worker.Ticket)
 	}
-	err := listenForRPC(h.Settings, h.NodeQueues[nodeType], nodeType)
+	nodeRPC := NodeRPC{Settings: h.Settings}
+	worker, err := worker.NewWorker(nodeType, h.NodeQueues[nodeType],
+		&nodeRPC, h.Settings.Directories.Config)
 	if err != nil {
-		panic(err)
+		panic("Could not create worker: " + err.Error())
+	}
+	nodeRPC.Worker = worker
+	if err = worker.Run(); err != nil {
+		panic("Could not run worker: " + err.Error())
 	}
 }
 
@@ -132,7 +139,7 @@ func main() {
 	handler := nodeHandler{
 		Renderer:   template.Renderer{Root: settings.Directories.Templates},
 		Settings:   settings,
-		NodeQueues: make(map[string]chan ticket)}
+		NodeQueues: make(map[string]chan worker.Ticket)}
 	for _, ntype := range settings.NodeTypes {
 		handler.AddNodeProcess(ntype)
 	}
