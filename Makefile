@@ -14,12 +14,14 @@ go/:
 	GOPATH=$(GOPATH) go get launchpad.net/goyaml
 	GOPATH=$(GOPATH) go get code.google.com/p/gorilla/schema
 
+
 .PHONY: extract-messages
 extract-messages:
 	mkdir -p locale/
 	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
 	  | sed 's|{{#_}}\(.*\){{/_}}|gettext("\1");|g' \
 	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
+
 
 .PHONY: monsti
 monsti: go/
@@ -33,11 +35,22 @@ document: go/
 contactform: go/
 	GOPATH=$(GOPATH) go install datenkarussell.de/monsti/node/contactform
 
+
 .PHONY: clean
 clean:
 	rm go/ -Rf
 
-.PHONY: tests
-tests:
+
+tests: test-worker test-template test-contactform
+
+.PHONY: test-worker
+test-worker: go/
+	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/worker
+
+.PHONY: test-contactform
+test-contactform: go/
 	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/node/contactform
+
+.PHONY: test-template
+test-template: go/
 	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/template

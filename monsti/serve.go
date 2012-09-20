@@ -96,13 +96,13 @@ func (h *nodeHandler) AddNodeProcess(nodeType string) {
 		h.NodeQueues[nodeType] = make(chan worker.Ticket)
 	}
 	nodeRPC := NodeRPC{Settings: h.Settings}
-	worker, err := worker.NewWorker(nodeType, h.NodeQueues[nodeType],
+	worker := worker.NewWorker(nodeType, h.NodeQueues[nodeType],
 		&nodeRPC, h.Settings.Directories.Config)
-	if err != nil {
-		panic("Could not create worker: " + err.Error())
-	}
 	nodeRPC.Worker = worker
-	if err = worker.Run(); err != nil {
+	callback := func() {
+		h.AddNodeProcess(nodeType)
+	}
+	if err := worker.Run(callback); err != nil {
 		panic("Could not run worker: " + err.Error())
 	}
 }

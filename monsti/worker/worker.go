@@ -27,10 +27,12 @@ type Ticket struct {
 type pipeConnection struct {
 	io.ReadCloser
 	io.WriteCloser
+	Worker *Worker
 }
 
 func (pipe pipeConnection) Close() (err error) {
-	panic("monsti: Close() on pipe connection. RPC error?")
+	log.Printf("Pipe to worker closed.")
+	return nil
 }
 
 // workerLog is a Writer used to log incoming worker errors.
@@ -53,9 +55,9 @@ type Worker struct {
 	// The node type for which this worker processes requests. 
 	NodeType string
 	// Command of the worker process.
-	cmd exec.Cmd
+	cmd *exec.Cmd
 	// Pipe to the worker process.
-	pipe pipeConnection
+	pipe *pipeConnection
 	// Receiver for RPC.
 	rcvr interface{}
 }
@@ -67,31 +69,32 @@ type Worker struct {
 // directory. RPC methods are provided to the worker process by the given
 // receiver.
 func NewWorker(nodeType string, tickets chan Ticket, rcvr interface{},
-	configDir string) (w *Worker, err error) {
+	configDir string) (w *Worker) {
 	w = &Worker{
 		Tickets:  tickets,
 		NodeType: nodeType,
 		rcvr:     rcvr}
-	w.cmd = *exec.Command(strings.ToLower(nodeType), configDir)
+	w.cmd = exec.Command(strings.ToLower(nodeType), configDir)
+	return
+}
+
+// Run starts the worker process in a goroutine and calls the given function
+// after the process died.
+func (w *Worker) Run(callback func()) error {
 	inPipe, err := w.cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("Could not setup stdout pipe of worker: %v",
+		return fmt.Errorf("Could not setup stdout pipe of worker: %v",
 			err.Error())
 	}
 	outPipe, err := w.cmd.StdinPipe()
 	if err != nil {
-		return nil, fmt.Errorf("Could not setup stdin pipe of worker: %v",
+		return fmt.Errorf("Could not setup stdin pipe of worker: %v",
 			err.Error())
 	}
-	w.cmd.Stderr = workerLog{nodeType}
-	w.pipe = pipeConnection{inPipe, outPipe}
-	return
-}
-
-// Run starts the worker process in a goroutine.
-func (w *Worker) Run() error {
+	w.cmd.Stderr = workerLog{w.NodeType}
+	w.pipe = &pipeConnection{inPipe, outPipe, w}
 	log.Println("Starting worker for " + w.NodeType)
-	err := w.cmd.Start()
+	err = w.cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Could not setup connection to worker: %v",
 			err.Error())
@@ -103,5 +106,23 @@ func (w *Worker) Run() error {
 	}
 	log.Println("Setting up RPC.")
 	go server.ServeConn(w.pipe)
+	go func() {
+		w.cmd.Wait()
+		log.Println("Worker process died.")
+		w.postMortem()
+		callback()
+	}()
 	return nil
+}
+
+// postMortem gets called after the worker process died. It performs some
+// cleanup actions.
+func (w *Worker) postMortem() {
+	if w.cmd.ProcessState == nil || !w.cmd.ProcessState.Exited() {
+		panic("worker: postMortem() called on living worker")
+	}
+	if w.Ticket != nil {
+		close(w.Ticket.ResponseChan)
+	}
+	w.Ticket = nil
 }

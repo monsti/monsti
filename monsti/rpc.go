@@ -46,9 +46,9 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	if m.Worker.Ticket != nil {
 		return errors.New("monsti: Still waiting for response to last request.")
 	}
-	m.Worker.Ticket = new(worker.Ticket)
 	log.Println("Wating for ticket to send to worker.")
-	(*m.Worker.Ticket) = <-m.Worker.Tickets
+	ticket := <-m.Worker.Tickets
+	m.Worker.Ticket = &ticket
 	*reply = client.Request{
 		Method: m.Worker.Ticket.Request.Method,
 		Node:   m.Worker.Ticket.Node,
