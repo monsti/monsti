@@ -1,4 +1,5 @@
 GOPATH=$(PWD)/go/
+GO=GOPATH=$(GOPATH) go
 
 all: go/ contactform document monsti
 
@@ -7,12 +8,12 @@ go/:
 	mkdir -p go/bin
 	mkdir -p go/pkg
 	ln -s -t go/src/datenkarussell.de/ ../../../monsti/
-	GOPATH=$(GOPATH) go get github.com/drbawb/mustache
-#	GOPATH=$(GOPATH) go get github.com/hoisie/mustache
-	GOPATH=$(GOPATH) go get github.com/chrneumann/g5t
-	GOPATH=$(GOPATH) go get github.com/chrneumann/mimemail
-	GOPATH=$(GOPATH) go get launchpad.net/goyaml
-	GOPATH=$(GOPATH) go get code.google.com/p/gorilla/schema
+	$(GO) get github.com/drbawb/mustache
+#	$(GO) get github.com/hoisie/mustache
+	$(GO) get github.com/chrneumann/g5t
+	$(GO) get github.com/chrneumann/mimemail
+	$(GO) get launchpad.net/goyaml
+	$(GO) get code.google.com/p/gorilla/schema
 
 
 .PHONY: extract-messages
@@ -25,15 +26,15 @@ extract-messages:
 
 .PHONY: monsti
 monsti: go/
-	GOPATH=$(GOPATH) go install datenkarussell.de/monsti
+	$(GO) install datenkarussell.de/monsti
 
 .PHONY: document
 document: go/
-	GOPATH=$(GOPATH) go install datenkarussell.de/monsti/node/document
+	$(GO) install datenkarussell.de/monsti/node/document
 
 .PHONY: contactform
 contactform: go/
-	GOPATH=$(GOPATH) go install datenkarussell.de/monsti/node/contactform
+	$(GO) install datenkarussell.de/monsti/node/contactform
 
 
 .PHONY: clean
@@ -45,12 +46,12 @@ tests: test-worker test-template test-contactform
 
 .PHONY: test-worker
 test-worker: go/
-	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/worker
+	$(GO) test datenkarussell.de/monsti/worker
 
 .PHONY: test-contactform
 test-contactform: go/
-	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/node/contactform
+	$(GO) test datenkarussell.de/monsti/node/contactform
 
 .PHONY: test-template
 test-template: go/
-	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/template
+	$(GO) test datenkarussell.de/monsti/template
