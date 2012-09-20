@@ -39,5 +39,5 @@ clean:
 
 .PHONY: tests
 tests:
-	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/
+	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/node/contactform
 	GOPATH=$(GOPATH) go test datenkarussell.de/monsti/template
