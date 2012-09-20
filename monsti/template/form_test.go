@@ -1,10 +1,10 @@
-package main
+package template
 
 import "testing"
 
 func TestRequire(t *testing.T) {
 	invalid, valid := "", "foo"
-	validator := required()
+	validator := Required()
 	err := validator(valid)
 	if err != nil {
 		t.Errorf("require(%v) = %v, want %v", valid, err, nil)
@@ -16,7 +16,7 @@ func TestRequire(t *testing.T) {
 }
 
 func TestContactFormData(t *testing.T) {
-	data := contactFormData{
+	data := ContactFormData{
 		Name:    "Johannes Schmidt",
 		Email:   "joe@smithy.de",
 		Subject: "",
