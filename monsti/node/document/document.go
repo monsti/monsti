@@ -3,9 +3,19 @@ package main
 import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
+	"datenkarussell.de/monsti/util"
+	"flag"
 	"fmt"
-        "log"
+	"log"
 )
+
+type settings struct {
+	// Absolute paths to used directories.
+	Directories struct {
+		// HTML Templates
+		Templates string
+	}
+}
 
 var renderer template.Renderer
 
@@ -21,7 +31,15 @@ func post(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-        renderer.Root = "/home/cneumann/dev/monsti/templates/"
-        log.Println("Setting up document.")
-	client.NewConnection("contactform").Serve(get, post)
+	log.SetPrefix("document")
+	flag.Parse()
+	cfgPath := util.GetConfigPath("document", flag.Arg(0))
+	var settings settings
+	err := util.ParseYAML(cfgPath, &settings)
+	if err != nil {
+		panic("Could not load document configuration file: " + err.Error())
+	}
+	renderer.Root = settings.Directories.Templates
+	log.Println("Setting up document.")
+	client.NewConnection("document").Serve(get, post)
 }
