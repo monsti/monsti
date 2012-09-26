@@ -21,6 +21,8 @@ type Ticket struct {
 	// back to the client.
 	ResponseChan chan client.Response
 	Session      client.Session
+	// Action as specified in the URL (/path/to/node/@@some_action).
+	Action      string
 }
 
 // pipeConnection is a bidirectional pipe to a worker process used for RPC

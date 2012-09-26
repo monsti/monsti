@@ -50,9 +50,32 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
+	// Get action if specified in URL.
+	tokens := strings.Split(r.URL.Path, "/")
+	last := tokens[len(tokens)-1]
+	var action string
+	if len(last) > 2 && last[:2] == "@@" {
+		action = last[2:]
+	}
+	switch action {
+	default:
+		nodePath := r.URL.Path
+		if len(action) > 0 {
+			nodePath = r.URL.Path[:len(r.URL.Path)-(len(action)+3)]
+			if len(nodePath) == 0 {
+				nodePath = "/"
+			}
+		}
+		h.RequestNode(w, r, nodePath, action)
+	}
+}
+
+// RequestNode handles node requests.
+func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
+	nodePath string, action string) {
 	// Setup ticket and send to workers.
 	log.Println(r.Method, r.URL.Path)
-	node, err := lookupNode(h.Settings.Directories.Data, r.URL.Path)
+	node, err := lookupNode(h.Settings.Directories.Data, nodePath)
 	if err != nil {
 		log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
@@ -65,7 +88,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Node:         node,
 		Request:      r,
 		ResponseChan: c,
-		Session:      *clientSession})
+		Session:      *clientSession,
+		Action:       action})
 	log.Println("Sent ticket to node queue, wating to finish.")
 
 	// Process response received from a worker.
