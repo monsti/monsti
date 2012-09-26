@@ -3,7 +3,7 @@
  private and small business sites with mostly static pages and simple
  structure.
 
- monsti/monsti-serve contains a command to start a httpd.
+ This package implements the main application and http server.
 */
 package main
 
