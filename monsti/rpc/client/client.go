@@ -20,6 +20,21 @@ type Node struct {
 	HideSidebar bool
 }
 
+// User represents a registered user of the site.
+type User struct {
+	Login string
+	Name  string
+	Email string
+	// Hashed password.
+	Password string
+}
+
+// Session of an authenticated or anonymous user.
+type Session struct {
+	// Authenticaded user or nil
+	User *User
+}
+
 // A request to be processed by a worker.
 type Request struct {
 	// The requested node.
@@ -28,6 +43,8 @@ type Request struct {
 	Query url.Values
 	// Method of the request (GET,POST,...).
 	Method string
+	// User session
+	Session Session
 }
 
 // Response to a node request.

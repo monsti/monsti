@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/gorilla/sessions"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"datenkarussell.de/monsti/worker"
@@ -21,6 +22,7 @@ import (
 type NodeRPC struct {
 	Worker   *worker.Worker
 	Settings settings
+	Session  *sessions.Session
 }
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
@@ -49,10 +51,12 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 	log.Println("Wating for ticket to send to worker.")
 	ticket := <-m.Worker.Tickets
 	m.Worker.Ticket = &ticket
-	*reply = client.Request{
-		Method: m.Worker.Ticket.Request.Method,
-		Node:   m.Worker.Ticket.Node,
-		Query:  m.Worker.Ticket.Request.URL.Query()}
+	request := client.Request{
+		Method:  m.Worker.Ticket.Request.Method,
+		Node:    m.Worker.Ticket.Node,
+		Query:   m.Worker.Ticket.Request.URL.Query(),
+		Session: m.Worker.Ticket.Session}
+	*reply = request
 	log.Println("Got ticket, sent to worker.")
 	return nil
 }

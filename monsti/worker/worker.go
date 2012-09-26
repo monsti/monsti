@@ -20,6 +20,7 @@ type Ticket struct {
 	// ResponseChan is a channel over which the built respsonse can be send
 	// back to the client.
 	ResponseChan chan client.Response
+	Session      client.Session
 }
 
 // pipeConnection is a bidirectional pipe to a worker process used for RPC

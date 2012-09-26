@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"code.google.com/p/gorilla/sessions"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
@@ -48,6 +49,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.StatusInternalServerError)
 		}
 	}()
+
+	// Setup ticket and send to workers.
 	log.Println(r.Method, r.URL.Path)
 	node, err := lookupNode(h.Settings.Directories.Data, r.URL.Path)
 	if err != nil {
@@ -57,17 +60,16 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("Node: %v %q\n", node.Type, node.Title)
 	c := make(chan client.Response)
+	session, clientSession := getSession(r, h.Settings)
 	h.QueueTicket(worker.Ticket{
-		ResponseChan: c,
 		Node:         node,
-		Request:      r})
+		Request:      r,
+		ResponseChan: c,
+		Session:      *clientSession})
 	log.Println("Sent ticket to node queue, wating to finish.")
-	h.processResponse(<-c, node, w, r)
-}
 
-// Process response received via RPC from a worker.
-func (h *nodeHandler) processResponse(res client.Response, node client.Node,
-	w http.ResponseWriter, r *http.Request) {
+	// Process response received from a worker.
+	res := <-c
 	if res.Node != nil {
 		oldPath := node.Path
 		node = *res.Node
@@ -87,6 +89,10 @@ func (h *nodeHandler) processResponse(res client.Response, node client.Node,
 		PrimaryNav:   prinav,
 		SecondaryNav: secnav}
 	content := renderInMaster(h.Renderer, res.Body, &env, h.Settings)
+	err = session.Save(r, w)
+	if err != nil {
+		panic(err.Error())
+	}
 	fmt.Fprint(w, content)
 }
 
@@ -119,6 +125,40 @@ func lookupNode(root, path string) (client.Node, error) {
 	goyaml.Unmarshal(content, &node)
 	node.Path = path
 	return node, nil
+}
+
+// getSession returns a currently active or new session.
+func getSession(r *http.Request, settings settings) (session *sessions.Session,
+	cSession *client.Session) {
+	cSession = new(client.Session)
+	if len(settings.SessionAuthKey) == 0 {
+		panic(`Missing "SessionAuthKey" setting.`)
+	}
+	store := sessions.NewCookieStore([]byte(settings.SessionAuthKey))
+	session, _ = store.Get(r, "monsti-session")
+	fmt.Println(session)
+	loginData, ok := session.Values["login"]
+	if !ok {
+		return
+	}
+	login, ok := loginData.(string)
+	if !ok {
+		delete(session.Values, "login")
+		return
+	}
+	user, err := getUser(login, settings.Directories.Config)
+	if err != nil {
+		delete(session.Values, "login")
+		return
+	}
+	return session, &client.Session{User: user}
+}
+
+// getUser returns the user with the given login.
+func getUser(login, configDir string) (*client.User, error) {
+	return &client.User{
+		Login: login,
+		Name:  "Administrator"}, nil
 }
 
 func main() {

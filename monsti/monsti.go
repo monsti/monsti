@@ -20,7 +20,6 @@ type settings struct {
 		// Host may be specified as address:port
 		Host, Username, Password string
 	}
-
 	// Absolute paths to used directories.
 	Directories struct {
 		// Config files
@@ -36,17 +35,16 @@ type settings struct {
 		// Locales, i.e. the gettext machine objects (.mo)
 		Locales string
 	}
-
 	// Site title
 	Title string
-
 	// Name and email address of site owner.
 	//
 	// The owner's address is used as recipient of contact form submissions.
 	Owner struct {
 		Name, Email string
 	}
-
 	// List of node types to be activated.
 	NodeTypes []string
+	// Key to authenticate session cookies.
+	SessionAuthKey string
 }
