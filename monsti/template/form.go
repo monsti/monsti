@@ -2,9 +2,12 @@ package template
 
 import (
 	"code.google.com/p/gorilla/schema"
-	"github.com/chrneumann/g5t"
 	"errors"
+	"github.com/chrneumann/g5t"
+	"net/url"
 )
+
+var schemaDecoder = schema.NewDecoder()
 
 var G func(string) string = g5t.String
 
@@ -38,7 +41,6 @@ func (f *FormErrors) Check(field string, value string, validators ...FormValidat
 	}
 }
 
-
 // ToTemplateErrors converts a schema.MultiError to a string map.
 //
 // An error for the field Foo.Bar will be available under the key
@@ -51,3 +53,30 @@ func ToTemplateErrors(error schema.MultiError) map[string]string {
 	return vs
 }
 
+func toTemplateErrors(error schema.MultiError) map[string]string {
+	return ToTemplateErrors(error)
+}
+
+// FormData represents the structure and values of a form's values.
+type FormData interface {
+	// Check validates the form data.
+	Check() (e FormErrors)
+}
+
+// Validate feeds the form data with the given url values and returns validaton
+// errors.
+func Validate(in url.Values, out FormData) (FormErrors, error) {
+	error := schemaDecoder.Decode(out, in)
+	switch e := error.(type) {
+	case nil:
+		fe := out.Check()
+		if len(fe) > 0 {
+			return fe, nil
+		}
+	case schema.MultiError:
+		return toTemplateErrors(e), nil
+	default:
+		return nil, e
+	}
+	return nil, nil
+}

@@ -8,6 +8,7 @@ import (
 type masterTmplEnv struct {
 	Node                     client.Node
 	PrimaryNav, SecondaryNav []navLink
+	Session                  *client.Session
 }
 
 func renderInMaster(r template.Renderer, content []byte, env *masterTmplEnv,

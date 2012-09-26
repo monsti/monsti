@@ -57,22 +57,27 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(last) > 2 && last[:2] == "@@" {
 		action = last[2:]
 	}
-	switch action {
-	default:
-		nodePath := r.URL.Path
-		if len(action) > 0 {
-			nodePath = r.URL.Path[:len(r.URL.Path)-(len(action)+3)]
-			if len(nodePath) == 0 {
-				nodePath = "/"
-			}
+	nodePath := r.URL.Path
+	if len(action) > 0 {
+		nodePath = r.URL.Path[:len(r.URL.Path)-(len(action)+3)]
+		if len(nodePath) == 0 {
+			nodePath = "/"
 		}
-		h.RequestNode(w, r, nodePath, action)
+	}
+	session := getSession(r, h.Settings)
+	switch action {
+	case "login":
+		h.Login(w, r, nodePath, session)
+	case "logout":
+		h.Logout(w, r, nodePath, session)
+	default:
+		h.RequestNode(w, r, nodePath, action, session)
 	}
 }
 
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
-	nodePath string, action string) {
+	nodePath string, action string, session *sessions.Session) {
 	// Setup ticket and send to workers.
 	log.Println(r.Method, r.URL.Path)
 	node, err := lookupNode(h.Settings.Directories.Data, nodePath)
@@ -83,7 +88,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	}
 	log.Printf("Node: %v %q\n", node.Type, node.Title)
 	c := make(chan client.Response)
-	session, clientSession := getSession(r, h.Settings)
+	clientSession := getClientSession(session, h.Settings.Directories.Config)
 	h.QueueTicket(worker.Ticket{
 		Node:         node,
 		Request:      r,
@@ -109,9 +114,11 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		secnav = getNav(node.Path, node.Path, h.Settings.Directories.Data)
 	}
 	env := masterTmplEnv{
+		Session:      clientSession,
 		Node:         node,
 		PrimaryNav:   prinav,
 		SecondaryNav: secnav}
+	log.Println(clientSession)
 	content := renderInMaster(h.Renderer, res.Body, &env, h.Settings)
 	err = session.Save(r, w)
 	if err != nil {
@@ -149,40 +156,6 @@ func lookupNode(root, path string) (client.Node, error) {
 	goyaml.Unmarshal(content, &node)
 	node.Path = path
 	return node, nil
-}
-
-// getSession returns a currently active or new session.
-func getSession(r *http.Request, settings settings) (session *sessions.Session,
-	cSession *client.Session) {
-	cSession = new(client.Session)
-	if len(settings.SessionAuthKey) == 0 {
-		panic(`Missing "SessionAuthKey" setting.`)
-	}
-	store := sessions.NewCookieStore([]byte(settings.SessionAuthKey))
-	session, _ = store.Get(r, "monsti-session")
-	fmt.Println(session)
-	loginData, ok := session.Values["login"]
-	if !ok {
-		return
-	}
-	login, ok := loginData.(string)
-	if !ok {
-		delete(session.Values, "login")
-		return
-	}
-	user, err := getUser(login, settings.Directories.Config)
-	if err != nil {
-		delete(session.Values, "login")
-		return
-	}
-	return session, &client.Session{User: user}
-}
-
-// getUser returns the user with the given login.
-func getUser(login, configDir string) (*client.User, error) {
-	return &client.User{
-		Login: login,
-		Name:  "Administrator"}, nil
 }
 
 func main() {

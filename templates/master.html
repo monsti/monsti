@@ -14,6 +14,7 @@
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
   </head>
   <body>
+      {{#Session}}{{#User}}{{Login}} <a href="{{#Node}}{{Path}}{{/Node}}/@@logout">Logout</a>{{/User}}{{/Session}}
     <div id="top-wrap">
       <div id="header-wrap">
         <div id="header" class="container">

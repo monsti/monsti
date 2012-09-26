@@ -1,0 +1,20 @@
+<form class="form-horizontal" action="" method="POST" accept-charset="utf-8">
+    <fieldset>
+        <div class="control-group {{#Login:error}}error{{/Login:error}}">
+            <label class="control-label"
+                for="name">{{#_}}Login{{/_}}</label>
+            <div class="controls"><input id="name" type="text" name="Login"
+                value="{{Login}}"/><span class="help-block">{{:error}}{{Login:error}}</span></div>
+        </div>
+        <div class="control-group {{#Password:error}}error{{/Password:error}}">
+            <label class="control-label" for="email">{{#_}}Password{{/_}}</label>
+            <div class="controls"><input id="email" type="password" name="Password"
+                value="{{Password}}"/><span class="help-block">{{Password:error}}</span></div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">{{#_}}Submit{{/_}}</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
