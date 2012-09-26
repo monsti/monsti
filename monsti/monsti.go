@@ -7,12 +7,6 @@
 */
 package main
 
-import (
-	"code.google.com/p/gorilla/schema"
-)
-
-var schemaDecoder = schema.NewDecoder()
-
 // Settings for the application and the site.
 type settings struct {
 	// Settings for sending mail (outgoing SMTP).
