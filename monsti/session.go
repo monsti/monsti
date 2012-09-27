@@ -24,12 +24,8 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	nodePath string, session *sessions.Session) {
 	var data loginFormData
 	var errors template.FormErrors
-	context := make(map[string]interface{})
 	switch r.Method {
 	case "GET":
-		if _, submitted := r.URL.Query()["submitted"]; submitted {
-			context["submitted"] = 1
-		}
 	case "POST":
 		r.ParseForm()
 		var err error
@@ -52,7 +48,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Password = ""
-	body := h.Renderer.Render("actions/loginform.html", context, errors, data)
+	body := h.Renderer.Render("actions/loginform.html", errors, data)
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), new(masterTmplEnv),
 		h.Settings))
 }

@@ -41,20 +41,16 @@ func (f *FormErrors) Check(field string, value string, validators ...FormValidat
 	}
 }
 
-// ToTemplateErrors converts a schema.MultiError to a string map.
+// toTemplateErrors converts a schema.MultiError to a string map.
 //
 // An error for the field Foo.Bar will be available under the key
 // Foo.Bar:error
-func ToTemplateErrors(error schema.MultiError) map[string]string {
+func toTemplateErrors(error schema.MultiError) map[string]string {
 	vs := make(map[string]string)
 	for field, msg := range error {
 		vs[field+":error"] = msg.Error()
 	}
 	return vs
-}
-
-func toTemplateErrors(error schema.MultiError) map[string]string {
-	return ToTemplateErrors(error)
 }
 
 // FormData represents the structure and values of a form's values.

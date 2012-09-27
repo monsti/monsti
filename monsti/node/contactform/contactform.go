@@ -30,16 +30,6 @@ type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func render(c client.Connection, node client.Node, data *contactFormData, submitted bool, errors template.FormErrors) string {
-	body := c.GetNodeData(node.Path, "body.html")
-	context := map[string]string{"body": string(body)}
-	if submitted {
-		context["submitted"] = "1"
-	}
-	return renderer.Render("view/contactform.html",
-		context, errors, data)
-}
-
 func (data *contactFormData) Check() (e template.FormErrors) {
 	e = make(template.FormErrors)
 	e.Check("Name", data.Name, template.Required())
@@ -49,39 +39,38 @@ func (data *contactFormData) Check() (e template.FormErrors) {
 	return
 }
 
-func get(req client.Request, res *client.Response, c client.Connection) {
-	_, submitted := req.Query["submitted"]
-	res.Node = &req.Node
-	res.Node.HideSidebar = true
-	fmt.Fprint(res, render(c, req.Node, nil, submitted, nil))
-}
-
-func post(req client.Request, res *client.Response, c client.Connection) {
-	res.Node = &req.Node
-	res.Node.HideSidebar = true
-	var form contactFormData
-	data := c.GetFormData()
-	log.Println(data)
-	error := schemaDecoder.Decode(&form, data)
-	switch e := error.(type) {
-	case nil:
-		fe := form.Check()
-		if len(fe) > 0 {
-			fmt.Fprint(res, render(c, req.Node, &form, false, fe))
+func handle(req client.Request, res *client.Response, c client.Connection) {
+	var data contactFormData
+	var errors template.FormErrors
+	context := make(map[string]interface{})
+	switch req.Method {
+	case "GET":
+		if _, submitted := req.Query["submitted"]; submitted {
+			context["submitted"] = 1
+		}
+	case "POST":
+		var err error
+		errors, err = template.Validate(c.GetFormData(), &data)
+		if err != nil {
+			panic("Could not parse form data: " + err.Error())
+		}
+		if len(errors) == 0 {
+			c.SendMail(mimemail.Mail{
+				From:    mimemail.Address{data.Name, data.Email},
+				Subject: data.Subject,
+				Body:    []byte(data.Message)})
+			res.Redirect = req.Node.Path + "/?submitted"
 			return
 		}
-		c.SendMail(mimemail.Mail{
-			From:    mimemail.Address{form.Name, form.Email},
-			Subject: form.Subject,
-			Body:    []byte(form.Message)})
-		res.Redirect = req.Node.Path + "/?submitted"
-	case schema.MultiError:
-		fmt.Fprint(res, render(c, req.Node, &form, false,
-			template.ToTemplateErrors(e)))
-		return
 	default:
-		panic("contactform: Could not decode: " + e.Error())
+		panic("Request method not supported: " + req.Method)
 	}
+	res.Node = &req.Node
+	res.Node.HideSidebar = true
+	body := c.GetNodeData(req.Node.Path, "body.html")
+	context["body"] = string(body)
+	fmt.Fprint(res, renderer.Render("view/contactform.html",
+		context, errors, data))
 }
 
 func main() {
@@ -99,5 +88,5 @@ func main() {
 	schemaDecoder = schema.NewDecoder()
 	renderer.Root = settings.Directories.Templates
 	log.Println("Setting up contactform.")
-	client.NewConnection("contactform").Serve(get, post)
+	client.NewConnection("contactform").Serve(handle)
 }

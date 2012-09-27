@@ -157,20 +157,13 @@ type Handler func(Request, *Response, Connection)
 
 // Serve waits in a loop for incoming requests and processes them with the given
 // get or post handler.
-func (c Connection) Serve(get, post Handler) {
+func (c Connection) Serve(handle Handler) {
 	for {
 		log.Println("Requesting some work...")
 		req := c.GetRequest()
 		res := Response{}
 		log.Println("Got some work!")
-		switch req.Method {
-		case "GET":
-			get(req, &res, c)
-		case "POST":
-			post(req, &res, c)
-		default:
-			panic("client: Unknown method: " + req.Method)
-		}
+		handle(req, &res, c)
 		c.SendResponse(&res)
 		log.Println("Processed request.")
 	}

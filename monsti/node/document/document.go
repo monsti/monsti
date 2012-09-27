@@ -19,15 +19,11 @@ type settings struct {
 
 var renderer template.Renderer
 
-func get(req client.Request, res *client.Response, c client.Connection) {
+func handle(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	content := renderer.Render("view/document.html",
 		map[string]string{"body": string(body)}, req.Node)
 	fmt.Fprint(res, content)
-}
-
-func post(req client.Request, res *client.Response, c client.Connection) {
-	panic("document: Implementation missing.")
 }
 
 func main() {
@@ -41,5 +37,5 @@ func main() {
 	}
 	renderer.Root = settings.Directories.Templates
 	log.Println("Setting up document.")
-	client.NewConnection("document").Serve(get, post)
+	client.NewConnection("document").Serve(handle)
 }
