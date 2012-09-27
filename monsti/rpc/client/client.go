@@ -11,7 +11,7 @@ import (
 )
 
 type Node struct {
-	Path string
+	Path string "path,omitempty"
 	// Content type of the node.
 	Type        string
 	Title       string
@@ -45,6 +45,8 @@ type Request struct {
 	Method string
 	// User session
 	Session Session
+	// Action to perform (e.g. "edit").
+	Action string
 }
 
 // Response to a node request.
@@ -126,6 +128,17 @@ func (c Connection) GetNodeData(path, file string) []byte {
 		log.Fatal("client: RPC GetNodeData error:", err)
 	}
 	return reply
+}
+
+// WriteNodeData writes data for some node.
+func (c Connection) WriteNodeData(path, file, content string) error {
+	args := &types.WriteNodeDataArgs{path, file, content}
+	return c.cli.Call("NodeRPC.WriteNodeData", args, new(int))
+}
+
+// UpdateNode saves changes to given node.
+func (c Connection) UpdateNode(node Node) error {
+	return c.cli.Call("NodeRPC.UpdateNode", node, new(int))
 }
 
 // Send given Mail.

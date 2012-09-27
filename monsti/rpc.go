@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/chrneumann/mimemail"
 	"io/ioutil"
+	"launchpad.net/goyaml"
 	"log"
 	"net/smtp"
 	"net/url"
@@ -30,6 +31,14 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	*reply = ret
+	return err
+}
+
+func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
+	reply *int) error {
+	log.Println("RPC: WriteNodeData")
+	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
+	err := ioutil.WriteFile(path, []byte(args.Content), 0)
 	return err
 }
 
@@ -55,10 +64,24 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 		Method:  m.Worker.Ticket.Request.Method,
 		Node:    m.Worker.Ticket.Node,
 		Query:   m.Worker.Ticket.Request.URL.Query(),
-		Session: m.Worker.Ticket.Session}
+		Session: m.Worker.Ticket.Session,
+		Action:  m.Worker.Ticket.Action}
 	*reply = request
 	log.Println("Got ticket, sent to worker.")
 	return nil
+}
+
+func (m *NodeRPC) UpdateNode(node client.Node, reply *int) error {
+	log.Println("RPC: UpdateNode")
+	path := node.Path
+	node.Path = ""
+	content, err := goyaml.Marshal(&node)
+	if err != nil {
+		return err
+	}
+	node_path := filepath.Join(m.Settings.Directories.Data, path[1:],
+		"node.yaml")
+	return ioutil.WriteFile(node_path, content, 0)
 }
 
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {

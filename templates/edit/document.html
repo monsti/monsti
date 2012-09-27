@@ -1,0 +1,20 @@
+<form action="" method="POST" accept-charset="utf-8">
+    <fieldset>
+        <div class="control-group {{#Title:error}}error{{/Title:error}}">
+            <label class="control-label"
+                for="name">{{#_}}Title{{/_}}</label>
+            <div class="controls"><input id="name" type="text" name="Title"
+                value="{{Title}}"/><span class="help-block">{{:error}}{{Title:error}}</span></div>
+        </div>
+        <div class="control-group {{#Body:error}}error{{/Body:error}}">
+            <label class="control-label" for="email">{{#_}}Content{{/_}}</label>
+            <div class="controls"><textarea id="email" name="Body"
+                    />{{Body}}</textarea><span class="help-block">{{Body:error}}</span></div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">{{#_}}Submit{{/_}}</button>
+            </div>
+        </div>
+    </fieldset>
+</form>

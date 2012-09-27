@@ -150,7 +150,9 @@ func lookupNode(root, path string) (client.Node, error) {
 		return client.Node{}, err
 	}
 	var node client.Node
-	goyaml.Unmarshal(content, &node)
+	if err = goyaml.Unmarshal(content, &node); err != nil {
+		return client.Node{}, err
+	}
 	node.Path = path
 	return node, nil
 }
