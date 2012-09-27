@@ -1,7 +1,6 @@
 package main
 
 import (
-	"code.google.com/p/gorilla/schema"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
@@ -23,7 +22,6 @@ type cfsettings struct {
 }
 
 var renderer template.Renderer
-var schemaDecoder *schema.Decoder
 var settings cfsettings
 
 type contactFormData struct {
@@ -85,7 +83,6 @@ func main() {
 	if err != nil {
 		panic("Could not setup gettext: " + err.Error())
 	}
-	schemaDecoder = schema.NewDecoder()
 	renderer.Root = settings.Directories.Templates
 	log.Println("Setting up contactform.")
 	client.NewConnection("contactform").Serve(handle)
