@@ -14,7 +14,21 @@
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
   </head>
   <body>
-      {{#Session}}{{#User}}{{Login}} <a href="{{#Node}}{{Path}}{{/Node}}/@@logout">Logout</a>{{/User}}{{/Session}}
+    {{#Session}}{{#User}}
+    <div class="navbar">
+      <div class="navbar-inner navbar-fixed-top">
+        <span class="brand">Monsti</span>
+        <ul class="nav">
+            <li><a href="{{#Node}}{{Path}}{{/Node}}/@@edit"
+                ><i class="icon-edit"></i> {{#_}}Edit{{/_}}</a></li>
+        </ul>
+        <ul class="nav pull-right">
+            <li><a href="{{#Node}}{{Path}}{{/Node}}/@@logout"
+                ><i class="icon-off"></i> {{#_}}Logout{{/_}}</a></li>
+        </ul>
+      </div>
+    </div>
+    {{/User}}{{/Session}}
     <div id="top-wrap">
       <div id="header-wrap">
         <div id="header" class="container">
