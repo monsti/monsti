@@ -12,11 +12,9 @@ type loginFormData struct {
 	Login, Password string
 }
 
-func (data *loginFormData) Check() (e template.FormErrors) {
-	e = make(template.FormErrors)
+func (data *loginFormData) Check(e *template.FormErrors) {
 	e.Check("Login", data.Login, template.Required())
 	e.Check("Password", data.Password, template.Required())
-	return
 }
 
 // Login handles login requests.

@@ -56,7 +56,7 @@ func toTemplateErrors(error schema.MultiError) map[string]string {
 // FormData represents the structure and values of a form's values.
 type FormData interface {
 	// Check validates the form data.
-	Check() (e FormErrors)
+	Check(*FormErrors)
 }
 
 // Validate feeds the form data with the given url values and returns validaton
@@ -65,7 +65,8 @@ func Validate(in url.Values, out FormData) (FormErrors, error) {
 	error := schemaDecoder.Decode(out, in)
 	switch e := error.(type) {
 	case nil:
-		fe := out.Check()
+		fe := make(FormErrors)
+		out.Check(&fe)
 		if len(fe) > 0 {
 			return fe, nil
 		}

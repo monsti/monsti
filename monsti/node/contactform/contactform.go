@@ -28,13 +28,11 @@ type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func (data *contactFormData) Check() (e template.FormErrors) {
-	e = make(template.FormErrors)
+func (data *contactFormData) Check(e *template.FormErrors) {
 	e.Check("Name", data.Name, template.Required())
 	e.Check("Email", data.Email, template.Required())
 	e.Check("Subject", data.Subject, template.Required())
 	e.Check("Message", data.Message, template.Required())
-	return
 }
 
 func handle(req client.Request, res *client.Response, c client.Connection) {
