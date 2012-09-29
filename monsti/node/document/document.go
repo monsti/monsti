@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datenkarussell.de/monsti/markup"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
@@ -42,7 +43,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	switch req.Method {
 	case "GET":
 		data.Title = req.Node.Title
-		data.Body = string(c.GetNodeData(req.Node.Path, "body.html"))
+		data.Body = string(c.GetNodeData(req.Node.Path, "body.txt"))
 	case "POST":
 		var err error
 		errors, err = template.Validate(c.GetFormData(), &data)
@@ -53,7 +54,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 			node := req.Node
 			node.Title = data.Title
 			c.UpdateNode(node)
-			c.WriteNodeData(req.Node.Path, "body.html", data.Body)
+			c.WriteNodeData(req.Node.Path, "body.txt", data.Body)
 			res.Redirect = req.Node.Path
 			return
 		}
@@ -65,10 +66,10 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {
-	body := c.GetNodeData(req.Node.Path, "body.html")
+	body := c.GetNodeData(req.Node.Path, "body.txt")
 	content := renderer.Render("view/document.html",
 		map[string]string{"body": string(body)}, req.Node)
-	fmt.Fprint(res, content)
+	fmt.Fprint(res, markup.MarkupToHTML(content))
 }
 
 func main() {

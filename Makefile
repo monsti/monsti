@@ -15,6 +15,7 @@ go/:
 	$(GO) get launchpad.net/goyaml
 	$(GO) get code.google.com/p/gorilla/schema
 	$(GO) get code.google.com/p/gorilla/sessions
+	$(GO) get github.com/russross/blackfriday
 
 
 .PHONY: extract-messages
@@ -43,7 +44,7 @@ clean:
 	rm go/ -Rf
 
 
-tests: test-worker test-template test-contactform
+tests: test-worker test-template test-contactform test-markup
 
 .PHONY: test-worker
 test-worker: go/
@@ -56,3 +57,7 @@ test-contactform: go/
 .PHONY: test-template
 test-template: go/
 	$(GO) test datenkarussell.de/monsti/template
+
+.PHONY: test-markup
+test-markup: go/
+	$(GO) test datenkarussell.de/monsti/markup
