@@ -82,6 +82,5 @@ func main() {
 		panic("Could not setup gettext: " + err.Error())
 	}
 	renderer.Root = settings.Directories.Templates
-	log.Println("Setting up contactform.")
 	client.NewConnection("contactform").Serve(handle)
 }

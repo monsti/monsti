@@ -27,7 +27,6 @@ type nodeHandler struct {
 // node type (ticket.Node.Type).
 func (h *nodeHandler) QueueTicket(ticket worker.Ticket) {
 	nodeType := ticket.Node.Type
-	log.Println("Queuing ticket for node type " + nodeType)
 	if _, ok := h.NodeQueues[nodeType]; !ok {
 		panic("Missing queue for node type " + nodeType)
 	}
@@ -41,7 +40,6 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			var buf bytes.Buffer
 			fmt.Fprintf(&buf, "panic: %v\n", err)
 			buf.Write(debug.Stack())
-			log.Print(buf.String())
 			http.Error(w, "Application error.",
 				http.StatusInternalServerError)
 		}
@@ -83,7 +81,6 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
-	log.Printf("Node: %v %q\n", node.Type, node.Title)
 	c := make(chan client.Response)
 	clientSession := getClientSession(session, h.Settings.Directories.Config)
 	h.QueueTicket(worker.Ticket{
@@ -92,7 +89,6 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		ResponseChan: c,
 		Session:      *clientSession,
 		Action:       action})
-	log.Println("Sent ticket to node queue, wating to finish.")
 
 	// Process response received from a worker.
 	res := <-c
@@ -115,7 +111,6 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		Node:         node,
 		PrimaryNav:   prinav,
 		SecondaryNav: secnav}
-	log.Println(clientSession)
 	content := renderInMaster(h.Renderer, res.Body, &env, h.Settings)
 	err = session.Save(r, w)
 	if err != nil {

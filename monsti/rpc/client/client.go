@@ -87,20 +87,15 @@ func (pipe pipeConnection) Close() (err error) {
 // type.
 func NewConnection(nodeType string) Connection {
 	pipe := &pipeConnection{os.Stdin, os.Stdout}
-	log.Println("Setting up RPC...")
 	client := rpc.NewClient(pipe)
-	log.Println("Connection established.")
 	return Connection{client}
 }
 
 // GetFormData retrieves form data of the request, i.e. query string values and
 // possibly form data of POST and PUT requests.
 func (c Connection) GetFormData() url.Values {
-	log.Println("Calling NodeRPC.GetFormData")
 	var reply url.Values
-	log.Println("call in")
 	err := c.cli.Call("NodeRPC.GetFormData", 0, &reply)
-	log.Println("call out")
 	if err != nil {
 		log.Fatal("client: RPC GetFormData error:", err)
 	}
@@ -109,7 +104,6 @@ func (c Connection) GetFormData() url.Values {
 
 // GetRequests blocks until it receives a request to process.
 func (c Connection) GetRequest() Request {
-	log.Println("Calling NodeRPC.GetRequest")
 	var reply Request
 	err := c.cli.Call("NodeRPC.GetRequest", 0, &reply)
 	if err != nil {
@@ -120,7 +114,6 @@ func (c Connection) GetRequest() Request {
 
 // GetNodeData requests data from some node.
 func (c Connection) GetNodeData(path, file string) []byte {
-	log.Println("Calling NodeRPC.GetNodeData ", path, file)
 	args := &types.GetNodeDataArgs{path, file}
 	var reply []byte
 	err := c.cli.Call("NodeRPC.GetNodeData", args, &reply)
@@ -146,7 +139,6 @@ func (c Connection) UpdateNode(node Node) error {
 // An empty From or To field will be filled with the site owner's name and
 // address.
 func (c Connection) SendMail(m mimemail.Mail) {
-	log.Println("Calling NodeRPC.SendMail")
 	var reply int
 	err := c.cli.Call("NodeRPC.SendMail", m, &reply)
 	if err != nil {
@@ -156,7 +148,6 @@ func (c Connection) SendMail(m mimemail.Mail) {
 
 // SendResponse sends the repsonse of an earlier request.
 func (c Connection) SendResponse(r *Response) {
-	log.Println("Calling NodeRPC.SendResponse")
 	var reply int
 	err := c.cli.Call("NodeRPC.SendResponse", r, &reply)
 	if err != nil {
@@ -172,12 +163,9 @@ type Handler func(Request, *Response, Connection)
 // get or post handler.
 func (c Connection) Serve(handle Handler) {
 	for {
-		log.Println("Requesting some work...")
 		req := c.GetRequest()
 		res := Response{}
-		log.Println("Got some work!")
 		handle(req, &res, c)
 		c.SendResponse(&res)
-		log.Println("Processed request.")
 	}
 }

@@ -82,6 +82,5 @@ func main() {
 		panic("Could not load document configuration file: " + err.Error())
 	}
 	renderer.Root = settings.Directories.Templates
-	log.Println("Setting up document.")
 	client.NewConnection("document").Serve(handle)
 }

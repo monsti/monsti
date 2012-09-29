@@ -82,6 +82,5 @@ func main() {
 	http.Handle("/site-static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Directories.SiteStatics))))
 	http.Handle("/", &handler)
-	log.Println("Listening for http connections on :8080")
 	http.ListenAndServe(":8080", nil)
 }

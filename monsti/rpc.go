@@ -27,7 +27,6 @@ type NodeRPC struct {
 }
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
-	log.Println("RPC: GetNodeData")
 	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	*reply = ret
@@ -36,14 +35,12 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 
 func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 	reply *int) error {
-	log.Println("RPC: WriteNodeData")
 	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
 	err := ioutil.WriteFile(path, []byte(args.Content), 0)
 	return err
 }
 
 func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
-	log.Println("RPC: GetFormData")
 	err := m.Worker.Ticket.Request.ParseForm()
 	if err != nil {
 		return err
@@ -53,11 +50,9 @@ func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
 }
 
 func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
-	log.Println("RPC: GetRequest")
 	if m.Worker.Ticket != nil {
 		return errors.New("monsti: Still waiting for response to last request.")
 	}
-	log.Println("Wating for ticket to send to worker.")
 	ticket := <-m.Worker.Tickets
 	m.Worker.Ticket = &ticket
 	request := client.Request{
@@ -67,12 +62,10 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 		Session: m.Worker.Ticket.Session,
 		Action:  m.Worker.Ticket.Action}
 	*reply = request
-	log.Println("Got ticket, sent to worker.")
 	return nil
 }
 
 func (m *NodeRPC) UpdateNode(node client.Node, reply *int) error {
-	log.Println("RPC: UpdateNode")
 	path := node.Path
 	node.Path = ""
 	content, err := goyaml.Marshal(&node)
@@ -85,7 +78,6 @@ func (m *NodeRPC) UpdateNode(node client.Node, reply *int) error {
 }
 
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
-	log.Println("RPC: SendMail")
 	owner := mimemail.Address{m.Settings.Owner.Name, m.Settings.Owner.Email}
 	if len(mail.From.Email) == 0 {
 		mail.From = owner
@@ -104,7 +96,6 @@ func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 }
 
 func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
-	log.Println("RPC: SendResponse")
 	m.Worker.Ticket.ResponseChan <- res
 	m.Worker.Ticket = nil
 	return nil

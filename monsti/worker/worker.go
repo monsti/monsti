@@ -34,7 +34,6 @@ type pipeConnection struct {
 }
 
 func (pipe pipeConnection) Close() (err error) {
-	log.Printf("Pipe to worker closed.")
 	return nil
 }
 
@@ -44,7 +43,6 @@ type workerLog struct {
 }
 
 func (w workerLog) Write(p []byte) (int, error) {
-	log.Printf("from %v: %v", w.Type, string(p))
 	return len(p), nil
 }
 
@@ -96,7 +94,6 @@ func (w *Worker) Run(callback func()) error {
 	}
 	w.cmd.Stderr = workerLog{w.NodeType}
 	w.pipe = &pipeConnection{inPipe, outPipe, w}
-	log.Println("Starting worker for " + w.NodeType)
 	err = w.cmd.Start()
 	if err != nil {
 		return fmt.Errorf("Could not setup connection to worker: %v",
@@ -107,7 +104,6 @@ func (w *Worker) Run(callback func()) error {
 		return fmt.Errorf("Could not register RPC methods: %v",
 			err.Error())
 	}
-	log.Println("Setting up RPC.")
 	go server.ServeConn(w.pipe)
 	go func() {
 		w.cmd.Wait()
