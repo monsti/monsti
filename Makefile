@@ -1,7 +1,7 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 
-all: go/ contactform document monsti
+all: dep-epic-editor dep-jquery go/ contactform document monsti
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
@@ -15,6 +15,7 @@ go/:
 	$(GO) get launchpad.net/goyaml
 	$(GO) get code.google.com/p/gorilla/schema
 	$(GO) get code.google.com/p/gorilla/sessions
+	$(GO) get bitbucket.org/zoowar/bcrypt
 	$(GO) get github.com/russross/blackfriday
 
 
@@ -42,6 +43,7 @@ contactform: go/
 .PHONY: clean
 clean:
 	rm go/ -Rf
+	rm static/epiceditor/ -R
 
 
 tests: test-worker test-template test-contactform test-markup
@@ -61,3 +63,16 @@ test-template: go/
 .PHONY: test-markup
 test-markup: go/
 	$(GO) test datenkarussell.de/monsti/markup
+
+dep-epic-editor: static/epiceditor/
+static/epiceditor/:
+	wget http://epiceditor.com/docs/downloads/EpicEditor-v0.1.1.1.zip
+	unzip EpicEditor-v0.1.1.1.zip
+	mv EpicEditor-v0.1.1.1/epiceditor/ static/
+	rmdir EpicEditor-v0.1.1.1/
+	rm EpicEditor-v0.1.1.1.zip
+
+dep-jquery: static/js/jquery.min.js
+static/js/jquery.min.js:
+	wget http://code.jquery.com/jquery-1.8.2.min.js
+	mv jquery-1.8.2.min.js static/js/jquery.min.js
