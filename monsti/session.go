@@ -98,3 +98,17 @@ func getUser(login, configDir string) (*client.User, error) {
 		Name:     "Administrator",
 		Password: "foofoo"}, nil
 }
+
+// checkPermission checks if the session's user might perform the given action.
+func checkPermission(action string, session *client.Session) bool {
+	auth := session.User != nil
+	switch action {
+	case "edit":
+		if auth {
+			return true
+		}
+	case "":
+		return true
+	}
+	return false
+}

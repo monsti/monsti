@@ -33,6 +33,24 @@ func (h *nodeHandler) QueueTicket(ticket worker.Ticket) {
 	h.NodeQueues[nodeType] <- ticket
 }
 
+// splitAction splits and returns the path and @@action of the given URL.
+func splitAction(path string) (string, string) {
+	tokens := strings.Split(path, "/")
+	last := tokens[len(tokens)-1]
+	var action string
+	if len(last) > 2 && last[:2] == "@@" {
+		action = last[2:]
+	}
+	nodePath := path
+	if len(action) > 0 {
+		nodePath = path[:len(path)-(len(action)+3)]
+		if len(nodePath) == 0 {
+			nodePath = "/"
+		}
+	}
+	return nodePath, action
+}
+
 // ServeHTTP handles incoming HTTP requests.
 func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -44,21 +62,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.StatusInternalServerError)
 		}
 	}()
-
-	// Get action if specified in URL.
-	tokens := strings.Split(r.URL.Path, "/")
-	last := tokens[len(tokens)-1]
-	var action string
-	if len(last) > 2 && last[:2] == "@@" {
-		action = last[2:]
-	}
-	nodePath := r.URL.Path
-	if len(action) > 0 {
-		nodePath = r.URL.Path[:len(r.URL.Path)-(len(action)+3)]
-		if len(nodePath) == 0 {
-			nodePath = "/"
-		}
-	}
+	nodePath, action := splitAction(r.URL.Path)
 	session := getSession(r, h.Settings)
 	switch action {
 	case "login":
@@ -73,6 +77,11 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	nodePath string, action string, session *sessions.Session) {
+	clientSession := getClientSession(session, h.Settings.Directories.Config)
+	if !checkPermission(action, clientSession) {
+		http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+		return
+	}
 	// Setup ticket and send to workers.
 	log.Println(r.Method, r.URL.Path)
 	node, err := lookupNode(h.Settings.Directories.Data, nodePath)
@@ -82,7 +91,6 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	c := make(chan client.Response)
-	clientSession := getClientSession(session, h.Settings.Directories.Config)
 	h.QueueTicket(worker.Ticket{
 		Node:         node,
 		Request:      r,

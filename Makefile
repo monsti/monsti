@@ -46,7 +46,11 @@ clean:
 	rm static/epiceditor/ -R
 
 
-tests: test-worker test-template test-contactform test-markup
+tests: test-worker test-template test-contactform test-markup test-monsti
+
+.PHONY: test-monsti
+test-monsti: go/
+	$(GO) test datenkarussell.de/monsti
 
 .PHONY: test-worker
 test-worker: go/
