@@ -113,6 +113,8 @@ func (c Connection) GetRequest() Request {
 }
 
 // GetNodeData requests data from some node.
+//
+// If the data does not exist, return null length []byte.
 func (c Connection) GetNodeData(path, file string) []byte {
 	args := &types.GetNodeDataArgs{path, file}
 	var reply []byte

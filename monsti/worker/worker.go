@@ -22,7 +22,7 @@ type Ticket struct {
 	ResponseChan chan client.Response
 	Session      client.Session
 	// Action as specified in the URL (/path/to/node/@@some_action).
-	Action      string
+	Action string
 }
 
 // pipeConnection is a bidirectional pipe to a worker process used for RPC
@@ -43,6 +43,7 @@ type workerLog struct {
 }
 
 func (w workerLog) Write(p []byte) (int, error) {
+	log.Println(w.Type, "on stderr:", string(p))
 	return len(p), nil
 }
 

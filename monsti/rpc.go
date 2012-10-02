@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"github.com/chrneumann/mimemail"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"log"
 	"net/smtp"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -29,14 +29,21 @@ type NodeRPC struct {
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
 	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
-	*reply = ret
+	if err != nil {
+		if os.IsNotExist(err) {
+			*reply = make([]byte, 0)
+			return nil
+		}
+	} else {
+		*reply = ret
+	}
 	return err
 }
 
 func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 	reply *int) error {
 	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
-	err := ioutil.WriteFile(path, []byte(args.Content), 0)
+	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
 	return err
 }
 
@@ -66,15 +73,7 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 }
 
 func (m *NodeRPC) UpdateNode(node client.Node, reply *int) error {
-	path := node.Path
-	node.Path = ""
-	content, err := goyaml.Marshal(&node)
-	if err != nil {
-		return err
-	}
-	node_path := filepath.Join(m.Settings.Directories.Data, path[1:],
-		"node.yaml")
-	return ioutil.WriteFile(node_path, content, 0)
+	return writeNode(node, m.Settings.Directories.Data)
 }
 
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {

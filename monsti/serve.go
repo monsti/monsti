@@ -7,11 +7,8 @@ import (
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/worker"
 	"fmt"
-	"io/ioutil"
-	"launchpad.net/goyaml"
 	"log"
 	"net/http"
-	"path/filepath"
 	"runtime/debug"
 	"strings"
 )
@@ -58,6 +55,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			var buf bytes.Buffer
 			fmt.Fprintf(&buf, "panic: %v\n", err)
 			buf.Write(debug.Stack())
+			log.Println(buf.String())
 			http.Error(w, "Application error.",
 				http.StatusInternalServerError)
 		}
@@ -69,6 +67,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Login(w, r, nodePath, session)
 	case "logout":
 		h.Logout(w, r, nodePath, session)
+	case "add":
+		h.Add(w, r, nodePath, session)
 	default:
 		h.RequestNode(w, r, nodePath, action, session)
 	}
@@ -142,20 +142,4 @@ func (h *nodeHandler) AddNodeProcess(nodeType string) {
 	if err := worker.Run(callback); err != nil {
 		panic("Could not run worker: " + err.Error())
 	}
-}
-
-// lookupNode look ups a node at the given path.
-// If no such node exists, return nil.
-func lookupNode(root, path string) (client.Node, error) {
-	node_path := filepath.Join(root, path[1:], "node.yaml")
-	content, err := ioutil.ReadFile(node_path)
-	if err != nil {
-		return client.Node{}, err
-	}
-	var node client.Node
-	if err = goyaml.Unmarshal(content, &node); err != nil {
-		return client.Node{}, err
-	}
-	node.Path = path
-	return node, nil
 }
