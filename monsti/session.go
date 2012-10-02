@@ -103,7 +103,7 @@ func getUser(login, configDir string) (*client.User, error) {
 func checkPermission(action string, session *client.Session) bool {
 	auth := session.User != nil
 	switch action {
-	case "edit":
+	case "edit", "add":
 		if auth {
 			return true
 		}

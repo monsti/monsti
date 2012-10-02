@@ -14,6 +14,8 @@ func TestCheckPermission(t *testing.T) {
 		{"", true, true},
 		{"edit", false, false},
 		{"edit", true, true},
+		{"add", false, false},
+		{"add", true, true},
 		{"unknown_action", true, false},
 		{"unknown_action", false, false}}
 	for _, v := range tests {
