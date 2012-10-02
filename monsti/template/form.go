@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/chrneumann/g5t"
 	"net/url"
+	"regexp"
 )
 
 var schemaDecoder = schema.NewDecoder()
@@ -14,11 +15,24 @@ var G func(string) string = g5t.String
 // FormValidator is a function which validates a string.
 type FormValidator func(string) error
 
-//  Required is a formValidator to check for non empty values.
+// Required creates a FormValidator to check for non empty values.
 func Required() FormValidator {
 	return func(value string) error {
 		if len(value) == 0 {
 			return errors.New(G("Required."))
+		}
+		return nil
+	}
+}
+
+// Regex creates a FormValidator to check for a matching regexp.
+//
+// If the expression does not match the string to be validated,
+// the given error msg is returned.
+func Regex(exp, msg string) FormValidator {
+	return func(value string) error {
+		if matched, _ := regexp.MatchString(exp, value); !matched {
+			return errors.New(msg)
 		}
 		return nil
 	}

@@ -14,3 +14,25 @@ func TestRequire(t *testing.T) {
 		t.Errorf("require(%v) = %v, want %v", invalid, err, "'Required.'")
 	}
 }
+
+func TestRegex(t *testing.T) {
+	tests := []struct {
+		Exp    string
+		String string
+		Valid  bool
+	}{
+		{"^[\\w]+$", "", false},
+		{"^[\\w]+$", "foobar", true},
+		{"", "", true},
+		{"", "foobar", true},
+		{"^[^!]+$", "foobar", true},
+		{"^[^!]+$", "foo!bar", false}}
+
+	for _, v := range tests {
+		ret := Regex(v.Exp, "damn!")(v.String)
+		if (ret == nil && !v.Valid) || (ret != nil && v.Valid) {
+			t.Errorf(`Regex("%v")("%v") = %v, this is wrong!`, v.Exp, v.String,
+				ret)
+		}
+	}
+}
