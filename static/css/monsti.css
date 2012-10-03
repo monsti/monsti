@@ -23,5 +23,6 @@ a:hover { text-decoration:underline; }
 #primary-navigation li { display:block; float:left; }
 #primary-navigation ul { margin: 0; }
 #admin-bar img { margin-bottom:2px; }
+#epiceditor { height: 30em; }
 #editor-help td { padding:1em; border:1px solid gray; }
 #btn-editor-help { float:right; margin-bottom:7px; }
