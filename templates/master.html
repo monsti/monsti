@@ -3,7 +3,7 @@
   <head>
     <link rel="stylesheet" type="text/css" href="/static/monsti.css" />
     <meta charset="utf-8" />
-    <title>{{#Node}}{{Title}}{{/Node}} | {{SiteTitle}}</title>
+    <title>{{Title}} | {{SiteTitle}}</title>
     <meta name="description" content="" />
     <link rel="shortcut icon" href="/static/favicon.png" />
     <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css" />
@@ -106,9 +106,9 @@
         {{/ShowSidebar}}
         <div id="content" {{^ShowSidebar}}class="without-sidebar"{{/ShowSidebar}}>
           <article class="document-view content">
-          <h1>{{#Node}}{{Title}}{{/Node}}</h1>
+          <h1>{{Title}}</h1>
             <p class="description">
-              {{#Node}}{{Description}}{{/Node}}
+              {{Description}}
             </p>
             <div class="body">
               {{{Content}}}

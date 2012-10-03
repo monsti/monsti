@@ -62,40 +62,42 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	nodePath, action := splitAction(r.URL.Path)
 	session := getSession(r, h.Settings)
-	switch action {
-	case "login":
-		h.Login(w, r, nodePath, session)
-	case "logout":
-		h.Logout(w, r, nodePath, session)
-	case "add":
-		h.Add(w, r, nodePath, session)
-	default:
-		h.RequestNode(w, r, nodePath, action, session)
-	}
-}
-
-// RequestNode handles node requests.
-func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
-	nodePath string, action string, session *sessions.Session) {
-	clientSession := getClientSession(session, h.Settings.Directories.Config)
-	if !checkPermission(action, clientSession) {
-		http.Error(w, "Unauthorized.", http.StatusUnauthorized)
-		return
-	}
-	// Setup ticket and send to workers.
-	log.Println(r.Method, r.URL.Path)
+	cSession := getClientSession(session, h.Settings.Directories.Config)
 	node, err := lookupNode(h.Settings.Directories.Data, nodePath)
 	if err != nil {
 		log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
+
+	if !checkPermission(action, cSession) {
+		http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+		return
+	}
+	switch action {
+	case "login":
+		h.Login(w, r, node, session, cSession)
+	case "logout":
+		h.Logout(w, r, node, session)
+	case "add":
+		h.Add(w, r, node, session, cSession)
+	default:
+		h.RequestNode(w, r, node, action, session, cSession)
+	}
+}
+
+// RequestNode handles node requests.
+func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
+	node client.Node, action string, session *sessions.Session,
+	cSession *client.Session) {
+	// Setup ticket and send to workers.
+	log.Println(r.Method, r.URL.Path)
 	c := make(chan client.Response)
 	h.QueueTicket(worker.Ticket{
 		Node:         node,
 		Request:      r,
 		ResponseChan: c,
-		Session:      *clientSession,
+		Session:      *cSession,
 		Action:       action})
 
 	// Process response received from a worker.
@@ -108,19 +110,13 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	if len(res.Redirect) > 0 {
 		http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
 	}
-	prinav := getNav("/", "/"+strings.SplitN(node.Path[1:], "/", 2)[0],
-		h.Settings.Directories.Data)
-	var secnav []navLink = nil
-	if node.Path != "/" {
-		secnav = getNav(node.Path, node.Path, h.Settings.Directories.Data)
+	env := masterTmplEnv{Node: node, Session: cSession}
+	if action == "edit" {
+		env.Title = fmt.Sprintf(G(`Edit "%s"`), node.Title)
+		env.Flags = EDIT_VIEW
 	}
-	env := masterTmplEnv{
-		Session:      clientSession,
-		Node:         node,
-		PrimaryNav:   prinav,
-		SecondaryNav: secnav}
-	content := renderInMaster(h.Renderer, res.Body, &env, h.Settings)
-	err = session.Save(r, w)
+	content := renderInMaster(h.Renderer, res.Body, env, h.Settings)
+	err := session.Save(r, w)
 	if err != nil {
 		panic(err.Error())
 	}

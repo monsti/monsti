@@ -19,7 +19,7 @@ func (data *loginFormData) Check(e *template.FormErrors) {
 
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	nodePath string, session *sessions.Session) {
+	node client.Node, session *sessions.Session, cSession *client.Session) {
 	var data loginFormData
 	var errors template.FormErrors
 	switch r.Method {
@@ -36,7 +36,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 			if err == nil && user.Password == data.Password {
 				session.Values["login"] = user.Login
 				session.Save(r, w)
-				http.Redirect(w, r, nodePath, http.StatusSeeOther)
+				http.Redirect(w, r, node.Path, http.StatusSeeOther)
 				return
 			}
 			errors = make(template.FormErrors)
@@ -47,16 +47,18 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	}
 	data.Password = ""
 	body := h.Renderer.Render("actions/loginform.html", errors, data)
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), new(masterTmplEnv),
-		h.Settings))
+	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
+		Description: G("Login with your site account."),
+		Flags:       EDIT_VIEW}
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
 }
 
 // Logout handles logout requests.
 func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
-	nodePath string, session *sessions.Session) {
+	node client.Node, session *sessions.Session) {
 	delete(session.Values, "login")
 	session.Save(r, w)
-	http.Redirect(w, r, nodePath, http.StatusSeeOther)
+	http.Redirect(w, r, node.Path, http.StatusSeeOther)
 }
 
 // getSession returns a currently active or new session.
@@ -103,11 +105,11 @@ func getUser(login, configDir string) (*client.User, error) {
 func checkPermission(action string, session *client.Session) bool {
 	auth := session.User != nil
 	switch action {
-	case "edit", "add":
+	case "edit", "add", "logout":
 		if auth {
 			return true
 		}
-	case "":
+	case "", "login":
 		return true
 	}
 	return false

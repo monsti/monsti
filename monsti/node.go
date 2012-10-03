@@ -129,7 +129,7 @@ func (data *addFormData) Check(e *template.FormErrors) {
 
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	nodePath string, session *sessions.Session) {
+	node client.Node, session *sessions.Session, cSession *client.Session) {
 	var data addFormData
 	var errors template.FormErrors
 	switch r.Method {
@@ -146,12 +146,12 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			if data.Type != "Document" {
 				panic("Can't add this content type.")
 			}
-			newPath := filepath.Join(nodePath, data.Name)
-			node := client.Node{
+			newPath := filepath.Join(node.Path, data.Name)
+			newNode := client.Node{
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
-			if err = writeNode(node, h.Settings.Directories.Data); err != nil {
+			if err = writeNode(newNode, h.Settings.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
@@ -160,8 +160,9 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	body := h.Renderer.Render("actions/addform.html", errors, data)
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), new(masterTmplEnv),
-		h.Settings))
+	env := masterTmplEnv{Node: node, Session: cSession,
+		Flags: EDIT_VIEW, Title: G("Add content")}
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
 }
 
 // lookupNode look ups a node at the given path.

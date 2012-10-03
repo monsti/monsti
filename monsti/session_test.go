@@ -12,6 +12,10 @@ func TestCheckPermission(t *testing.T) {
 	}{
 		{"", false, true},
 		{"", true, true},
+		{"login", false, true},
+		{"login", true, true},
+		{"logout", false, false},
+		{"logout", true, true},
 		{"edit", false, false},
 		{"edit", true, true},
 		{"add", false, false},
