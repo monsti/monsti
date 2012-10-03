@@ -16,6 +16,7 @@ AddEditor = function(obj) {
     $textarea.hide();
     var editor = new EpicEditor({
         basePath: '/static/epiceditor',
+        clientSideStorage: false,
         theme: {
             base:'/themes/base/epiceditor.css',
             preview:'/themes/preview/preview-light.css',
@@ -23,7 +24,8 @@ AddEditor = function(obj) {
         }
     });
     editor.on('load', function (file) {
-      $textarea.val(file.content);
+        editor.importFile('epiceditor',
+            $textarea.val());
     });
     editor.on('update', function (file) {
       $textarea.val(file.content);
