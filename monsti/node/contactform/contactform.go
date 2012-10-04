@@ -63,7 +63,7 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 	}
 	res.Node = &req.Node
 	res.Node.HideSidebar = true
-	body := c.GetNodeData(req.Node.Path, "body.txt")
+	body := c.GetNodeData(req.Node.Path, "body.html")
 	context["body"] = string(body)
 	fmt.Fprint(res, renderer.Render("view/contactform.html",
 		context, errors, data))

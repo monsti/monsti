@@ -1,7 +1,8 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
+ALOHA_VERSION=0.22.1
 
-all: dep-epic-editor dep-jquery go/ contactform document monsti
+all: dep-aloha-editor dep-jquery go/ contactform document monsti
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
@@ -16,8 +17,6 @@ go/:
 	$(GO) get code.google.com/p/gorilla/schema
 	$(GO) get code.google.com/p/gorilla/sessions
 	$(GO) get bitbucket.org/zoowar/bcrypt
-	$(GO) get github.com/russross/blackfriday
-
 
 .PHONY: extract-messages
 extract-messages:
@@ -25,7 +24,6 @@ extract-messages:
 	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
 	  | sed 's|{{#_}}\(.*\){{/_}}|gettext("\1");|g' \
 	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
-
 
 .PHONY: monsti
 monsti: go/
@@ -39,14 +37,12 @@ document: go/
 contactform: go/
 	$(GO) install datenkarussell.de/monsti/node/contactform
 
-
 .PHONY: clean
 clean:
 	rm go/ -Rf
-	rm static/epiceditor/ -R
+	rm static/aloha/ -R
 
-
-tests: test-worker test-template test-contactform test-markup test-monsti
+tests: test-worker test-template test-contactform test-monsti
 
 .PHONY: test-monsti
 test-monsti: go/
@@ -64,17 +60,17 @@ test-contactform: go/
 test-template: go/
 	$(GO) test datenkarussell.de/monsti/template
 
-.PHONY: test-markup
-test-markup: go/
-	$(GO) test datenkarussell.de/monsti/markup
-
-dep-epic-editor: static/epiceditor/
-static/epiceditor/:
-	wget http://epiceditor.com/docs/downloads/EpicEditor-v0.1.1.1.zip
-	unzip EpicEditor-v0.1.1.1.zip
-	mv EpicEditor-v0.1.1.1/epiceditor/ static/
-	rmdir EpicEditor-v0.1.1.1/
-	rm EpicEditor-v0.1.1.1.zip
+dep-aloha-editor: static/aloha/
+static/aloha/:
+	wget https://github.com/downloads/alohaeditor/Aloha-Editor/alohaeditor-$(ALOHA_VERSION).zip
+	unzip alohaeditor-$(ALOHA_VERSION).zip
+	mkdir static/aloha
+	mv alohaeditor-$(ALOHA_VERSION)/aloha/lib static/aloha
+	mv alohaeditor-$(ALOHA_VERSION)/aloha/css static/aloha
+	mv alohaeditor-$(ALOHA_VERSION)/aloha/img static/aloha
+	mv alohaeditor-$(ALOHA_VERSION)/aloha/plugins static/aloha
+	rm alohaeditor-$(ALOHA_VERSION) -R
+	rm alohaeditor-$(ALOHA_VERSION).zip
 
 dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
