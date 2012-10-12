@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
@@ -10,6 +11,8 @@ import (
 	"github.com/chrneumann/mimemail"
 	"log"
 )
+
+var G func(string) string = g5t.String
 
 type cfsettings struct {
 	// Absolute paths to used directories.
@@ -28,16 +31,13 @@ type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func (data *contactFormData) Check(e *template.FormErrors) {
-	e.Check("Name", data.Name, template.Required())
-	e.Check("Email", data.Email, template.Required())
-	e.Check("Subject", data.Subject, template.Required())
-	e.Check("Message", data.Message, template.Required())
-}
-
 func handle(req client.Request, res *client.Response, c client.Connection) {
-	var data contactFormData
-	var errors template.FormErrors
+	data := contactFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Name":     form.Field{G("Name"), "", form.Required(), nil},
+		"Email":    form.Field{G("Email"), "", form.Required(), nil},
+		"Subject:": form.Field{G("Subject"), "", form.Required(), nil},
+		"Message":  form.Field{G("Message"), "", form.Required(), nil}})
 	context := make(map[string]interface{})
 	switch req.Method {
 	case "GET":
@@ -45,12 +45,7 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 			context["submitted"] = 1
 		}
 	case "POST":
-		var err error
-		errors, err = template.Validate(c.GetFormData(), &data)
-		if err != nil {
-			panic("Could not parse form data: " + err.Error())
-		}
-		if len(errors) == 0 {
+		if form.Fill(c.GetFormData()) {
 			c.SendMail(mimemail.Mail{
 				From:    mimemail.Address{data.Name, data.Email},
 				Subject: data.Subject,
@@ -66,7 +61,7 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	context["body"] = string(body)
 	fmt.Fprint(res, renderer.Render("view/contactform.html",
-		context, errors, data))
+		context, form.RenderData()))
 }
 
 func main() {

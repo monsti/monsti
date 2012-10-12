@@ -1,13 +1,17 @@
 package main
 
 import (
+	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
 	"flag"
 	"fmt"
+	"github.com/chrneumann/g5t"
 	"log"
 )
+
+var G func(string) string = g5t.String
 
 type settings struct {
 	// Absolute paths to used directories.
@@ -32,24 +36,17 @@ type editFormData struct {
 	Title, Body string
 }
 
-func (data *editFormData) Check(e *template.FormErrors) {
-	e.Check("Title", data.Title, template.Required())
-}
-
 func edit(req client.Request, res *client.Response, c client.Connection) {
-	var data editFormData
-	var errors template.FormErrors
+	data := editFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Title": form.Field{G("Title"), "", form.Required(), nil},
+		"Body":  form.Field{G("Body"), "", form.Required(), nil}})
 	switch req.Method {
 	case "GET":
 		data.Title = req.Node.Title
 		data.Body = string(c.GetNodeData(req.Node.Path, "body.html"))
 	case "POST":
-		var err error
-		errors, err = template.Validate(c.GetFormData(), &data)
-		if err != nil {
-			panic("Could not parse form data: " + err.Error())
-		}
-		if len(errors) == 0 {
+		if form.Fill(c.GetFormData()) {
 			node := req.Node
 			node.Title = data.Title
 			c.UpdateNode(node)
@@ -61,7 +58,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 		panic("Request method not supported: " + req.Method)
 	}
 	fmt.Fprint(res, renderer.Render("edit/document.html",
-		errors, data))
+		form.RenderData()))
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {

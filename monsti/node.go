@@ -2,8 +2,8 @@ package main
 
 import (
 	"code.google.com/p/gorilla/sessions"
+	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"io/ioutil"
@@ -118,30 +118,22 @@ type addFormData struct {
 	Type, Name, Title string
 }
 
-func (data *addFormData) Check(e *template.FormErrors) {
-	e.Check("Type", data.Type, template.Required())
-	e.Check("Name", data.Name, template.Required())
-	e.Check("Name", data.Name, template.Regex(`^\w*$`,
-		G("Contains	invalid characters.")))
-	data.Name = strings.ToLower(data.Name)
-	e.Check("Title", data.Title, template.Required())
-}
-
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session) {
-	var data addFormData
-	var errors template.FormErrors
+	data := addFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Type": form.Field{G("Content type"), "", form.Required(), nil},
+		"Name": form.Field{G("Name"), "The name as it should appear in the URL.",
+			form.And(form.Required(), form.Regex(`^\w*$`,
+				G("Contains	invalid characters."))), nil},
+		"Title": form.Field{G("Title"), "", form.Required(), nil}})
 	switch r.Method {
 	case "GET":
 	case "POST":
 		r.ParseForm()
-		var err error
-		errors, err = template.Validate(r.Form, &data)
-		if err != nil {
-			panic("Could not parse form data: " + err.Error())
-		}
-		if len(errors) == 0 {
+		if form.Fill(r.Form) {
+			data.Name = strings.ToLower(data.Name)
 			// TODO Allow other content types.
 			if data.Type != "Document" {
 				panic("Can't add this content type.")
@@ -151,7 +143,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
-			if err = writeNode(newNode, h.Settings.Directories.Data); err != nil {
+				if err := writeNode(newNode, h.Settings.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
@@ -159,7 +151,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
-	body := h.Renderer.Render("actions/addform.html", errors, data)
+	body := h.Renderer.Render("actions/addform.html", form.RenderData())
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))

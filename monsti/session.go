@@ -2,8 +2,8 @@ package main
 
 import (
 	"code.google.com/p/gorilla/sessions"
+	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
 	"fmt"
 	"net/http"
 )
@@ -12,26 +12,19 @@ type loginFormData struct {
 	Login, Password string
 }
 
-func (data *loginFormData) Check(e *template.FormErrors) {
-	e.Check("Login", data.Login, template.Required())
-	e.Check("Password", data.Password, template.Required())
-}
-
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session) {
-	var data loginFormData
-	var errors template.FormErrors
+	data := loginFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Login":    form.Field{G("Login"), "", form.Required(), nil},
+		"Password": form.Field{G("Password"), "", form.Required(), nil}})
+	errors := make(map[string]string, 0)
 	switch r.Method {
 	case "GET":
 	case "POST":
 		r.ParseForm()
-		var err error
-		errors, err = template.Validate(r.Form, &data)
-		if err != nil {
-			panic("Could not parse form data: " + err.Error())
-		}
-		if len(errors) == 0 {
+		if form.Fill(r.Form) {
 			user, err := getUser(data.Login, h.Settings.Directories.Config)
 			if err == nil && user.Password == data.Password {
 				session.Values["login"] = user.Login
@@ -39,14 +32,14 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 				http.Redirect(w, r, node.Path, http.StatusSeeOther)
 				return
 			}
-			errors = make(template.FormErrors)
 			errors[":error"] = "Wrong login or password."
 		}
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Password = ""
-	body := h.Renderer.Render("actions/loginform.html", errors, data)
+	body := h.Renderer.Render("actions/loginform.html", errors,
+		form.RenderData())
 	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}

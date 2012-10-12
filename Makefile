@@ -16,7 +16,7 @@ go/:
 	$(GO) get launchpad.net/goyaml
 	$(GO) get code.google.com/p/gorilla/schema
 	$(GO) get code.google.com/p/gorilla/sessions
-	$(GO) get bitbucket.org/zoowar/bcrypt
+#	$(GO) get bitbucket.org/zoowar/bcrypt
 
 .PHONY: extract-messages
 extract-messages:
@@ -42,7 +42,7 @@ clean:
 	rm go/ -Rf
 	rm static/aloha/ -R
 
-tests: test-worker test-template test-contactform test-monsti
+tests: test-worker test-template test-form test-contactform test-monsti
 
 .PHONY: test-monsti
 test-monsti: go/
@@ -59,6 +59,10 @@ test-contactform: go/
 .PHONY: test-template
 test-template: go/
 	$(GO) test datenkarussell.de/monsti/template
+
+.PHONY: test-form
+test-form: go/
+	$(GO) test datenkarussell.de/monsti/form
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
