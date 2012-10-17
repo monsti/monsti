@@ -68,6 +68,30 @@ func (t TextArea) HTML(field string, value interface{}) template.HTML {
 			fmt.Sprintf("%v", value))))
 }
 
+// Option of a select widget.
+type Option struct {
+	Value, Text string
+}
+
+type SelectWidget struct {
+	Options []Option
+}
+
+func (t SelectWidget) HTML(field string, value interface{}) template.HTML {
+	var options string
+	for _, v := range t.Options {
+		selected := ""
+		if v.Value == value.(string) {
+			selected = " selected"
+		}
+		options += fmt.Sprintf("<option value=\"%v\"%v>%v</option>\n",
+			v.Value, selected, v.Text)
+	}
+	ret := fmt.Sprintf("<select id=\"%v\" name=\"%v\">\n%v</select>",
+		strings.ToLower(field), field, options)
+	return template.HTML(ret)
+}
+
 // Field contains settings for a form field.
 type Field struct {
 	Label, Help string

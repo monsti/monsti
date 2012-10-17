@@ -119,3 +119,35 @@ func TestAnd(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectWidget(t *testing.T) {
+	widget := SelectWidget{[]Option{
+		Option{"foo", "The Foo!"},
+		Option{"bar", "The Bar!"}}}
+	tests := []struct {
+		Name, Value, Expected string
+	}{
+		{"TestSelect", "", `<select id="testselect" name="TestSelect">
+<option value="foo">The Foo!</option>
+<option value="bar">The Bar!</option>
+</select>`},
+		{"TestSelect2", "unknown!", `<select id="testselect2" name="TestSelect2">
+<option value="foo">The Foo!</option>
+<option value="bar">The Bar!</option>
+</select>`},
+		{"TestSelect3", "foo", `<select id="testselect3" name="TestSelect3">
+<option value="foo" selected>The Foo!</option>
+<option value="bar">The Bar!</option>
+</select>`},
+		{"TestSelect4", "bar", `<select id="testselect4" name="TestSelect4">
+<option value="foo">The Foo!</option>
+<option value="bar" selected>The Bar!</option>
+</select>`}}
+	for _, v := range tests {
+		ret := widget.HTML(v.Name, v.Value)
+		if string(ret) != v.Expected {
+			t.Errorf(`SelectWidget.HTML("%v", "%v") = "%v", should be "%v".`,
+				v.Name, v.Value, ret, v.Expected)
+		}
+	}
+}
