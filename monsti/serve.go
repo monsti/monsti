@@ -112,7 +112,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	}
 	env := masterTmplEnv{Node: node, Session: cSession}
 	if action == "edit" {
-		env.Title = fmt.Sprintf(G(`Edit "%s"`), node.Title)
+		env.Title = fmt.Sprintf(G("Edit \"%s\""), node.Title)
 		env.Flags = EDIT_VIEW
 	}
 	content := renderInMaster(h.Renderer, res.Body, env, h.Settings)

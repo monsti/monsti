@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-12 15:10+0200\n"
+"POT-Creation-Date: 2012-10-17 15:14+0200\n"
 "PO-Revision-Date: 2012-09-12 14:54+0200\n"
 "Last-Translator: Christian Neumann <cneumann@datenkarussell.de>\n"
 "Language-Team: German\n"
@@ -17,26 +17,90 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Standardeingabe:18
-msgid "Name"
-msgstr "Name"
+#: Standardeingabe:10
+msgid "Thanks for your message!"
+msgstr "Vielen Dank für Ihre Mitteilung!"
 
-#: Standardeingabe:23
-msgid "Email"
-msgstr "E-Mail"
+#: Standardeingabe:50
+msgid "Edit"
+msgstr "Bearbeiten"
 
-#: Standardeingabe:28
-msgid "Subject"
-msgstr "Betreff"
+#: Standardeingabe:55
+msgid "Add"
+msgstr "Hinzufügen"
 
-#: Standardeingabe:33
-msgid "Message"
-msgstr "Nachricht"
+#: Standardeingabe:59
+msgid "Logout"
+msgstr "Abmelden"
 
-#: Standardeingabe:39
+#: Standardeingabe:174 Standardeingabe:197
 msgid "Submit"
 msgstr "Senden"
 
-#: Standardeingabe:817
+#: Standardeingabe:467
+msgid "Document"
+msgstr "Dokument"
+
+#: Standardeingabe:469
+msgid "Content type"
+msgstr "Inhaltstyp"
+
+#: Standardeingabe:470 Standardeingabe:1041
+msgid "Name"
+msgstr "Name"
+
+#: Standardeingabe:471
+msgid "The name as it should appear in the URL."
+msgstr "Der Name wie er in der URL erscheinen soll."
+
+#: Standardeingabe:473
+msgid "Contains\tinvalid characters."
+msgstr "Enthält ungültige Zeichen."
+
+#: Standardeingabe:474 Standardeingabe:1079 Standardeingabe:1180
+msgid "Title"
+msgstr "Titel"
+
+#: Standardeingabe:501
+msgid "Add content"
+msgstr "Neuen Inhalt anlegen"
+
+#: Standardeingabe:559 Standardeingabe:581
+msgid "Login"
+msgstr "Login"
+
+#: Standardeingabe:560
+msgid "Password"
+msgstr "Passwort"
+
+#: Standardeingabe:573
+msgid "Wrong login or password."
+msgstr "Falscher Login oder falsches Passwort."
+
+#: Standardeingabe:582
+msgid "Login with your site account."
+msgstr "Mit Ihrem Benutzerkonto anmelden."
+
+#: Standardeingabe:968
+msgid "Edit \"%s\""
+msgstr "Bearbeite \"%s\""
+
+#: Standardeingabe:1042
+msgid "Email"
+msgstr "E-Mail"
+
+#: Standardeingabe:1043
+msgid "Subject"
+msgstr "Betreff"
+
+#: Standardeingabe:1044
+msgid "Message"
+msgstr "Nachricht"
+
+#: Standardeingabe:1080 Standardeingabe:1181
+msgid "Body"
+msgstr "Textrumpf"
+
+#: Standardeingabe:1850
 msgid "Required."
 msgstr "Benötigte Angabe."

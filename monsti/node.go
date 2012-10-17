@@ -127,7 +127,8 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		{"Document", G("Document")}}}
 	form := form.NewForm(&data, form.Fields{
 		"Type": form.Field{G("Content type"), "", form.Required(), selectWidget},
-		"Name": form.Field{G("Name"), "The name as it should appear in the URL.",
+		"Name": form.Field{G("Name"),
+			G("The name as it should appear in the URL."),
 			form.And(form.Required(), form.Regex(`^\w*$`,
 				G("Contains	invalid characters."))), nil},
 		"Title": form.Field{G("Title"), "", form.Required(), nil}})

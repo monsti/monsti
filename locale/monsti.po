@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-12 15:10+0200\n"
+"POT-Creation-Date: 2012-10-17 15:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,91 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Standardeingabe:18
-msgid "Name"
+#: Standardeingabe:10
+msgid "Thanks for your message!"
 msgstr ""
 
-#: Standardeingabe:23
-msgid "Email"
+#: Standardeingabe:50
+msgid "Edit"
 msgstr ""
 
-#: Standardeingabe:28
-msgid "Subject"
+#: Standardeingabe:55
+msgid "Add"
 msgstr ""
 
-#: Standardeingabe:33
-msgid "Message"
+#: Standardeingabe:59
+msgid "Logout"
 msgstr ""
 
-#: Standardeingabe:39
+#: Standardeingabe:174 Standardeingabe:197
 msgid "Submit"
 msgstr ""
 
-#: Standardeingabe:817
+#: Standardeingabe:467
+msgid "Document"
+msgstr ""
+
+#: Standardeingabe:469
+msgid "Content type"
+msgstr ""
+
+#: Standardeingabe:470 Standardeingabe:1041
+msgid "Name"
+msgstr ""
+
+#: Standardeingabe:471
+msgid "The name as it should appear in the URL."
+msgstr ""
+
+#: Standardeingabe:473
+msgid "Contains\tinvalid characters."
+msgstr ""
+
+#: Standardeingabe:474 Standardeingabe:1079 Standardeingabe:1180
+msgid "Title"
+msgstr ""
+
+#: Standardeingabe:501
+msgid "Add content"
+msgstr ""
+
+#: Standardeingabe:559 Standardeingabe:581
+msgid "Login"
+msgstr ""
+
+#: Standardeingabe:560
+msgid "Password"
+msgstr ""
+
+#: Standardeingabe:573
+msgid "Wrong login or password."
+msgstr ""
+
+#: Standardeingabe:582
+msgid "Login with your site account."
+msgstr ""
+
+#: Standardeingabe:968
+#, c-format
+msgid "Edit \"%s\""
+msgstr ""
+
+#: Standardeingabe:1042
+msgid "Email"
+msgstr ""
+
+#: Standardeingabe:1043
+msgid "Subject"
+msgstr ""
+
+#: Standardeingabe:1044
+msgid "Message"
+msgstr ""
+
+#: Standardeingabe:1080 Standardeingabe:1181
+msgid "Body"
+msgstr ""
+
+#: Standardeingabe:1850
 msgid "Required."
 msgstr ""

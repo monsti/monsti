@@ -20,7 +20,7 @@ go/:
 extract-messages:
 	mkdir -p locale/
 	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
-	  | sed 's|{{#_}}\(.*\){{/_}}|gettext("\1");|g' \
+	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
 	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
 
 .PHONY: monsti

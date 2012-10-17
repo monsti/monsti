@@ -19,6 +19,8 @@ type settings struct {
 	Directories struct {
 		// HTML Templates
 		Templates string
+		// Locales, i.e. the gettext machine objects (.mo)
+		Locales string
 	}
 }
 
@@ -78,6 +80,10 @@ func main() {
 	err := util.ParseYAML(cfgPath, &settings)
 	if err != nil {
 		panic("Could not load document configuration file: " + err.Error())
+	}
+	err = g5t.Setup("monsti", settings.Directories.Locales, "de", g5t.GettextParser)
+	if err != nil {
+		panic("Could not setup gettext: " + err.Error())
 	}
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("document").Serve(handle)
