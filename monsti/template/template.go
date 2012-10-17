@@ -17,15 +17,26 @@ type Renderer struct {
 	Root string
 }
 
+// getText looks up the translation for the given string.
 func getText(msg string) string {
 	return g5t.String(msg)
+}
+
+// pathJoin joins both url path segments so that they are separated by exactly
+// one slash.
+func pathJoin(first, last string) string {
+	for len(first) > 0 && first[len(first)-1:] == "/" {
+		first = first[:len(first)-1]
+	}
+	return first + "/" + last
 }
 
 // Render the named template with given context. 
 func (r Renderer) Render(name string, context interface{}) string {
 	tmpl := template.New(name)
 	funcs := template.FuncMap{
-		"G": getText}
+		"pathJoin": pathJoin,
+		"G":        getText}
 	tmpl.Funcs(funcs)
 	parse(name, tmpl, r.Root)
 	parse("blocks/form-horizontal", tmpl.New("blocks/form-horizontal"), r.Root)
