@@ -7,7 +7,7 @@ AddEditor = function(obj) {
     $textarea.before("<div class=\"editable\">" + content + "</div>");
     editable = $('.editable')
     Aloha.jQuery(editable).aloha();
-    $('.editor-submit').click(function() {
+    $('.btn').click(function() {
         editable.mahalo();
         $textarea.val(editable.html());
     });
