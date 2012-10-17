@@ -33,6 +33,15 @@ type contactFormData struct {
 }
 
 func handle(req client.Request, res *client.Response, c client.Connection) {
+	switch req.Action {
+	case "edit":
+		edit(req, res, c)
+	default:
+		view(req, res, c)
+	}
+}
+
+func view(req client.Request, res *client.Response, c client.Connection) {
 	data := contactFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Name":    form.Field{G("Name"), "", form.Required(), nil},
@@ -64,6 +73,36 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
 	fmt.Fprint(res, renderer.Render("view/contactform", context))
+}
+
+type editFormData struct {
+	Title, Body string
+}
+
+func edit(req client.Request, res *client.Response, c client.Connection) {
+	data := editFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Title": form.Field{G("Title"), "", form.Required(), nil},
+		"Body": form.Field{G("Body"), "", form.Required(),
+			new(form.AlohaEditor)}})
+	switch req.Method {
+	case "GET":
+		data.Title = req.Node.Title
+		data.Body = string(c.GetNodeData(req.Node.Path, "body.html"))
+	case "POST":
+		if form.Fill(c.GetFormData()) {
+			node := req.Node
+			node.Title = data.Title
+			c.UpdateNode(node)
+			c.WriteNodeData(req.Node.Path, "body.html", data.Body)
+			res.Redirect = req.Node.Path
+			return
+		}
+	default:
+		panic("Request method not supported: " + req.Method)
+	}
+	fmt.Fprint(res, renderer.Render("edit/contactform",
+		template.Context{"Form": form.RenderData()}))
 }
 
 func main() {
