@@ -123,8 +123,10 @@ type addFormData struct {
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session) {
 	data := addFormData{}
+	selectWidget := form.SelectWidget{[]form.Option{
+		{"Document", G("Document")}}}
 	form := form.NewForm(&data, form.Fields{
-		"Type": form.Field{G("Content type"), "", form.Required(), nil},
+		"Type": form.Field{G("Content type"), "", form.Required(), selectWidget},
 		"Name": form.Field{G("Name"), "The name as it should appear in the URL.",
 			form.And(form.Required(), form.Regex(`^\w*$`,
 				G("Contains	invalid characters."))), nil},
