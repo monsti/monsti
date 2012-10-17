@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"html"
+	"html/template"
 	"net/url"
 	"reflect"
 	"regexp"
@@ -21,9 +22,9 @@ type FieldRenderData struct {
 	Label string
 	// LabelTag is the html code for the field's label, e.g.
 	// `<label for="the_id">The Label</label>`.
-	LabelTag string
+	LabelTag template.HTML
 	// Input is the input html for the field.
-	Input string
+	Input template.HTML
 	// Help is the help string.
 	Help string
 	// Errors contains any validation errors.
@@ -33,18 +34,38 @@ type FieldRenderData struct {
 // RenderData contains the data needed for form rendering. 
 type RenderData struct {
 	Fields []FieldRenderData
+	Errors []string
 }
 
 type Widget interface {
-	HTML(name string, value interface{}) string
+	HTML(name string, value interface{}) template.HTML
 }
 
 type Text int
 
-func (t Text) HTML(field string, value interface{}) string {
-	return fmt.Sprintf(`<input id="%v" type="text" name="%v" value="%v"/>`,
+func (t Text) HTML(field string, value interface{}) template.HTML {
+	return template.HTML(fmt.Sprintf(
+		`<input id="%v" type="text" name="%v" value="%v"/>`,
 		strings.ToLower(field), field, html.EscapeString(
-			fmt.Sprintf("%v", value)))
+			fmt.Sprintf("%v", value))))
+}
+
+type AlohaEditor int
+
+func (t AlohaEditor) HTML(field string, value interface{}) template.HTML {
+	return template.HTML(fmt.Sprintf(
+		`<textarea class="editor" id="%v" name="%v"/>%v</textarea>`,
+		strings.ToLower(field), field, html.EscapeString(
+			fmt.Sprintf("%v", value))))
+}
+
+type TextArea int
+
+func (t TextArea) HTML(field string, value interface{}) template.HTML {
+	return template.HTML(fmt.Sprintf(
+		`<textarea id="%v" name="%v"/>%v</textarea>`,
+		strings.ToLower(field), field, html.EscapeString(
+			fmt.Sprintf("%v", value))))
 }
 
 // Field contains settings for a form field.
@@ -82,23 +103,37 @@ func (f Form) RenderData() (renderData RenderData) {
 	renderData.Fields = make([]FieldRenderData, 0, dataVal.NumField()-1)
 	for i := 0; i < dataVal.NumField(); i++ {
 		fieldType := dataVal.Type().Field(i)
-		fmt.Println(fieldType.Name)
 		fieldVal := dataVal.Field(i)
 		name := strings.ToLower(fieldType.Name)
 		setup, ok := f.Fields[fieldType.Name]
 		if !ok {
 			panic("Field " + fieldType.Name + " has not been set up.")
 		}
-		var widget Text
+		widget := setup.Widget
+		if widget == nil {
+			widget = new(Text)
+		}
 		renderData.Fields = append(renderData.Fields, FieldRenderData{
 			Label: setup.Label,
-			LabelTag: fmt.Sprintf(`<label for="%v">%v</label>`, name,
-				setup.Label),
+			LabelTag: template.HTML(fmt.Sprintf(`<label for="%v">%v</label>`,
+				name, setup.Label)),
 			Input:  widget.HTML(fieldType.Name, fieldVal.Interface()),
 			Help:   setup.Help,
 			Errors: f.errors[fieldType.Name]})
 	}
+	renderData.Errors = f.errors[""]
 	return
+}
+
+// AddError adds an error to a field's error list.
+//
+// To add global form errors, use an empty string as the field's name.
+func (f Form) AddError(field string, error string) {
+	e := f.errors[field]
+	if e == nil {
+		e = make([]string, 1)
+	}
+	e = append(e, error)
 }
 
 // Fill fills the form data with the given values and validates the form.
@@ -110,7 +145,6 @@ func (f *Form) Fill(values url.Values) bool {
 	case nil:
 		return f.validate()
 	case schema.MultiError:
-		fmt.Println("MultiError", e)
 		for field, msg := range e {
 			if f.errors[field] == nil {
 				f.errors[field] = []string{msg.Error()}
@@ -128,6 +162,7 @@ func (f *Form) Fill(values url.Values) bool {
 // validate validates the currently present data.
 //
 // Resets any previous errors.
+// Returns true iff the data validates.
 func (f *Form) validate() bool {
 	anyError := false
 	for name, field := range f.Fields {
@@ -141,7 +176,7 @@ func (f *Form) validate() bool {
 			anyError = true
 		}
 	}
-	return anyError
+	return !anyError
 }
 
 // Validator is a function which validates the given data and returns error
@@ -154,7 +189,6 @@ func And(vs ...Validator) Validator {
 		errors := []string{}
 		for _, v := range vs {
 			errors = append(errors, v(value)...)
-			fmt.Println(errors)
 		}
 		if len(errors) == 0 {
 			return nil

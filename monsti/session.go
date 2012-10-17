@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/gorilla/sessions"
 	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
+	"datenkarussell.de/monsti/template"
 	"fmt"
 	"net/http"
 )
@@ -19,7 +20,6 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	form := form.NewForm(&data, form.Fields{
 		"Login":    form.Field{G("Login"), "", form.Required(), nil},
 		"Password": form.Field{G("Password"), "", form.Required(), nil}})
-	errors := make(map[string]string, 0)
 	switch r.Method {
 	case "GET":
 	case "POST":
@@ -32,14 +32,14 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 				http.Redirect(w, r, node.Path, http.StatusSeeOther)
 				return
 			}
-			errors[":error"] = "Wrong login or password."
+			form.AddError("", G("Wrong login or password."))
 		}
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Password = ""
-	body := h.Renderer.Render("actions/loginform.html", errors,
-		form.RenderData())
+	body := h.Renderer.Render("actions/loginform", template.Context{
+		"Form": form.RenderData()})
 	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}

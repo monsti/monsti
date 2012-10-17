@@ -49,6 +49,24 @@ func TestRender(t *testing.T) {
 	}
 }
 
+func TestFill(t *testing.T) {
+	data := TestData{}
+	form := NewForm(&data, Fields{
+		"Name": Field{"Your name", "Your full name", Required(), nil},
+		"Age":  Field{"Your age", "Years since your birth.", Required(), nil}})
+	vals := url.Values{
+		"Name": []string{"Foo"},
+		"Age":  []string{"14"}}
+	if !form.Fill(vals) {
+		t.Errorf("form.Fill(..) returns false, should be true.")
+	}
+	vals["Name"] = []string{""}
+	data.Name = ""
+	if form.Fill(vals) {
+		t.Errorf("form.Fill(..) returns true, should be false.")
+	}
+}
+
 func TestRequire(t *testing.T) {
 	invalid, valid := "", "foo"
 	validator := Required()

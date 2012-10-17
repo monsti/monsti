@@ -3,12 +3,12 @@
   <head>
     <link rel="stylesheet" type="text/css" href="/static/monsti.css" />
     <meta charset="utf-8" />
-    <title>{{Title}} | {{SiteTitle}}</title>
+    <title>{{.Page.Title}} | {{.Site.Title}}</title>
     <meta name="description" content="" />
     <link rel="shortcut icon" href="/static/favicon.png" />
     <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/static/css/bootstrap-responsive.min.css" />
-    {{#EditView}}
+    {{if .Page.EditView}}
     <link rel="stylesheet" href="/static/aloha/css/aloha.css" type="text/css">
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
@@ -16,31 +16,32 @@
     <script src="/static/aloha/lib/aloha.js"
       data-aloha-plugins="common/ui,common/format,common/image,common/list,common/table,common/link"></script>
     <script type="text/javascript" src="/static/js/editor.js"></script>
-    {{/EditView}}
+    {{end}}
     <link rel="stylesheet" type="text/css" href="/static/css/monsti.css" />
     <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
   </head>
   <body>
-    {{#Session}}{{#User}}
+    {{if .Session.User}}
     <div id="admin-bar" class="navbar">
       <div class="navbar-inner navbar-fixed-top">
         <span class="brand">Monsti</span>
+        {{$path := .Page.Node.Path}}
         <ul class="nav">
-            <li><a href="{{#Node}}{{Path}}{{/Node}}/@@edit"
-                ><img src="/static/img/icons/silk/page_white_edit.png"/> {{#_}}Edit{{/_}}</a></li>
+            <li><a href="{{$path}}/@@edit"
+                ><img src="/static/img/icons/silk/page_white_edit.png"/> {{G "Edit"}}</a></li>
         </ul>
         <ul class="nav">
-            <li><a href="{{#Node}}{{Path}}{{/Node}}/@@add"
+            <li><a href="{{$path}}/@@add"
                 ><img src="/static/img/icons/silk/page_white_add.png"/>
-                {{#_}}Add{{/_}}</a></li>
+                {{G "Add"}}</a></li>
         </ul>
         <ul class="nav pull-right">
-            <li><a href="{{#Node}}{{Path}}{{/Node}}/@@logout"
-                ><img src="/static/img/icons/silk/stop.png"/> {{#_}}Logout{{/_}}</a></li>
+            <li><a href="{{$path}}/@@logout"
+                ><img src="/static/img/icons/silk/stop.png"/> {{G "Logout"}}</a></li>
         </ul>
       </div>
     </div>
-    {{/User}}{{/Session}}
+    {{end}}
     <div id="top-wrap">
       <div id="header-wrap">
         <div id="header" class="container">
@@ -52,71 +53,72 @@
           <div id="primary-navigation-wrap">
             <div id="primary-navigation">
               <ul>
-                {{#PrimaryNav}}
-                <li {{#Active}}class="active"{{/Active}}>
-                  <a href="{{Target}}"><span>{{Name}}</span></a>
+                {{range .Page.PrimaryNav}}
+                <li {{if .Active}}class="active"{{end}}>
+                  <a href="{{.Target}}"><span>{{.Name}}</span></a>
                 </li>
-                {{/PrimaryNav}}
+                {{end}}
               </ul>
             </div>
           </div>
         </div>
       </div>
-      {{#ShowBelowHeader}}
+      {{if .Page.ShowBelowHeader}}
       <div id="below-header-wrap">
         <div id="below-header" class="container">
           <div>
-            {{{BelowHeader}}}
+            {{.Page.BelowHeader}}
           </div>
         </div>
       </div>
-      {{/ShowBelowHeader}}
+      {{end}}
       <div id="content-wrap" class="container">
         <div id="messages" class="">
         </div>
-        {{#ShowSidebar}}
+        {{if .Page.ShowSidebar}}
         <div id="sidebar">
           <div id="sidebar-bg">
             <div id="sidebar-bgtop">
               <div id="sidebar-bgbtm">
-                {{#ShowSecondaryNav}}
+                {{if .Page.ShowSecondaryNav}}
                 <Div id="box2" class="box-style1">
                   <div>
                     <div id="local-navigation">
                       <ul class="nav nav-pills nav-stacked">
-                        {{#SecondaryNav}}
-                        <li {{#Active}}class="active"{{/Active}}>
-                          <a href="{{Target}}"><span>{{Name}}</span></a>
+                        {{range .Page.SecondaryNav}}
+                        <li {{if .Active}}class="active"{{end}}>
+                          <a href="{{.Target}}"><span>{{.Name}}</span></a>
                         </li>
-                        {{/SecondaryNav}}
+                        {{end}}
                       </ul>
                     </div>
                   </div>
                 </div>
-                {{/ShowSecondaryNav}}
-                {{#Sidebar}}
+                {{end}}
+                {{with .Page.Sidebar}}
                 <div id="box2" class="box-style1">
                   <div>
                     <div>
-                      {{{Sidebar}}}
+                      {{.}}
                     </div>
                   </div>
                 </div>
-                {{/Sidebar}}
+                {{end}}
                 <div class="clearfix">&nbsp;</div>
               </div>
             </div>
           </div>
         </div>
-        {{/ShowSidebar}}
-        <div id="content" {{^ShowSidebar}}class="without-sidebar"{{/ShowSidebar}}>
+        {{end}}
+        <div id="content"
+            {{if not .Page.ShowSidebar}}class="without-sidebar"{{end}}>
           <article class="document-view content">
-          <h1>{{Title}}</h1>
+          <h1>{{.Page.Title}}</h1>
             <p class="description">
-              {{Description}}
+              {{.Page.Description}}
             </p>
             <div class="body">
-              {{{Content}}}
+              {{.Page.Content}}
             </div>
           </article>
         </div>
@@ -126,7 +128,7 @@
     <div id="bottom-wrap">
       <div id="footer-wrap">
         <div id="footer" class="container">
-          {{{Footer}}}
+          {{.Page.Footer}}
         </div>
       </div>
     </div>

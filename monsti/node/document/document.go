@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/chrneumann/g5t"
+	htmlT "html/template"
 	"log"
 )
 
@@ -40,7 +41,8 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	data := editFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Title": form.Field{G("Title"), "", form.Required(), nil},
-		"Body":  form.Field{G("Body"), "", form.Required(), nil}})
+		"Body": form.Field{G("Body"), "", form.Required(),
+			new(form.AlohaEditor)}})
 	switch req.Method {
 	case "GET":
 		data.Title = req.Node.Title
@@ -57,14 +59,14 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	default:
 		panic("Request method not supported: " + req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("edit/document.html",
-		form.RenderData()))
+	fmt.Fprint(res, renderer.Render("edit/document",
+		template.Context{"Form": form.RenderData()}))
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
-	content := renderer.Render("view/document.html",
-		map[string]string{"body": string(body)}, req.Node)
+	content := renderer.Render("view/document",
+		template.Context{"Body": htmlT.HTML(body)})
 	fmt.Fprint(res, content)
 }
 

@@ -1,10 +1,15 @@
 package template
 
 import (
+	"bytes"
 	"github.com/chrneumann/g5t"
-	"github.com/drbawb/mustache"
+	"html/template"
+	"io/ioutil"
 	"path/filepath"
 )
+
+// Context can be used to define a context for Render.
+type Context map[string]interface{}
 
 // A Renderer for mustache templates.
 type Renderer struct {
@@ -17,10 +22,29 @@ func getText(msg string) string {
 }
 
 // Render the named template with given context. 
-func (r Renderer) Render(name string, contexts ...interface{}) string {
-	path := filepath.Join(r.Root, name)
-	globalFuns := map[string]interface{}{
-		"_": getText}
-	content := mustache.RenderFile(path, append(contexts, globalFuns)...)
-	return content
+func (r Renderer) Render(name string, context interface{}) string {
+	tmpl := template.New(name)
+	funcs := template.FuncMap{
+		"G": getText}
+	tmpl.Funcs(funcs)
+	parse(name, tmpl, r.Root)
+	parse("blocks/form-horizontal", tmpl.New("blocks/form-horizontal"), r.Root)
+	parse("blocks/form-vertical", tmpl.New("blocks/form-vertical"), r.Root)
+	out := bytes.Buffer{}
+	if err := tmpl.Execute(&out, context); err != nil {
+		panic("Could not execute template: " + err.Error())
+	}
+	return out.String()
+}
+
+func parse(name string, t *template.Template, root string) {
+	path := filepath.Join(root, name+".html")
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic("Could not load template:" + err.Error())
+	}
+	_, err = t.Parse(string(content))
+	if err != nil {
+		panic("Could not parse template:" + err.Error())
+	}
 }

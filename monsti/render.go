@@ -3,6 +3,7 @@ package main
 import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
+	htmlT "html/template"
 	"strings"
 )
 
@@ -23,7 +24,7 @@ type masterTmplEnv struct {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings settings, contexts ...interface{}) string {
+	settings settings) string {
 	prinav := getNav("/", "/"+strings.SplitN(env.Node.Path[1:], "/", 2)[0],
 		settings.Directories.Data)
 	var secnav []navLink = nil
@@ -42,20 +43,24 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	if env.Title != "" {
 		description = env.Description
 	}
-	return r.Render("master.html", map[string]interface{}{
-		"Node":             env.Node,
-		"PrimaryNav":       prinav,
-		"SecondaryNav":     secnav,
-		"EditView":         env.Flags&EDIT_VIEW != 0,
-		"Session":          env.Session,
-		"ShowBelowHeader":  len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
-		"BelowHeader":      belowHeader,
-		"Footer":           getFooter(settings.Directories.Data),
-		"Sidebar":          sidebarContent,
-		"SiteTitle":        settings.Title,
-		"Title":            title,
-		"Description":      description,
-		"Content":          string(content),
-		"ShowSecondaryNav": len(secnav) > 0,
-		"ShowSidebar":      showSidebar})
+	return r.Render("master", template.Context{
+		"Site": template.Context{
+			"Title": settings.Title,
+		},
+		"Page": template.Context{
+			"Node":             env.Node,
+			"PrimaryNav":       prinav,
+			"SecondaryNav":     secnav,
+			"EditView":         env.Flags&EDIT_VIEW != 0,
+			"ShowBelowHeader":  len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
+			"BelowHeader":      htmlT.HTML(belowHeader),
+			"Footer":           htmlT.HTML(getFooter(settings.Directories.Data)),
+			"Sidebar":          htmlT.HTML(sidebarContent),
+			"Title":            title,
+			"Description":      description,
+			"Content":          htmlT.HTML(content),
+			"ShowSecondaryNav": len(secnav) > 0,
+			"ShowSidebar":      showSidebar,
+		},
+		"Session": env.Session})
 }

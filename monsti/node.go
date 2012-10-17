@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/gorilla/sessions"
 	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
+	"datenkarussell.de/monsti/template"
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"io/ioutil"
@@ -143,7 +144,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
-				if err := writeNode(newNode, h.Settings.Directories.Data); err != nil {
+			if err := writeNode(newNode, h.Settings.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
@@ -151,7 +152,8 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
-	body := h.Renderer.Render("actions/addform.html", form.RenderData())
+	body := h.Renderer.Render("actions/addform", template.Context{
+		"Form": form.RenderData()})
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))

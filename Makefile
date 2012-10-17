@@ -9,8 +9,6 @@ go/:
 	mkdir -p go/bin
 	mkdir -p go/pkg
 	ln -s -t go/src/datenkarussell.de/ ../../../monsti/
-	$(GO) get github.com/drbawb/mustache
-#	$(GO) get github.com/hoisie/mustache
 	$(GO) get github.com/chrneumann/g5t
 	$(GO) get github.com/chrneumann/mimemail
 	$(GO) get launchpad.net/goyaml

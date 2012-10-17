@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/chrneumann/g5t"
 	"github.com/chrneumann/mimemail"
+	htmlT "html/template"
 	"log"
 )
 
@@ -34,15 +35,16 @@ type contactFormData struct {
 func handle(req client.Request, res *client.Response, c client.Connection) {
 	data := contactFormData{}
 	form := form.NewForm(&data, form.Fields{
-		"Name":     form.Field{G("Name"), "", form.Required(), nil},
-		"Email":    form.Field{G("Email"), "", form.Required(), nil},
-		"Subject:": form.Field{G("Subject"), "", form.Required(), nil},
-		"Message":  form.Field{G("Message"), "", form.Required(), nil}})
-	context := make(map[string]interface{})
+		"Name":    form.Field{G("Name"), "", form.Required(), nil},
+		"Email":   form.Field{G("Email"), "", form.Required(), nil},
+		"Subject": form.Field{G("Subject"), "", form.Required(), nil},
+		"Message": form.Field{G("Message"), "", form.Required(),
+			new(form.TextArea)}})
+	context := template.Context{}
 	switch req.Method {
 	case "GET":
 		if _, submitted := req.Query["submitted"]; submitted {
-			context["submitted"] = 1
+			context["Submitted"] = 1
 		}
 	case "POST":
 		if form.Fill(c.GetFormData()) {
@@ -59,9 +61,9 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 	res.Node = &req.Node
 	res.Node.HideSidebar = true
 	body := c.GetNodeData(req.Node.Path, "body.html")
-	context["body"] = string(body)
-	fmt.Fprint(res, renderer.Render("view/contactform.html",
-		context, form.RenderData()))
+	context["Body"] = htmlT.HTML(string(body))
+	context["Form"] = form.RenderData()
+	fmt.Fprint(res, renderer.Render("view/contactform", context))
 }
 
 func main() {
