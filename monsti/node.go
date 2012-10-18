@@ -75,7 +75,7 @@ func getSidebar(path, root string) string {
 // navLink represents a link in the navigation.
 type navLink struct {
 	Name, Target string
-	Active       bool
+	Active       bool "active,omitempty"
 }
 
 // getNav returns the navigation for the given node.
@@ -114,6 +114,22 @@ func getNav(path, active, root string) []navLink {
 		}
 	}
 	return navLinks
+}
+
+// dumpNav unmarshals the navigation and writes it to the node's directory.
+func dumpNav(nav []navLink, nodePath, root string) {
+	for i := range nav {
+		nav[i].Active = false
+	}
+	content, err := goyaml.Marshal(&nav)
+	if err != nil {
+		panic("Could not marshal navigation: " + err.Error())
+	}
+	path := filepath.Join(root, nodePath[1:], "navigation.yaml")
+	err = ioutil.WriteFile(path, content, 0600)
+	if err != nil {
+		panic("Could not write navigation: " + err.Error())
+	}
 }
 
 type addFormData struct {
