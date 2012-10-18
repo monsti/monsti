@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"path/filepath"
+	"path"
 )
 
 // Context can be used to define a context for Render.
@@ -22,20 +23,11 @@ func getText(msg string) string {
 	return g5t.String(msg)
 }
 
-// pathJoin joins both url path segments so that they are separated by exactly
-// one slash.
-func pathJoin(first, last string) string {
-	for len(first) > 0 && first[len(first)-1:] == "/" {
-		first = first[:len(first)-1]
-	}
-	return first + "/" + last
-}
-
 // Render the named template with given context. 
 func (r Renderer) Render(name string, context interface{}) string {
 	tmpl := template.New(name)
 	funcs := template.FuncMap{
-		"pathJoin": pathJoin,
+		"pathJoin": path.Join,
 		"G":        getText}
 	tmpl.Funcs(funcs)
 	parse(name, tmpl, r.Root)
