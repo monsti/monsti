@@ -11,6 +11,7 @@ import (
 	"launchpad.net/goyaml"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -151,6 +152,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				panic("Can't add node: " + err.Error())
 			}
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
+			return
 		}
 	default:
 		panic("Request method not supported: " + r.Method)
@@ -159,6 +161,39 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		"Form": form.RenderData()})
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
+}
+
+type removeFormData struct {
+	Confirm int
+}
+
+// Remove handles remove requests.
+func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
+	node client.Node, session *sessions.Session, cSession *client.Session) {
+	data := removeFormData{}
+	form := form.NewForm(&data, form.Fields{
+		"Confirm": form.Field{G("Confirm"), "", form.Required(),
+			new(form.HiddenWidget)}})
+	switch r.Method {
+	case "GET":
+	case "POST":
+		r.ParseForm()
+		if form.Fill(r.Form) {
+			if err := removeNode(node, h.Settings.Directories.Data); err != nil {
+				panic("Can't remove node: " + err.Error())
+			}
+			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
+			return
+		}
+	default:
+		panic("Request method not supported: " + r.Method)
+	}
+	data.Confirm = 1489
+	body := h.Renderer.Render("actions/removeform", template.Context{
+		"Form": form.RenderData(), "Node": node})
+	env := masterTmplEnv{Node: node, Session: cSession,
+		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
 }
 
@@ -195,4 +230,11 @@ func writeNode(node client.Node, root string) error {
 		}
 	}
 	return ioutil.WriteFile(node_path, content, 0600)
+}
+
+// removeNode recursively removes the given node from the data directory located
+// at the given root.
+func removeNode(node client.Node, root string) error {
+	nodePath := filepath.Join(root, node.Path[1:])
+	return os.RemoveAll(nodePath)
 }

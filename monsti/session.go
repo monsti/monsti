@@ -98,7 +98,7 @@ func getUser(login, configDir string) (*client.User, error) {
 func checkPermission(action string, session *client.Session) bool {
 	auth := session.User != nil
 	switch action {
-	case "edit", "add", "logout":
+	case "remove", "edit", "add", "logout":
 		if auth {
 			return true
 		}

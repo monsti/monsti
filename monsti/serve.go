@@ -81,6 +81,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Logout(w, r, node, session)
 	case "add":
 		h.Add(w, r, node, session, cSession)
+	case "remove":
+		h.Remove(w, r, node, session, cSession)
 	default:
 		h.RequestNode(w, r, node, action, session, cSession)
 	}
@@ -109,6 +111,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	}
 	if len(res.Redirect) > 0 {
 		http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
+		return
 	}
 	env := masterTmplEnv{Node: node, Session: cSession}
 	if action == "edit" {
