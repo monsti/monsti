@@ -73,6 +73,7 @@ type Option struct {
 	Value, Text string
 }
 
+// SelectWidget renders a selection field.
 type SelectWidget struct {
 	Options []Option
 }
@@ -90,6 +91,15 @@ func (t SelectWidget) HTML(field string, value interface{}) template.HTML {
 	ret := fmt.Sprintf("<select id=\"%v\" name=\"%v\">\n%v</select>",
 		strings.ToLower(field), field, options)
 	return template.HTML(ret)
+}
+
+// HiddenWidget renders a hidden input field.
+type HiddenWidget int
+
+func (t HiddenWidget) HTML(field string, value interface{}) template.HTML {
+	return template.HTML(
+		fmt.Sprintf(`<input id="%v" type="hidden" name="%v" value="%v"/>`,
+		strings.ToLower(field), field, value))
 }
 
 // Field contains settings for a form field.

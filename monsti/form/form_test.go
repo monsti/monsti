@@ -151,3 +151,13 @@ func TestSelectWidget(t *testing.T) {
 		}
 	}
 }
+
+func TestHiddenWidget(t *testing.T) {
+	widget := new(HiddenWidget)
+	ret := widget.HTML("Foo", "bar")
+	expected := `<input id="foo" type="hidden" name="Foo" value="bar"/>`
+	if string(ret) != expected {
+		t.Errorf(`HiddenWidget.HTML("Foo", "bar") = "%v", should be "%v".`,
+			ret, expected)
+	}
+}
