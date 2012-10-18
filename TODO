@@ -1,0 +1,2 @@
+- Lock on writes
+- Add CSRF tokens for forms
