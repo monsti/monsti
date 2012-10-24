@@ -8,12 +8,12 @@ import (
 	"testing"
 )
 
-func TestGetNav(t *testing.T) {
-	root, err := ioutil.TempDir("", "_monsti_TestGetNav")
+// Create test data directory and return path to root.
+func createTestRoot(t *testing.T, testName string) string {
+	root, err := ioutil.TempDir("", "_monsti_" + testName)
 	if err != nil {
 		t.Fatalf("Could not create temp dir: %s", err)
 	}
-	defer os.RemoveAll(root)
 	nav := []byte(`- name: foo Page
   target: foo
 - name: bar Page
@@ -34,6 +34,12 @@ func TestGetNav(t *testing.T) {
 		[]byte(""), 0600); err != nil {
 		t.Fatalf("Could not write navigation: %s", err)
 	}
+	return root
+}
+
+func TestGetNav(t *testing.T) {
+	root := createTestRoot(t, "TestGetNav")
+	defer os.RemoveAll(root)
 	tests := []struct {
 		Path, Active string
 		Recursive    bool
@@ -62,11 +68,11 @@ func TestGetNav(t *testing.T) {
 	}
 }
 
-func TestDumpNav(t *testing.T) {
+func TestNavigationDump(t *testing.T) {
 	nav := navigation{
 		{Name: "foo Page", Target: "foo", Active: true},
 		{Name: "bar Page", Target: "bar", Active: false}}
-	root, err := ioutil.TempDir("", "_monsti_TestDumpNav")
+	root, err := ioutil.TempDir("", "_monsti_TestNavigationDump")
 	if err != nil {
 		t.Fatalf("Could not create temp dir: %s", err)
 	}
@@ -89,7 +95,7 @@ func TestDumpNav(t *testing.T) {
 	}
 }
 
-func TestAddToNav(t *testing.T) {
+func TestNavigationAdd(t *testing.T) {
 	nav := navigation{
 		{Name: "foo Page", Target: "foo"},
 		{Name: "bar Page", Target: "bar"}}
@@ -98,5 +104,35 @@ func TestAddToNav(t *testing.T) {
 	if nav[2] != link {
 		t.Errorf(`navigation.Add("cruz Page", "cruz") = %q, this is wrong.`,
 			nav)
+	}
+}
+
+func TestNavigationRemove(t *testing.T) {
+	nav := navigation{
+		{Name: "foo Page", Target: "foo"},
+		{Name: "bar Page", Target: "bar"},
+		{Name: "again foo Page", Target: "foo"}}
+	nav.Remove("foo")
+	expected := navigation{{Name: "bar Page", Target: "bar"}}
+	if !reflect.DeepEqual(nav, expected) {
+		t.Errorf(`navigation.Remove("foo") = %q, should be %q`,
+			nav, expected)
+	}
+}
+
+func TestRemoveNode(t *testing.T) {
+	root := createTestRoot(t, "TestGetNav")
+	defer os.RemoveAll(root)
+	removeNode("/foo", root)
+	if f, err := os.Open(filepath.Join(root, "foo")); !os.IsNotExist(err) {
+		f.Close()
+		t.Errorf(`/foo does still exist, should be removed`)
+	}
+	nav := getNav("/", "", false, root)
+	expectedNav := navigation{
+			{Name: "bar Page", Target: "bar"}}
+	if !reflect.DeepEqual(nav, expectedNav) {
+		t.Errorf(`Navigation should be %v after removal, but is %v.`,
+			expectedNav, nav)
 	}
 }

@@ -144,6 +144,17 @@ func (nav *navigation) Add(name, target string) {
 	*nav = append(*nav, navLink{Name: name, Target: target})
 }
 
+// Remove removes all links with the given target from the navigation.
+func (nav *navigation) Remove(target string) {
+	ret := make(navigation, 0, len(*nav)-1)
+	for _, v := range *nav {
+		if v.Target != target {
+			ret = append(ret, v)
+		}
+	}
+	*nav = ret
+}
+
 type addFormData struct {
 	Type, Name, Title string
 }
@@ -211,9 +222,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			if err := removeNode(node, h.Settings.Directories.Data); err != nil {
-				panic("Can't remove node: " + err.Error())
-			}
+			removeNode(node.Path, h.Settings.Directories.Data)
 			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
 			return
 		}
@@ -264,8 +273,16 @@ func writeNode(node client.Node, root string) error {
 }
 
 // removeNode recursively removes the given node from the data directory located
-// at the given root.
-func removeNode(node client.Node, root string) error {
-	nodePath := filepath.Join(root, node.Path[1:])
-	return os.RemoveAll(nodePath)
+// at the given root and from the navigation of the parent node.
+func removeNode(path, root string) {
+	nodePath := filepath.Join(root, path[1:])
+	parent := filepath.Dir(path)
+	if parent != path {
+		nav := getNav(parent, "", false, root)
+		nav.Remove(filepath.Base(path))
+		nav.Dump(parent, root)
+	}
+	if err := os.RemoveAll(nodePath); err != nil {
+		panic("Can't remove node: " + err.Error())
+	}
 }
