@@ -78,6 +78,8 @@ type navLink struct {
 	Active       bool "active,omitempty"
 }
 
+type navigation []navLink
+
 // getNav returns the navigation for the given node.
 // 
 // node is the path of the node for which to get the navigation.
@@ -87,17 +89,19 @@ type navLink struct {
 // The keys of the returned map are the link titles, the values are
 // the link targets.
 //
-// If the node has no navigation defined (i.e. there exists no
-// navigation.yaml), a navigation is searched recursively for the parent node up
-// to the root.
-func getNav(path, active, root string) []navLink {
+// If the given node has no navigation (i.e. no navigation.yaml) and recursive
+// is true, search recursively up to the root for a navigation. If recursive is
+// false, getNav returns nil for this case.
+func getNav(path, active string, recursive bool, root string) navigation {
 	var content []byte
+	hasNav := true
 	for {
 		file := filepath.Join(root, path, "navigation.yaml")
 		var err error
 		content, err = ioutil.ReadFile(file)
 		if err != nil {
-			if path == filepath.Dir(path) {
+			hasNav = false
+			if !recursive || path == filepath.Dir(path) {
 				break
 			}
 			path = filepath.Dir(path)
@@ -113,11 +117,14 @@ func getNav(path, active, root string) []navLink {
 			break
 		}
 	}
+	if len(navLinks) == 0 && hasNav {
+		return navigation{}
+	}
 	return navLinks
 }
 
-// dumpNav unmarshals the navigation and writes it to the node's directory.
-func dumpNav(nav []navLink, nodePath, root string) {
+// dumpNav unmarshals the navigation and writes it to the given node directory.
+func (nav navigation) Dump(nodePath, root string) {
 	for i := range nav {
 		nav[i].Active = false
 	}
@@ -130,6 +137,11 @@ func dumpNav(nav []navLink, nodePath, root string) {
 	if err != nil {
 		panic("Could not write navigation: " + err.Error())
 	}
+}
+
+// Add adds a link with the given name and target to the navigation.
+func (nav *navigation) Add(name, target string) {
+	*nav = append(*nav, navLink{Name: name, Target: target})
 }
 
 type addFormData struct {
@@ -167,6 +179,9 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			if err := writeNode(newNode, h.Settings.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
+			nav := getNav(node.Path, "", false, h.Settings.Directories.Data)
+			nav.Add(data.Title, data.Name)
+			nav.Dump(node.Path, h.Settings.Directories.Data)
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
 			return
 		}

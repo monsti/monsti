@@ -26,10 +26,11 @@ type masterTmplEnv struct {
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings settings) string {
 	prinav := getNav("/", "/"+strings.SplitN(env.Node.Path[1:], "/", 2)[0],
-		settings.Directories.Data)
+		true, settings.Directories.Data)
 	var secnav []navLink = nil
 	if env.Node.Path != "/" {
-		secnav = getNav(env.Node.Path, env.Node.Path, settings.Directories.Data)
+		secnav = getNav(env.Node.Path, env.Node.Path, true,
+			settings.Directories.Data)
 	}
 	sidebarContent := getSidebar(env.Node.Path, settings.Directories.Data)
 	showSidebar := (len(secnav) > 0 || len(sidebarContent) > 0) &&
