@@ -82,7 +82,7 @@ func getClientSession(session *sessions.Session,
 		return
 	}
 	user := getUser(login, configDir)
-	if user != nil {
+	if user == nil {
 		delete(session.Values, "login")
 		return
 	}
