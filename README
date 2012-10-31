@@ -25,20 +25,18 @@ business sites with mostly static pages and simple structure.
 Monsti doesn't use a DBMS but flat files. Sites are organized as trees where
 each node corresponds to a subdirectory in the flat file directory tree. Each
 node's subdirectory contains its data and meta-data. Every subdirectory consists
-of a node.yml YAML formatted file describing the node. A typical structure might
+of a node.yaml YAML formatted file describing the node. A typical structure might
 look like this ('/' is the root of the site's data directory):
 
 /about
 /about/body.html
-/about/node.yml
+/about/node.yaml
 /body.html
 /contact
 /contact/body.html
-/contact
-/contact/node.yml
-/navigation
-/navigation/node.yml
-/node.yml
+/contact/node.yaml
+/navigation.yaml
+/node.yaml
 
 
 ** Project
