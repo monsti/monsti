@@ -6,7 +6,10 @@ import (
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"fmt"
+	"io/ioutil"
+	"launchpad.net/goyaml"
 	"net/http"
+	"path/filepath"
 )
 
 type loginFormData struct {
@@ -25,8 +28,8 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			user, err := getUser(data.Login, h.Settings.Directories.Config)
-			if err == nil && user.Password == data.Password {
+			user := getUser(data.Login, h.Settings.Directories.Config)
+			if user != nil && user.Password == data.Password {
 				session.Values["login"] = user.Login
 				session.Save(r, w)
 				http.Redirect(w, r, node.Path, http.StatusSeeOther)
@@ -77,8 +80,8 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	user, err := getUser(login, configDir)
-	if err != nil {
+	user := getUser(login, configDir)
+	if user != nil {
 		delete(session.Values, "login")
 		return
 	}
@@ -87,11 +90,22 @@ func getClientSession(session *sessions.Session,
 }
 
 // getUser returns the user with the given login.
-func getUser(login, configDir string) (*client.User, error) {
-	return &client.User{
-		Login:    login,
-		Name:     "Administrator",
-		Password: "foofoo"}, nil
+func getUser(login, configDir string) *client.User {
+	path := filepath.Join(configDir, "users.yaml")
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic("Could not load users.yaml: " + err.Error())
+	}
+	var users []client.User
+	if err = goyaml.Unmarshal(content, &users); err != nil {
+		panic("Could not unmarshal users.yaml: " + err.Error())
+	}
+	for _, user := range users {
+		if user.Login == login {
+			return &user
+		}
+	}
+	return nil
 }
 
 // checkPermission checks if the session's user might perform the given action.
