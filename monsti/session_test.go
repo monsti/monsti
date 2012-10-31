@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/go.crypto/bcrypt"
 	"datenkarussell.de/monsti/rpc/client"
 	"io/ioutil"
 	"path/filepath"
@@ -72,6 +73,26 @@ func TestGetUser(t *testing.T) {
 		if !reflect.DeepEqual(user, v.User) {
 			t.Errorf("getUser(%q, _) = %v, should be %v", v.Login,
 				user, v.User)
+		}
+	}
+}
+
+func TestPasswordEqual(t *testing.T) {
+	tests := []struct {
+		ToHash, Password string
+		Equal            bool
+	}{
+		{"foobar", "foobar", true},
+		{"foobar", "foo", false},
+		{"foobar", "", false}}
+	for _, v := range tests {
+		hash, err := bcrypt.GenerateFromPassword([]byte(v.ToHash), 0)
+		if err != nil {
+			t.Fatalf("Could not generate password hash: %v", err)
+		}
+		if passwordEqual(string(hash), v.Password) != v.Equal {
+			t.Errorf("passwordEqual(%v, %v) = %v, should be %v",
+				hash, v.Password, !v.Equal, v.Equal)
 		}
 	}
 }

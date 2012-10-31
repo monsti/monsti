@@ -5,7 +5,7 @@ Installation instructions
 
 - make
 - C compiler
-- Git and Bazaar (to fetch go packages)
+- Git (to fetch go packages)
 - Go compiler and tools
 
 2) Build:

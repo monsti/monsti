@@ -2,19 +2,20 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.1
 
-all: dep-aloha-editor dep-jquery go/ contactform document monsti
+all: dep-aloha-editor dep-jquery go/ contactform document monsti bcrypt
 
 go/:
 	mkdir -p go/src/datenkarussell.de/
 	mkdir -p go/bin
 	mkdir -p go/pkg
 	ln -s -t go/src/datenkarussell.de/ ../../../monsti/
+	ln -s -t go/src/datenkarussell.de/ ../../../monsti/tools/bcrypt
 	$(GO) get github.com/chrneumann/g5t
 	$(GO) get github.com/chrneumann/mimemail
 	$(GO) get launchpad.net/goyaml
 	$(GO) get code.google.com/p/gorilla/schema
 	$(GO) get code.google.com/p/gorilla/sessions
-#	$(GO) get bitbucket.org/zoowar/bcrypt
+	$(GO) get code.google.com/p/go.crypto/bcrypt
 
 .PHONY: extract-messages
 extract-messages:
@@ -22,6 +23,10 @@ extract-messages:
 	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
 	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
 	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
+
+.PHONY: bcrypt
+bcrypt: go/
+	$(GO) install datenkarussell.de/monsti/tools/bcrypt
 
 .PHONY: monsti
 monsti: go/

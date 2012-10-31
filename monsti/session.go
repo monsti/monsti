@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.google.com/p/go.crypto/bcrypt"
 	"code.google.com/p/gorilla/sessions"
 	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
@@ -29,7 +30,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		r.ParseForm()
 		if form.Fill(r.Form) {
 			user := getUser(data.Login, h.Settings.Directories.Config)
-			if user != nil && user.Password == data.Password {
+			if user != nil && passwordEqual(user.Password, data.Password) {
 				session.Values["login"] = user.Login
 				session.Save(r, w)
 				http.Redirect(w, r, node.Path, http.StatusSeeOther)
@@ -120,4 +121,13 @@ func checkPermission(action string, session *client.Session) bool {
 		return true
 	}
 	return false
+}
+
+// passwordEqual returns true iff the hash matches the password.
+func passwordEqual(hash, password string) bool {
+	if err := bcrypt.CompareHashAndPassword([]byte(hash),
+		[]byte(password)); err != nil {
+		return false
+	}
+	return true
 }
