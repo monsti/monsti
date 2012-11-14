@@ -71,6 +71,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	site.Name = site_name
 	session := getSession(r, site)
 	cSession := getClientSession(session, h.Settings.Directories.Config)
+	cSession.Locale = site.Locale
 	node, err := lookupNode(site.Directories.Data, nodePath)
 	if err != nil {
 		log.Println("Node not found.")

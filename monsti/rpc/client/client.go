@@ -33,6 +33,8 @@ type User struct {
 type Session struct {
 	// Authenticaded user or nil
 	User *User
+	// Locale used for this session.
+	Locale string
 }
 
 // A request to be processed by a worker.
