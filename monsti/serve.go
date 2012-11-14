@@ -15,8 +15,10 @@ import (
 
 // nodeHandler is a net/http handler to process incoming HTTP requests.
 type nodeHandler struct {
-	Renderer   template.Renderer
-	Settings   settings
+	Renderer template.Renderer
+	Settings settings
+	// Hosts is a map from hosts to site names.
+	Hosts      map[string]string
 	NodeQueues map[string]chan worker.Ticket
 }
 
@@ -61,9 +63,15 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	nodePath, action := splitAction(r.URL.Path)
-	session := getSession(r, h.Settings)
+	site_name, ok := h.Hosts[r.Host]
+	if !ok {
+		panic("No site found for host " + r.Host)
+	}
+	site := h.Settings.Sites[site_name]
+	site.Name = site_name
+	session := getSession(r, site)
 	cSession := getClientSession(session, h.Settings.Directories.Config)
-	node, err := lookupNode(h.Settings.Directories.Data, nodePath)
+	node, err := lookupNode(site.Directories.Data, nodePath)
 	if err != nil {
 		log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
@@ -76,24 +84,24 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	switch action {
 	case "login":
-		h.Login(w, r, node, session, cSession)
+		h.Login(w, r, node, session, cSession, site)
 	case "logout":
 		h.Logout(w, r, node, session)
 	case "add":
-		h.Add(w, r, node, session, cSession)
+		h.Add(w, r, node, session, cSession, site)
 	case "remove":
-		h.Remove(w, r, node, session, cSession)
+		h.Remove(w, r, node, session, cSession, site)
 	default:
-		h.RequestNode(w, r, node, action, session, cSession)
+		h.RequestNode(w, r, node, action, session, cSession, site)
 	}
 }
 
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	node client.Node, action string, session *sessions.Session,
-	cSession *client.Session) {
+	cSession *client.Session, site site) {
 	// Setup ticket and send to workers.
-	log.Println(r.Method, r.URL.Path)
+	log.Println(site.Name, r.Method, r.URL.Path)
 	c := make(chan client.Response)
 	h.QueueTicket(worker.Ticket{
 		Node:         node,
@@ -118,7 +126,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		env.Title = fmt.Sprintf(G("Edit \"%s\""), node.Title)
 		env.Flags = EDIT_VIEW
 	}
-	content := renderInMaster(h.Renderer, res.Body, env, h.Settings)
+	content := renderInMaster(h.Renderer, res.Body, env, h.Settings, site)
 	err := session.Save(r, w)
 	if err != nil {
 		panic(err.Error())

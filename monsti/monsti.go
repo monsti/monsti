@@ -20,7 +20,34 @@ import (
 	"path/filepath"
 )
 
-// Settings for the application and the site.
+// Site configuration.
+type site struct {
+	// Name of the site for internal use.
+	Name string
+	// Title as used in HTML head.
+	Title string
+	// The hosts which should deliver this site.
+	Hosts []string
+	// Name and email address of site owner.
+	//
+	// The owner's address is used as recipient of contact form submissions.
+	Owner struct {
+		Name, Email string
+	}
+	// Key to authenticate session cookies.
+	SessionAuthKey string
+	// Locale used to translate monsti's web interface.
+	Locale string
+	// Absolute paths to site specific directories.
+	Directories struct {
+		// Site content
+		Data string
+		// Site specific static files
+		Statics string
+	}
+}
+
+// Settings for the application and the sites.
 type settings struct {
 	// Settings for sending mail (outgoing SMTP).
 	Mail struct {
@@ -31,29 +58,17 @@ type settings struct {
 	Directories struct {
 		// Config files
 		Config string
-		// Site content
-		Data string
 		// Monsti's static files
 		Statics string
-		// Site specific static files
-		SiteStatics string
 		// HTML Templates
 		Templates string
 		// Locales, i.e. the gettext machine objects (.mo)
 		Locales string
 	}
-	// Site title
-	Title string
-	// Name and email address of site owner.
-	//
-	// The owner's address is used as recipient of contact form submissions.
-	Owner struct {
-		Name, Email string
-	}
 	// List of node types to be activated.
 	NodeTypes []string
-	// Key to authenticate session cookies.
-	SessionAuthKey string
+	// Sites hosted by this monsti instance.
+	Sites map[string]site
 }
 
 func main() {
@@ -84,8 +99,14 @@ func main() {
 	}
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Directories.Statics))))
-	http.Handle("/site-static/", http.FileServer(http.Dir(
-		filepath.Dir(settings.Directories.SiteStatics))))
+	handler.Hosts = make(map[string]string)
+	for site_title, site := range settings.Sites {
+		for _, host := range site.Hosts {
+			handler.Hosts[host] = site_title
+			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
+				filepath.Dir(site.Directories.Statics))))
+		}
+	}
 	http.Handle("/", &handler)
 	http.ListenAndServe(":8080", nil)
 }

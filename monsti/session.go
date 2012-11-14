@@ -19,7 +19,8 @@ type loginFormData struct {
 
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	node client.Node, session *sessions.Session, cSession *client.Session) {
+	node client.Node, session *sessions.Session, cSession *client.Session,
+	site site) {
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Login":    form.Field{G("Login"), "", form.Required(), nil},
@@ -47,7 +48,8 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		site))
 }
 
 // Logout handles logout requests.
@@ -59,11 +61,11 @@ func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
 }
 
 // getSession returns a currently active or new session.
-func getSession(r *http.Request, settings settings) *sessions.Session {
-	if len(settings.SessionAuthKey) == 0 {
+func getSession(r *http.Request, site site) *sessions.Session {
+	if len(site.SessionAuthKey) == 0 {
 		panic(`Missing "SessionAuthKey" setting.`)
 	}
-	store := sessions.NewCookieStore([]byte(settings.SessionAuthKey))
+	store := sessions.NewCookieStore([]byte(site.SessionAuthKey))
 	session, _ := store.Get(r, "monsti-session")
 	return session
 }

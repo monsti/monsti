@@ -27,7 +27,8 @@ type NodeRPC struct {
 }
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
-	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
+	site := m.Settings.Sites[m.Worker.Ticket.Site]
+	path := filepath.Join(site.Directories.Data, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -42,7 +43,8 @@ func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error 
 
 func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 	reply *int) error {
-	path := filepath.Join(m.Settings.Directories.Data, args.Path[1:], args.File)
+	site := m.Settings.Sites[m.Worker.Ticket.Site]
+	path := filepath.Join(site.Directories.Data, args.Path[1:], args.File)
 	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
 	return err
 }
@@ -73,11 +75,13 @@ func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
 }
 
 func (m *NodeRPC) UpdateNode(node client.Node, reply *int) error {
-	return writeNode(node, m.Settings.Directories.Data)
+	site := m.Settings.Sites[m.Worker.Ticket.Site]
+	return writeNode(node, site.Directories.Data)
 }
 
 func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
-	owner := mimemail.Address{m.Settings.Owner.Name, m.Settings.Owner.Email}
+	site := m.Settings.Sites[m.Worker.Ticket.Site]
+	owner := mimemail.Address{site.Owner.Name, site.Owner.Email}
 	if len(mail.From.Email) == 0 {
 		mail.From = owner
 	}

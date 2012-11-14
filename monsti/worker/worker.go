@@ -13,6 +13,8 @@ import (
 
 // Ticket represents an incoming request to be processed by the worker.
 type Ticket struct {
+	// Site being served.
+	Site string
 	// The requested node.
 	Node client.Node
 	// Request is the original HTTP request.

@@ -24,18 +24,18 @@ type masterTmplEnv struct {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings settings) string {
+	settings settings, site site) string {
 	prinav := getNav("/", "/"+strings.SplitN(env.Node.Path[1:], "/", 2)[0],
-		true, settings.Directories.Data)
+		true, site.Directories.Data)
 	var secnav []navLink = nil
 	if env.Node.Path != "/" {
 		secnav = getNav(env.Node.Path, env.Node.Path, true,
-			settings.Directories.Data)
+			site.Directories.Data)
 	}
-	sidebarContent := getSidebar(env.Node.Path, settings.Directories.Data)
+	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
 	showSidebar := (len(secnav) > 0 || len(sidebarContent) > 0) &&
 		!env.Node.HideSidebar && (env.Flags&EDIT_VIEW == 0)
-	belowHeader := getBelowHeader(env.Node.Path, settings.Directories.Data)
+	belowHeader := getBelowHeader(env.Node.Path, site.Directories.Data)
 	title := env.Node.Title
 	if env.Title != "" {
 		title = env.Title
@@ -46,7 +46,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	}
 	return r.Render("master", template.Context{
 		"Site": template.Context{
-			"Title": settings.Title,
+			"Title": site.Title,
 		},
 		"Page": template.Context{
 			"Node":             env.Node,
@@ -55,7 +55,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"EditView":         env.Flags&EDIT_VIEW != 0,
 			"ShowBelowHeader":  len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
 			"BelowHeader":      htmlT.HTML(belowHeader),
-			"Footer":           htmlT.HTML(getFooter(settings.Directories.Data)),
+			"Footer":           htmlT.HTML(getFooter(site.Directories.Data)),
 			"Sidebar":          htmlT.HTML(sidebarContent),
 			"Title":            title,
 			"Description":      description,

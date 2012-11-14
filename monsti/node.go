@@ -161,7 +161,8 @@ type addFormData struct {
 
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	node client.Node, session *sessions.Session, cSession *client.Session) {
+	node client.Node, session *sessions.Session, cSession *client.Session,
+	site site) {
 	data := addFormData{}
 	selectWidget := form.SelectWidget{[]form.Option{
 		{"Document", G("Document")}}}
@@ -187,12 +188,12 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
-			if err := writeNode(newNode, h.Settings.Directories.Data); err != nil {
+			if err := writeNode(newNode, site.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
-			nav := getNav(node.Path, "", false, h.Settings.Directories.Data)
+			nav := getNav(node.Path, "", false, site.Directories.Data)
 			nav.Add(data.Title, data.Name)
-			nav.Dump(node.Path, h.Settings.Directories.Data)
+			nav.Dump(node.Path, site.Directories.Data)
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
 			return
 		}
@@ -203,7 +204,8 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		"Form": form.RenderData()})
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		site))
 }
 
 type removeFormData struct {
@@ -212,7 +214,8 @@ type removeFormData struct {
 
 // Remove handles remove requests.
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
-	node client.Node, session *sessions.Session, cSession *client.Session) {
+	node client.Node, session *sessions.Session, cSession *client.Session,
+	site site) {
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Confirm": form.Field{G("Confirm"), "", form.Required(),
@@ -222,7 +225,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			removeNode(node.Path, h.Settings.Directories.Data)
+			removeNode(node.Path, site.Directories.Data)
 			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
 			return
 		}
@@ -234,7 +237,8 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		"Form": form.RenderData(), "Node": node})
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings))
+	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		site))
 }
 
 // lookupNode look ups a node at the given path.
