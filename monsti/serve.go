@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"code.google.com/p/gorilla/sessions"
+	"github.com/gorilla/sessions"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/worker"

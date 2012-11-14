@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.google.com/p/gorilla/sessions"
+	"github.com/gorilla/sessions"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"datenkarussell.de/monsti/worker"

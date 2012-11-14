@@ -13,9 +13,9 @@ go/:
 	$(GO) get github.com/chrneumann/g5t
 	$(GO) get github.com/chrneumann/mimemail
 	$(GO) get launchpad.net/goyaml
-	$(GO) get code.google.com/p/gorilla/schema
-	$(GO) get code.google.com/p/gorilla/sessions
-	$(GO) get code.google.com/p/go.crypto/bcrypt
+	$(GO) get github.com/gorilla/schema
+	$(GO) get github.com/gorilla/sessions
+	$(GO) get github.com/go.crypto/bcrypt
 
 .PHONY: extract-messages
 extract-messages:

@@ -1,9 +1,9 @@
 package form
 
 import (
-	"code.google.com/p/gorilla/schema"
 	"fmt"
 	"github.com/chrneumann/g5t"
+	"github.com/gorilla/schema"
 	"html"
 	"html/template"
 	"net/url"
@@ -99,7 +99,7 @@ type HiddenWidget int
 func (t HiddenWidget) HTML(field string, value interface{}) template.HTML {
 	return template.HTML(
 		fmt.Sprintf(`<input id="%v" type="hidden" name="%v" value="%v"/>`,
-		strings.ToLower(field), field, value))
+			strings.ToLower(field), field, value))
 }
 
 // Field contains settings for a form field.

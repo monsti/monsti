@@ -1,8 +1,8 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
-	"code.google.com/p/gorilla/sessions"
+	"github.com/go.crypto/bcrypt"
+	"github.com/gorilla/sessions"
 	"datenkarussell.de/monsti/form"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
