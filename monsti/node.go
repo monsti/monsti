@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/gorilla/sessions"
 	"datenkarussell.de/monsti/form"
+	"datenkarussell.de/monsti/l10n"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"fmt"
-	"github.com/chrneumann/g5t"
+	"github.com/gorilla/sessions"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
@@ -15,8 +15,6 @@ import (
 	"path/filepath"
 	"strings"
 )
-
-var G func(string) string = g5t.String
 
 // getFooter retrieves the footer.
 //
@@ -163,16 +161,17 @@ type addFormData struct {
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session,
 	site site) {
+	G := l10n.UseCatalog(cSession.Locale)
 	data := addFormData{}
 	selectWidget := form.SelectWidget{[]form.Option{
 		{"Document", G("Document")}}}
 	form := form.NewForm(&data, form.Fields{
-		"Type": form.Field{G("Content type"), "", form.Required(), selectWidget},
+		"Type": form.Field{G("Content type"), "", form.Required(G("Required.")), selectWidget},
 		"Name": form.Field{G("Name"),
 			G("The name as it should appear in the URL."),
-			form.And(form.Required(), form.Regex(`^\w*$`,
+			form.And(form.Required(G("Required.")), form.Regex(`^\w*$`,
 				G("Contains	invalid characters."))), nil},
-		"Title": form.Field{G("Title"), "", form.Required(), nil}})
+		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil}})
 	switch r.Method {
 	case "GET":
 	case "POST":
@@ -201,11 +200,11 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	body := h.Renderer.Render("actions/addform", template.Context{
-		"Form": form.RenderData()})
+		"Form": form.RenderData()}, cSession.Locale)
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site))
+		site, cSession.Locale))
 }
 
 type removeFormData struct {
@@ -216,9 +215,10 @@ type removeFormData struct {
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session,
 	site site) {
+	G := l10n.UseCatalog(cSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
-		"Confirm": form.Field{G("Confirm"), "", form.Required(),
+		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),
 			new(form.HiddenWidget)}})
 	switch r.Method {
 	case "GET":
@@ -234,11 +234,12 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	}
 	data.Confirm = 1489
 	body := h.Renderer.Render("actions/removeform", template.Context{
-		"Form": form.RenderData(), "Node": node})
+		"Form": form.RenderData(), "Node": node},
+		cSession.Locale)
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site))
+		site, cSession.Locale))
 }
 
 // lookupNode look ups a node at the given path.

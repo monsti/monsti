@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/go.crypto/bcrypt"
-	"github.com/gorilla/sessions"
+	"code.google.com/p/go.crypto/bcrypt"
 	"datenkarussell.de/monsti/form"
+	"datenkarussell.de/monsti/l10n"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"fmt"
+	"github.com/gorilla/sessions"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
@@ -21,10 +22,13 @@ type loginFormData struct {
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	node client.Node, session *sessions.Session, cSession *client.Session,
 	site site) {
+	G := l10n.UseCatalog(cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
-		"Login":    form.Field{G("Login"), "", form.Required(), nil},
-		"Password": form.Field{G("Password"), "", form.Required(), nil}})
+		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
+			nil},
+		"Password": form.Field{G("Password"), "", form.Required(G("Required.")),
+			nil}})
 	switch r.Method {
 	case "GET":
 	case "POST":
@@ -44,12 +48,12 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	}
 	data.Password = ""
 	body := h.Renderer.Render("actions/loginform", template.Context{
-		"Form": form.RenderData()})
+		"Form": form.RenderData()}, cSession.Locale)
 	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site))
+		site, cSession.Locale))
 }
 
 // Logout handles logout requests.

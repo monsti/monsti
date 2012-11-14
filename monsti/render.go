@@ -24,7 +24,7 @@ type masterTmplEnv struct {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings settings, site site) string {
+	settings settings, site site, locale string) string {
 	prinav := getNav("/", "/"+strings.SplitN(env.Node.Path[1:], "/", 2)[0],
 		true, site.Directories.Data)
 	var secnav []navLink = nil
@@ -63,5 +63,5 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"ShowSecondaryNav": len(secnav) > 0,
 			"ShowSidebar":      showSidebar,
 		},
-		"Session": env.Session})
+		"Session": env.Session}, locale)
 }

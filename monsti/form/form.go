@@ -2,7 +2,6 @@ package form
 
 import (
 	"fmt"
-	"github.com/chrneumann/g5t"
 	"github.com/gorilla/schema"
 	"html"
 	"html/template"
@@ -13,8 +12,6 @@ import (
 )
 
 var schemaDecoder = schema.NewDecoder()
-
-var G func(string) string = g5t.String
 
 // FieldRenderData contains the data needed for field rendering.
 type FieldRenderData struct {
@@ -232,10 +229,12 @@ func And(vs ...Validator) Validator {
 }
 
 // Required creates a Validator to check for non empty values.
-func Required() Validator {
+//
+// msg is set as validation error.
+func Required(msg string) Validator {
 	return func(value interface{}) []string {
 		if value == reflect.Zero(reflect.TypeOf(value)).Interface() {
-			return []string{G("Required.")}
+			return []string{msg}
 		}
 		return nil
 	}

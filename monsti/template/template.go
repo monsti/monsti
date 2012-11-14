@@ -2,11 +2,11 @@ package template
 
 import (
 	"bytes"
-	"github.com/chrneumann/g5t"
+	"datenkarussell.de/monsti/l10n"
 	"html/template"
 	"io/ioutil"
-	"path/filepath"
 	"path"
+	"path/filepath"
 )
 
 // Context can be used to define a context for Render.
@@ -18,17 +18,14 @@ type Renderer struct {
 	Root string
 }
 
-// getText looks up the translation for the given string.
-func getText(msg string) string {
-	return g5t.String(msg)
-}
-
 // Render the named template with given context. 
-func (r Renderer) Render(name string, context interface{}) string {
+func (r Renderer) Render(name string, context interface{},
+	locale string) string {
 	tmpl := template.New(name)
+	G := l10n.UseCatalog(locale)
 	funcs := template.FuncMap{
 		"pathJoin": path.Join,
-		"G":        getText}
+		"G":        G}
 	tmpl.Funcs(funcs)
 	parse(name, tmpl, r.Root)
 	parse("blocks/form-horizontal", tmpl.New("blocks/form-horizontal"), r.Root)

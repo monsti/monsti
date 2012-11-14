@@ -2,11 +2,12 @@ package main
 
 import (
 	"bytes"
-	"github.com/gorilla/sessions"
+	"datenkarussell.de/monsti/l10n"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/worker"
 	"fmt"
+	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -101,6 +102,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	node client.Node, action string, session *sessions.Session,
 	cSession *client.Session, site site) {
+	G := l10n.UseCatalog(cSession.Locale)
 	// Setup ticket and send to workers.
 	log.Println(site.Name, r.Method, r.URL.Path)
 	c := make(chan client.Response)
@@ -127,7 +129,8 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		env.Title = fmt.Sprintf(G("Edit \"%s\""), node.Title)
 		env.Flags = EDIT_VIEW
 	}
-	content := renderInMaster(h.Renderer, res.Body, env, h.Settings, site)
+	content := renderInMaster(h.Renderer, res.Body, env, h.Settings, site,
+		cSession.Locale)
 	err := session.Save(r, w)
 	if err != nil {
 		panic(err.Error())

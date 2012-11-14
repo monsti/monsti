@@ -8,12 +8,12 @@
 package main
 
 import (
+	"datenkarussell.de/monsti/l10n"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
 	"datenkarussell.de/monsti/worker"
 	"flag"
 	"fmt"
-	"github.com/chrneumann/g5t"
 	"log"
 	"net/http"
 	"os"
@@ -85,11 +85,8 @@ func main() {
 		fmt.Println("Could not load configuration file: " + err.Error())
 		os.Exit(1)
 	}
-	settings.Directories.Config = filepath.Dir(cfgPath)
-	err = g5t.Setup("monsti", settings.Directories.Locales, "de", g5t.GettextParser)
-	if err != nil {
-		panic("Could not setup gettext: " + err.Error())
-	}
+	l10n.DefaultSettings.Domain = "monsti"
+	l10n.DefaultSettings.Directory = settings.Directories.Locales
 	handler := nodeHandler{
 		Renderer:   template.Renderer{Root: settings.Directories.Templates},
 		Settings:   settings,

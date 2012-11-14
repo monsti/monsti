@@ -2,18 +2,16 @@ package main
 
 import (
 	"datenkarussell.de/monsti/form"
+	"datenkarussell.de/monsti/l10n"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/template"
 	"datenkarussell.de/monsti/util"
 	"flag"
 	"fmt"
-	"github.com/chrneumann/g5t"
 	"github.com/chrneumann/mimemail"
 	htmlT "html/template"
 	"log"
 )
-
-var G func(string) string = g5t.String
 
 type cfsettings struct {
 	// Absolute paths to used directories.
@@ -42,12 +40,13 @@ func handle(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {
+	G := l10n.UseCatalog(req.Session.Locale)
 	data := contactFormData{}
 	form := form.NewForm(&data, form.Fields{
-		"Name":    form.Field{G("Name"), "", form.Required(), nil},
-		"Email":   form.Field{G("Email"), "", form.Required(), nil},
-		"Subject": form.Field{G("Subject"), "", form.Required(), nil},
-		"Message": form.Field{G("Message"), "", form.Required(),
+		"Name":    form.Field{G("Name"), "", form.Required(G("Required.")), nil},
+		"Email":   form.Field{G("Email"), "", form.Required(G("Required.")), nil},
+		"Subject": form.Field{G("Subject"), "", form.Required(G("Required.")), nil},
+		"Message": form.Field{G("Message"), "", form.Required(G("Required.")),
 			new(form.TextArea)}})
 	context := template.Context{}
 	switch req.Method {
@@ -72,7 +71,8 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
-	fmt.Fprint(res, renderer.Render("view/contactform", context))
+	fmt.Fprint(res, renderer.Render("view/contactform", context,
+		req.Session.Locale))
 }
 
 type editFormData struct {
@@ -80,10 +80,11 @@ type editFormData struct {
 }
 
 func edit(req client.Request, res *client.Response, c client.Connection) {
+	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	form := form.NewForm(&data, form.Fields{
-		"Title": form.Field{G("Title"), "", form.Required(), nil},
-		"Body": form.Field{G("Body"), "", form.Required(),
+		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil},
+		"Body": form.Field{G("Body"), "", form.Required(G("Required.")),
 			new(form.AlohaEditor)}})
 	switch req.Method {
 	case "GET":
@@ -102,7 +103,8 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 		panic("Request method not supported: " + req.Method)
 	}
 	fmt.Fprint(res, renderer.Render("edit/contactform",
-		template.Context{"Form": form.RenderData()}))
+		template.Context{"Form": form.RenderData()},
+		req.Session.Locale))
 }
 
 func main() {
@@ -113,10 +115,8 @@ func main() {
 	if err != nil {
 		panic("Could not load contactform configuration file: " + err.Error())
 	}
-	err = g5t.Setup("monsti", settings.Directories.Locales, "de", g5t.GettextParser)
-	if err != nil {
-		panic("Could not setup gettext: " + err.Error())
-	}
+	l10n.DefaultSettings.Domain = "monsti"
+	l10n.DefaultSettings.Directory = settings.Directories.Locales
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("contactform").Serve(handle)
 }
