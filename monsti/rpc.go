@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/sessions"
 	"datenkarussell.de/monsti/rpc/client"
 	"datenkarussell.de/monsti/rpc/types"
 	"datenkarussell.de/monsti/worker"
 	"errors"
 	"fmt"
 	"github.com/chrneumann/mimemail"
+	"github.com/gorilla/sessions"
 	"io/ioutil"
 	"log"
 	"net/smtp"
