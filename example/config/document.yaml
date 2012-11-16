@@ -1,0 +1,3 @@
+directories:
+  templates: ../templates
+  locales: ../locale
