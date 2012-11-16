@@ -24,7 +24,10 @@ $ make clean
 
 $ go/bin/monsti <configuration file>
 
-
+To run the example site, go to the example site directory (example/)
+and run the start script:
+$ ./start.sh
+Monsti will be listening on localhost:8080
 
 # Problems?
 
