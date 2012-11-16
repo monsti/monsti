@@ -111,7 +111,8 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		Request:      r,
 		ResponseChan: c,
 		Session:      *cSession,
-		Action:       action})
+		Action:       action,
+		Site:         site.Name})
 
 	// Process response received from a worker.
 	res := <-c
