@@ -11,6 +11,7 @@ import (
 	"github.com/chrneumann/mimemail"
 	htmlT "html/template"
 	"log"
+	"os"
 )
 
 type cfsettings struct {
@@ -108,7 +109,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-	log.SetPrefix("contactform ")
+	logger := log.New(os.Stderr, "contactform", log.LstdFlags)
 	flag.Parse()
 	cfgPath := util.GetConfigPath("contactform", flag.Arg(0))
 	err := util.ParseYAML(cfgPath, &settings)
@@ -118,5 +119,5 @@ func main() {
 	l10n.DefaultSettings.Domain = "monsti"
 	l10n.DefaultSettings.Directory = settings.Directories.Locales
 	renderer.Root = settings.Directories.Templates
-	client.NewConnection("contactform").Serve(handle)
+	client.NewConnection("contactform", logger).Serve(handle)
 }

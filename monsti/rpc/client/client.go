@@ -73,6 +73,7 @@ func (r *Response) Write(p []byte) (n int, err error) {
 // Connection represents the rpc connection.
 type Connection struct {
 	cli *rpc.Client
+	Log *log.Logger
 }
 
 // Bidirectional pipe used for RPC communication.
@@ -87,10 +88,12 @@ func (pipe pipeConnection) Close() (err error) {
 
 // NewConnection establishes a new rpc connection and registers the content
 // type.
-func NewConnection(nodeType string) Connection {
+//
+// logger is a Logger to be used for logging messages by the connection.
+func NewConnection(nodeType string, logger *log.Logger) Connection {
 	pipe := &pipeConnection{os.Stdin, os.Stdout}
 	client := rpc.NewClient(pipe)
-	return Connection{client}
+	return Connection{client, logger}
 }
 
 // GetFormData retrieves form data of the request, i.e. query string values and
@@ -99,7 +102,7 @@ func (c Connection) GetFormData() url.Values {
 	var reply url.Values
 	err := c.cli.Call("NodeRPC.GetFormData", 0, &reply)
 	if err != nil {
-		log.Fatal("client: RPC GetFormData error:", err)
+		c.Log.Fatal("client: RPC GetFormData error:", err)
 	}
 	return reply
 }
@@ -109,7 +112,7 @@ func (c Connection) GetRequest() Request {
 	var reply Request
 	err := c.cli.Call("NodeRPC.GetRequest", 0, &reply)
 	if err != nil {
-		log.Fatal("client: RPC GetRequest error:", err)
+		c.Log.Fatal("client: RPC GetRequest error:", err)
 	}
 	return reply
 }
@@ -122,7 +125,7 @@ func (c Connection) GetNodeData(path, file string) []byte {
 	var reply []byte
 	err := c.cli.Call("NodeRPC.GetNodeData", args, &reply)
 	if err != nil {
-		log.Fatal("client: RPC GetNodeData error:", err)
+		c.Log.Fatal("client: RPC GetNodeData error:", err)
 	}
 	return reply
 }
@@ -146,7 +149,7 @@ func (c Connection) SendMail(m mimemail.Mail) {
 	var reply int
 	err := c.cli.Call("NodeRPC.SendMail", m, &reply)
 	if err != nil {
-		log.Fatal("client: RPC SendMail error:", err)
+		c.Log.Fatal("client: RPC SendMail error:", err)
 	}
 }
 
@@ -155,7 +158,7 @@ func (c Connection) SendResponse(r *Response) {
 	var reply int
 	err := c.cli.Call("NodeRPC.SendResponse", r, &reply)
 	if err != nil {
-		log.Fatal("client: RPC SendResponse error:", err)
+		c.Log.Fatal("client: RPC SendResponse error:", err)
 	}
 }
 

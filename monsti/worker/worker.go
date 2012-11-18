@@ -42,6 +42,7 @@ func (pipe pipeConnection) Close() (err error) {
 // workerLog is a Writer used to log incoming worker errors.
 type workerLog struct {
 	Type string
+	Log  *log.Logger
 }
 
 func (w workerLog) Write(p []byte) (int, error) {
@@ -64,6 +65,8 @@ type Worker struct {
 	pipe *pipeConnection
 	// Receiver for RPC.
 	rcvr interface{}
+	// Log is the logger used by the Worker.
+	Log *log.Logger
 }
 
 // NewWorker creates a new worker for the node type that fetches new tickets
@@ -73,11 +76,12 @@ type Worker struct {
 // directory. RPC methods are provided to the worker process by the given
 // receiver.
 func NewWorker(nodeType string, tickets chan Ticket, rcvr interface{},
-	configDir string) (w *Worker) {
+	configDir string, logger *log.Logger) (w *Worker) {
 	w = &Worker{
 		Tickets:  tickets,
 		NodeType: nodeType,
-		rcvr:     rcvr}
+		rcvr:     rcvr,
+		Log:      logger}
 	w.cmd = exec.Command(strings.ToLower(nodeType), configDir)
 	return
 }
@@ -95,7 +99,7 @@ func (w *Worker) Run(callback func()) error {
 		return fmt.Errorf("Could not setup stdin pipe of worker: %v",
 			err.Error())
 	}
-	w.cmd.Stderr = workerLog{w.NodeType}
+	w.cmd.Stderr = workerLog{w.NodeType, w.Log}
 	w.pipe = &pipeConnection{inPipe, outPipe, w}
 	err = w.cmd.Start()
 	if err != nil {
@@ -110,7 +114,7 @@ func (w *Worker) Run(callback func()) error {
 	go server.ServeConn(w.pipe)
 	go func() {
 		w.cmd.Wait()
-		log.Println("Worker process died.")
+		w.Log.Println("Worker process died.")
 		w.postMortem()
 		callback()
 	}()

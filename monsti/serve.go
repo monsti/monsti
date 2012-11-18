@@ -21,6 +21,8 @@ type nodeHandler struct {
 	// Hosts is a map from hosts to site names.
 	Hosts      map[string]string
 	NodeQueues map[string]chan worker.Ticket
+	// Log is the logger used by the node handler.
+	Log *log.Logger
 }
 
 // QueueTicket adds a ticket to the ticket queue of the corresponding
@@ -58,7 +60,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			var buf bytes.Buffer
 			fmt.Fprintf(&buf, "panic: %v\n", err)
 			buf.Write(debug.Stack())
-			log.Println(buf.String())
+			h.Log.Println(buf.String())
 			http.Error(w, "Application error.",
 				http.StatusInternalServerError)
 		}
@@ -75,7 +77,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cSession.Locale = site.Locale
 	node, err := lookupNode(site.Directories.Data, nodePath)
 	if err != nil {
-		log.Println("Node not found.")
+		h.Log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
 		return
 	}
@@ -104,7 +106,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	cSession *client.Session, site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	// Setup ticket and send to workers.
-	log.Println(site.Name, r.Method, r.URL.Path)
+	h.Log.Println(site.Name, r.Method, r.URL.Path)
 	c := make(chan client.Response)
 	h.QueueTicket(worker.Ticket{
 		Node:         node,
@@ -140,16 +142,16 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 }
 
 // AddNodeProcess starts a worker process to handle the given node type.
-func (h *nodeHandler) AddNodeProcess(nodeType string) {
+func (h *nodeHandler) AddNodeProcess(nodeType string, logger *log.Logger) {
 	if _, ok := h.NodeQueues[nodeType]; !ok {
 		h.NodeQueues[nodeType] = make(chan worker.Ticket)
 	}
-	nodeRPC := NodeRPC{Settings: h.Settings}
+	nodeRPC := NodeRPC{Settings: h.Settings, Log: logger}
 	worker := worker.NewWorker(nodeType, h.NodeQueues[nodeType],
-		&nodeRPC, h.Settings.Directories.Config)
+		&nodeRPC, h.Settings.Directories.Config, h.Log)
 	nodeRPC.Worker = worker
 	callback := func() {
-		h.AddNodeProcess(nodeType)
+		h.AddNodeProcess(nodeType, h.Log)
 	}
 	if err := worker.Run(callback); err != nil {
 		panic("Could not run worker: " + err.Error())

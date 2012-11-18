@@ -24,6 +24,7 @@ type NodeRPC struct {
 	Worker   *worker.Worker
 	Settings settings
 	Session  *sessions.Session
+	Log      *log.Logger
 }
 
 func (m *NodeRPC) GetNodeData(args *types.GetNodeDataArgs, reply *[]byte) error {
@@ -92,7 +93,7 @@ func (m *NodeRPC) SendMail(mail mimemail.Mail, reply *int) error {
 		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 	if err := smtp.SendMail(m.Settings.Mail.Host, auth,
 		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
-		log.Println("monsti: Could not send email: " + err.Error())
+		m.Log.Println("monsti: Could not send email: " + err.Error())
 		return fmt.Errorf("Could not send email.")
 	}
 	return nil

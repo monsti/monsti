@@ -10,6 +10,7 @@ import (
 	"fmt"
 	htmlT "html/template"
 	"log"
+	"os"
 )
 
 type settings struct {
@@ -74,7 +75,7 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-	log.SetPrefix("document")
+	logger := log.New(os.Stderr, "document", log.LstdFlags)
 	flag.Parse()
 	cfgPath := util.GetConfigPath("document", flag.Arg(0))
 	var settings settings
@@ -85,5 +86,5 @@ func main() {
 	l10n.DefaultSettings.Domain = "monsti"
 	l10n.DefaultSettings.Directory = settings.Directories.Locales
 	renderer.Root = settings.Directories.Templates
-	client.NewConnection("document").Serve(handle)
+	client.NewConnection("document", logger).Serve(handle)
 }

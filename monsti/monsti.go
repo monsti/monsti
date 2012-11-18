@@ -72,7 +72,7 @@ type settings struct {
 }
 
 func main() {
-	log.SetPrefix("monsti ")
+	logger := log.New(os.Stderr, "monsti", log.LstdFlags)
 	flag.Parse()
 	if flag.NArg() != 1 {
 		fmt.Printf("Usage: %v <config_directory>\n", filepath.Base(os.Args[0]))
@@ -90,9 +90,10 @@ func main() {
 	handler := nodeHandler{
 		Renderer:   template.Renderer{Root: settings.Directories.Templates},
 		Settings:   settings,
-		NodeQueues: make(map[string]chan worker.Ticket)}
+		NodeQueues: make(map[string]chan worker.Ticket),
+		Log:        logger}
 	for _, ntype := range settings.NodeTypes {
-		handler.AddNodeProcess(ntype)
+		handler.AddNodeProcess(ntype, logger)
 	}
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Directories.Statics))))
@@ -105,5 +106,12 @@ func main() {
 		}
 	}
 	http.Handle("/", &handler)
-	http.ListenAndServe(":8080", nil)
+	host := ":8080"
+	c := make(chan int)
+	go func() {
+		http.ListenAndServe(host, nil)
+		c <- 1
+	}()
+	log.Printf("Monsti is up and running. Listening on %q.", host)
+	<-c
 }
