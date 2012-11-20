@@ -1,5 +1,5 @@
 /*
- Brassica is a simple and resource efficient CMS for low dynamic
+ Monsti is a simple and resource efficient CMS for low dynamic
  private and small business sites with mostly static pages and simple
  structure.
 
