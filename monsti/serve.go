@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 // nodeHandler is a net/http handler to process incoming HTTP requests.
@@ -117,7 +118,12 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		Site:         site.Name})
 
 	// Process response received from a worker.
+	// If the worker process dies, the channel will be closed.
 	res := <-c
+	if len(res.Body) == 0 {
+		http.Error(w, "Application error.",
+			http.StatusInternalServerError)
+	}
 	if res.Node != nil {
 		oldPath := node.Path
 		node = *res.Node
@@ -151,6 +157,8 @@ func (h *nodeHandler) AddNodeProcess(nodeType string, logger *log.Logger) {
 		&nodeRPC, h.Settings.Directories.Config, h.Log)
 	nodeRPC.Worker = worker
 	callback := func() {
+		log.Println("Trying to restart worker in 5 seconds.")
+		time.Sleep(5 * time.Second)
 		h.AddNodeProcess(nodeType, h.Log)
 	}
 	if err := worker.Run(callback); err != nil {
