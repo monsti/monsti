@@ -6,6 +6,7 @@
  - Add attribution for Monsti in master template.
  - Allow sites to overwrite Monsti's templates.
  - Add "Listen" setting to configure HTTP host/port.
+ - Fix: Don't issue an errror on redirects.
 
 * 0.1 - 2012/11/16
  - Initial release.

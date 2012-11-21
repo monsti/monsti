@@ -120,9 +120,10 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	// Process response received from a worker.
 	// If the worker process dies, the channel will be closed.
 	res := <-c
-	if len(res.Body) == 0 {
+	if len(res.Body) == 0 && len(res.Redirect) == 0 {
 		http.Error(w, "Application error.",
 			http.StatusInternalServerError)
+		return
 	}
 	if res.Node != nil {
 		oldPath := node.Path
