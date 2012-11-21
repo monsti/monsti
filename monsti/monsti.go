@@ -13,7 +13,6 @@ import (
 	"datenkarussell.de/monsti/util"
 	"datenkarussell.de/monsti/worker"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -77,15 +76,13 @@ func main() {
 	logger := log.New(os.Stderr, "monsti", log.LstdFlags)
 	flag.Parse()
 	if flag.NArg() != 1 {
-		fmt.Printf("Usage: %v <config_directory>\n", filepath.Base(os.Args[0]))
-		os.Exit(1)
+		logger.Fatalf("Usage: %v <config_directory>\n", filepath.Base(os.Args[0]))
 	}
 	cfgPath := util.GetConfigPath("monsti", flag.Arg(0))
 	var settings settings
 	err := util.ParseYAML(cfgPath, &settings)
 	if err != nil {
-		fmt.Println("Could not load configuration file: " + err.Error())
-		os.Exit(1)
+		logger.Fatal("Could not load configuration file: ", err)
 	}
 	l10n.DefaultSettings.Domain = "monsti"
 	l10n.DefaultSettings.Directory = settings.Directories.Locales
@@ -111,9 +108,11 @@ func main() {
 	host := ":8080"
 	c := make(chan int)
 	go func() {
-		http.ListenAndServe(host, nil)
+		if err := http.ListenAndServe(host, nil); err != nil {
+			logger.Fatal("HTTP Listener failed: ", err)
+		}
 		c <- 1
 	}()
-	log.Printf("Monsti is up and running. Listening on %q.", host)
+	logger.Printf("Monsti is up and running. Listening on %q.", host)
 	<-c
 }
