@@ -200,7 +200,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	body := h.Renderer.Render("actions/addform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale)
+		"Form": form.RenderData()}, cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
@@ -235,7 +235,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	data.Confirm = 1489
 	body := h.Renderer.Render("actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": node},
-		cSession.Locale)
+		cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,

@@ -4,6 +4,7 @@
  - Pause five seconds before trying to restart crashed workers.
  - Move layout blocks out of master template to own templates.
  - Add attribution for Monsti in master template.
+ - Allow sites to overwrite Monsti's templates.
 
 * 0.1 - 2012/11/16
  - Initial release.

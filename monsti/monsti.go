@@ -44,6 +44,8 @@ type site struct {
 		Data string
 		// Site specific static files
 		Statics string
+		// HTML Templates to be used instead of monsti's ones.
+		Templates string
 	}
 }
 

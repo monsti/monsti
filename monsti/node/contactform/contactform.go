@@ -73,7 +73,7 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
 	fmt.Fprint(res, renderer.Render("view/contactform", context,
-		req.Session.Locale))
+		req.Session.Locale, ""))
 }
 
 type editFormData struct {
@@ -105,7 +105,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	}
 	fmt.Fprint(res, renderer.Render("edit/contactform",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale))
+		req.Session.Locale, ""))
 }
 
 func main() {

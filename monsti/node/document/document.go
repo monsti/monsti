@@ -63,14 +63,14 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	}
 	fmt.Fprint(res, renderer.Render("edit/document",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale))
+		req.Session.Locale, ""))
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	content := renderer.Render("view/document",
 		template.Context{"Body": htmlT.HTML(body)},
-		req.Session.Locale)
+		req.Session.Locale, "")
 	fmt.Fprint(res, content)
 }
 

@@ -48,7 +48,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	}
 	data.Password = ""
 	body := h.Renderer.Render("actions/loginform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale)
+		"Form": form.RenderData()}, cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: node, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
