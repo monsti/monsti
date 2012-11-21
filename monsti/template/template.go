@@ -30,6 +30,13 @@ func (r Renderer) Render(name string, context interface{},
 	parse(name, tmpl, r.Root)
 	parse("blocks/form-horizontal", tmpl.New("blocks/form-horizontal"), r.Root)
 	parse("blocks/form-vertical", tmpl.New("blocks/form-vertical"), r.Root)
+	parse("blocks/primary-navigation", tmpl.New("blocks/primary-navigation"),
+		r.Root)
+	parse("blocks/headers-edit", tmpl.New("blocks/headers-edit"), r.Root)
+	parse("blocks/headers", tmpl.New("blocks/headers"), r.Root)
+	parse("blocks/admin-bar", tmpl.New("blocks/admin-bar"), r.Root)
+	parse("blocks/sidebar", tmpl.New("blocks/sidebar"), r.Root)
+	parse("blocks/below-header", tmpl.New("blocks/below-header"), r.Root)
 	out := bytes.Buffer{}
 	if err := tmpl.Execute(&out, context); err != nil {
 		panic("Could not execute template: " + err.Error())

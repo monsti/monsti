@@ -1,52 +1,11 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <link rel="stylesheet" type="text/css" href="/static/monsti.css" />
-    <meta charset="utf-8" />
-    <title>{{.Page.Title}} | {{.Site.Title}}</title>
-    <meta name="description" content="" />
-    <link rel="shortcut icon" href="/static/favicon.png" />
-    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap-responsive.min.css" />
-    {{if .Page.EditView}}
-    <link rel="stylesheet" href="/static/aloha/css/aloha.css" type="text/css">
-    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/aloha/lib/require.js"></script>
-    <script src="/static/aloha/lib/aloha.js"
-      data-aloha-plugins="common/ui,common/format,common/image,common/list,common/table,common/link"></script>
-    <script type="text/javascript" src="/static/js/editor.js"></script>
-    {{end}}
-    <link rel="stylesheet" type="text/css" href="/static/css/monsti.css" />
-    <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
+    {{template "blocks/headers-edit" .Page.EditView}}
+    {{template "blocks/headers" .}}
   </head>
   <body>
-    {{if .Session.User}}
-    <div id="admin-bar" class="navbar">
-      <div class="navbar-inner navbar-fixed-top">
-        <span class="brand">Monsti</span>
-        {{$path := .Page.Node.Path}}
-        <ul class="nav">
-            <li><a href="{{pathJoin $path "@@edit"}}"
-                ><img src="/static/img/icons/silk/page_white_edit.png"/> {{G "Edit"}}</a></li>
-        </ul>
-        <ul class="nav">
-            <li><a href="{{pathJoin $path "@@add"}}"
-                ><img src="/static/img/icons/silk/page_white_add.png"/>
-                {{G "Add"}}</a></li>
-        </ul>
-        <ul class="nav">
-            <li><a href="{{pathJoin $path "@@remove"}}"
-                ><img src="/static/img/icons/silk/page_white_delete.png"/>
-                {{G "Remove"}}</a></li>
-        </ul>
-        <ul class="nav pull-right">
-            <li><a href="{{pathJoin $path "@@logout"}}"
-                ><img src="/static/img/icons/silk/stop.png"/> {{G "Logout"}}</a></li>
-        </ul>
-      </div>
-    </div>
-    {{end}}
+    {{template "blocks/admin-bar" .}}
     <div id="top-wrap">
       <div id="header-wrap">
         <div id="header" class="container">
@@ -54,65 +13,15 @@
               <a href="/" style="font-size:400%">Monsti</a>
           </div>
           <div id="primary-navigation-wrap">
-            <div id="primary-navigation">
-              <ul>
-                {{range .Page.PrimaryNav}}
-                <li {{if .Active}}class="active"{{end}}>
-                  <a href="{{.Target}}"><span>{{.Name}}</span></a>
-                </li>
-                {{end}}
-              </ul>
-            </div>
+            {{template "blocks/primary-navigation" .Page.PrimaryNav}}
           </div>
         </div>
       </div>
-      {{if .Page.ShowBelowHeader}}
-      <div id="below-header-wrap">
-        <div id="below-header" class="container">
-          <div>
-            {{.Page.BelowHeader}}
-          </div>
-        </div>
-      </div>
-      {{end}}
+      {{template "blocks/below-header" .}}
       <div id="content-wrap" class="container">
         <div id="messages" class="">
         </div>
-        {{if .Page.ShowSidebar}}
-        <div id="sidebar">
-          <div id="sidebar-bg">
-            <div id="sidebar-bgtop">
-              <div id="sidebar-bgbtm">
-                {{if .Page.ShowSecondaryNav}}
-                <Div id="box2" class="box-style1">
-                  <div>
-                    <div id="local-navigation">
-                      <ul class="nav nav-pills nav-stacked">
-                        {{range .Page.SecondaryNav}}
-                        <li {{if .Active}}class="active"{{end}}>
-                          <a href="{{.Target}}"><span>{{.Name}}</span></a>
-                        </li>
-                        {{end}}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                {{end}}
-                {{with .Page.Sidebar}}
-                <div id="box2" class="box-style1">
-                  <div>
-                    <div>
-                      {{.}}
-                    </div>
-                  </div>
-                </div>
-                {{end}}
-                <div class="clearfix">&nbsp;</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {{end}}
+        {{template "blocks/sidebar" .}}
         <div id="content"
             {{if not .Page.ShowSidebar}}class="without-sidebar"{{end}}>
           <article class="document-view content">
