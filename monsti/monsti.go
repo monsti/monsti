@@ -55,6 +55,8 @@ type settings struct {
 		// Host may be specified as address:port
 		Host, Username, Password string
 	}
+	// Listen is the host and port to listen for incoming HTTP connections.
+	Listen string
 	// Absolute paths to used directories.
 	Directories struct {
 		// Config files
@@ -105,14 +107,13 @@ func main() {
 		}
 	}
 	http.Handle("/", &handler)
-	host := ":8080"
 	c := make(chan int)
 	go func() {
-		if err := http.ListenAndServe(host, nil); err != nil {
+		if err := http.ListenAndServe(settings.Listen, nil); err != nil {
 			logger.Fatal("HTTP Listener failed: ", err)
 		}
 		c <- 1
 	}()
-	logger.Printf("Monsti is up and running. Listening on %q.", host)
+	logger.Printf("Monsti is up and running. Listening on %q.", settings.Listen)
 	<-c
 }
