@@ -1,6 +1,6 @@
 * 0.2 - unreleased
  - Now using custom logger instead of standard logger (log.std): Allows to
- switch to syslog logging at some point in the future.
+   switch to syslog logging at some point in the future.
  - Pause five seconds before trying to restart crashed workers.
  - Move layout blocks out of master template to own templates.
  - Add attribution for Monsti in master template.
