@@ -24,3 +24,4 @@ a:hover { text-decoration:underline; }
 #primary-navigation ul { margin: 0; }
 #admin-bar img { margin-bottom:2px; }
 .editable { border: 2px dashed gray; padding:1em; border-radius: 2px; }
+#attribution { text-align:center; font-size:70%; }
