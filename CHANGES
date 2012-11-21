@@ -1,4 +1,4 @@
-* 0.2 - unreleased
+* 0.2 - 2012/11/21
  - Now using custom logger instead of standard logger (log.std): Allows to
    switch to syslog logging at some point in the future.
  - Pause five seconds before trying to restart crashed workers.
