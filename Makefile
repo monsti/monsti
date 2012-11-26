@@ -1,6 +1,6 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
-ALOHA_VERSION=0.22.1
+ALOHA_VERSION=0.22.3
 
 all: dep-aloha-editor dep-jquery go/ contactform document monsti bcrypt
 
