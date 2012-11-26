@@ -14,8 +14,8 @@ type TestData struct {
 func TestRender(t *testing.T) {
 	data := TestData{}
 	form := NewForm(&data, Fields{
-		"Name": Field{"Your name", "Your full name", Required(), nil},
-		"Age":  Field{"Your age", "Years since your birth.", Required(), nil}})
+		"Name": Field{"Your name", "Your full name", Required("Req!"), nil},
+		"Age":  Field{"Your age", "Years since your birth.", Required("Req!"), nil}})
 	vals := url.Values{
 		"Name": []string{""},
 		"Age":  []string{"14"}}
@@ -31,7 +31,7 @@ func TestRender(t *testing.T) {
 				Label:    "Your name",
 				LabelTag: `<label for="name">Your name</label>`,
 				Help:     "Your full name",
-				Errors:   []string{"Required."},
+				Errors:   []string{"Req!"},
 				Input:    `<input id="name" type="text" name="Name" value=""/>`}},
 		{
 			Field: "Age",
@@ -52,8 +52,8 @@ func TestRender(t *testing.T) {
 func TestFill(t *testing.T) {
 	data := TestData{}
 	form := NewForm(&data, Fields{
-		"Name": Field{"Your name", "Your full name", Required(), nil},
-		"Age":  Field{"Your age", "Years since your birth.", Required(), nil}})
+		"Name": Field{"Your name", "Your full name", Required("Req!"), nil},
+		"Age":  Field{"Your age", "Years since your birth.", Required("Req!"), nil}})
 	vals := url.Values{
 		"Name": []string{"Foo"},
 		"Age":  []string{"14"}}
@@ -69,7 +69,7 @@ func TestFill(t *testing.T) {
 
 func TestRequire(t *testing.T) {
 	invalid, valid := "", "foo"
-	validator := Required()
+	validator := Required("Req!")
 	err := validator(valid)
 	if err != nil {
 		t.Errorf("require(%v) = %v, want %v", valid, err, nil)
@@ -108,10 +108,10 @@ func TestAnd(t *testing.T) {
 		Validators []Validator
 		Valid      bool
 	}{
-		{"Hey! 1", []Validator{Required()}, true},
-		{"", []Validator{Required()}, false},
-		{"Hey! 2", []Validator{Required(), Regex("Oink", "No way!")}, false},
-		{"Hey! 3", []Validator{Required(), Regex("Hey", "No way!")}, true}}
+		{"Hey! 1", []Validator{Required("Req!")}, true},
+		{"", []Validator{Required("Req!")}, false},
+		{"Hey! 2", []Validator{Required("Req!"), Regex("Oink", "No way!")}, false},
+		{"Hey! 3", []Validator{Required("Req!"), Regex("Hey", "No way!")}, true}}
 	for _, v := range tests {
 		ret := And(v.Validators...)(v.String)
 		if (ret == nil && !v.Valid) || (ret != nil && v.Valid) {

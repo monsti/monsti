@@ -3,6 +3,7 @@ package worker
 import (
 	"datenkarussell.de/monsti/rpc/client"
 	"io"
+	"log"
 	"net/rpc"
 	"os"
 	"os/exec"
@@ -24,12 +25,13 @@ func (t *TestRPC) Foo(arg int, ret *int) error {
 func TestProcessDead(t *testing.T) {
 	rpc := &TestRPC{
 		Tickets: make(chan Ticket)}
-	worker := NewWorker("true", rpc.Tickets, rpc, "")
+	logger := log.New(os.Stderr, "", log.LstdFlags)
+	worker := NewWorker("true", rpc.Tickets, rpc, "", logger)
 	rpc.Worker = worker
 	worker.cmd = exec.Command(os.Args[0], "-test.run", "TestDummyWorker")
 	worker.cmd.Env = append([]string{"GO_WANT_DUMMY_WORKER=1"}, os.Environ()...)
 	callbackCalled := false
-	err := worker.Run(func () { callbackCalled = true })
+	err := worker.Run(func() { callbackCalled = true })
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -57,7 +59,6 @@ type pipe struct {
 func (pipe pipe) Close() (err error) {
 	panic("Close() on pipe connection. RPC error?")
 }
-
 
 func TestDummyWorker(t *testing.T) {
 	if os.Getenv("GO_WANT_DUMMY_WORKER") != "1" {
