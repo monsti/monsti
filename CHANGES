@@ -1,3 +1,7 @@
+* 0.3 - unreleased
+ - Upgrade to Aloha 0.22.3
+ - Fixed tests
+
 * 0.2 - 2012/11/21
  - Now using custom logger instead of standard logger (log.std): Allows to
    switch to syslog logging at some point in the future.
@@ -7,7 +11,6 @@
  - Allow sites to overwrite Monsti's templates.
  - Add "Listen" setting to configure HTTP host/port.
  - Fix: Don't issue an errror on redirects.
- - Upgrade to Aloha 0.22.3
 
 * 0.1 - 2012/11/16
  - Initial release.
