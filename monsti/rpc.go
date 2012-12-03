@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/monsti/rpc/client"
 	"github.com/monsti/rpc/types"
-	"github.com/monsti/worker"
+	"github.com/monsti/monsti/worker"
 	"errors"
 	"fmt"
 	"github.com/chrneumann/mimemail"

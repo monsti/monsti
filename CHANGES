@@ -1,6 +1,7 @@
 * 0.3 - unreleased
  - Upgrade to Aloha 0.22.3
  - Fixed tests
+ - Reorganized project sources.
 
 * 0.2 - 2012/11/21
  - Now using custom logger instead of standard logger (log.std): Allows to

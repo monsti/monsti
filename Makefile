@@ -5,11 +5,10 @@ ALOHA_VERSION=0.22.3
 all: dep-aloha-editor dep-jquery go/ document monsti bcrypt
 
 go/:
-	mkdir -p go/src/github.com/
+	mkdir -p go/src/github.com/monsti/
 	mkdir -p go/bin
 	mkdir -p go/pkg
-	ln -s -t go/src/github.com/ ../../../monsti/
-	ln -s -t go/src/github.com/ ../../../monsti/tools/bcrypt
+	ln -s -t go/src/github.com/monsti/ ../../../../monsti/
 
 .PHONY: extract-messages
 extract-messages:
@@ -20,18 +19,15 @@ extract-messages:
 
 .PHONY: bcrypt
 bcrypt: go/
-	#$(GO) get github.com/monsti/tools/bcrypt
-	$(GO) install github.com/monsti/tools/bcrypt
+	$(GO) get github.com/monsti/monsti/tools/bcrypt
 
 .PHONY: monsti
 monsti: go/
-	#$(GO) get github.com/monsti
-	$(GO) install github.com/monsti
+	$(GO) get github.com/monsti/monsti
 
 .PHONY: document
 document: go/
-	$(GO) get github.com/monsti/node/document
-	$(GO) install github.com/monsti/node/document
+	$(GO) get github.com/monsti/monsti/node/document
 
 .PHONY: clean
 clean:
@@ -42,11 +38,11 @@ tests: test-worker test-monsti
 
 .PHONY: test-monsti
 test-monsti: go/
-	$(GO) test github.com/monsti
+	$(GO) test github.com/monsti/monsti
 
 .PHONY: test-worker
 test-worker: go/
-	$(GO) test github.com/monsti/worker
+	$(GO) test github.com/monsti/monsti/worker
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
