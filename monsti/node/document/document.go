@@ -1,11 +1,11 @@
 package main
 
 import (
-	"datenkarussell.de/monsti/form"
-	"datenkarussell.de/monsti/l10n"
-	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
-	"datenkarussell.de/monsti/util"
+	"github.com/monsti/form"
+	"github.com/monsti/l10n"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/template"
+	"github.com/monsti/util"
 	"flag"
 	"fmt"
 	htmlT "html/template"

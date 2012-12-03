@@ -1,7 +1,7 @@
 package worker
 
 import (
-	"datenkarussell.de/monsti/rpc/client"
+	"github.com/monsti/rpc/client"
 	"io"
 	"log"
 	"net/rpc"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/template"
 	htmlT "html/template"
 	"strings"
 )

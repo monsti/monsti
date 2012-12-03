@@ -2,7 +2,7 @@ package main
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
-	"datenkarussell.de/monsti/rpc/client"
+	"github.com/monsti/rpc/client"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"

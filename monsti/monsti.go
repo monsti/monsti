@@ -8,10 +8,10 @@
 package main
 
 import (
-	"datenkarussell.de/monsti/l10n"
-	"datenkarussell.de/monsti/template"
-	"datenkarussell.de/monsti/util"
-	"datenkarussell.de/monsti/worker"
+	"github.com/monsti/l10n"
+	"github.com/monsti/template"
+	"github.com/monsti/util"
+	"github.com/monsti/worker"
 	"flag"
 	"log"
 	"net/http"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/rpc/types"
-	"datenkarussell.de/monsti/worker"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/rpc/types"
+	"github.com/monsti/worker"
 	"errors"
 	"fmt"
 	"github.com/chrneumann/mimemail"

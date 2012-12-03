@@ -2,10 +2,10 @@ package main
 
 import (
 	"bytes"
-	"datenkarussell.de/monsti/l10n"
-	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
-	"datenkarussell.de/monsti/worker"
+	"github.com/monsti/l10n"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/template"
+	"github.com/monsti/worker"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"log"

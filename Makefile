@@ -2,20 +2,14 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.3
 
-all: dep-aloha-editor dep-jquery go/ contactform document monsti bcrypt
+all: dep-aloha-editor dep-jquery go/ document monsti bcrypt
 
 go/:
-	mkdir -p go/src/datenkarussell.de/
+	mkdir -p go/src/github.com/
 	mkdir -p go/bin
 	mkdir -p go/pkg
-	ln -s -t go/src/datenkarussell.de/ ../../../monsti/
-	ln -s -t go/src/datenkarussell.de/ ../../../monsti/tools/bcrypt
-	$(GO) get github.com/chrneumann/g5t
-	$(GO) get github.com/chrneumann/mimemail
-	$(GO) get launchpad.net/goyaml
-	$(GO) get github.com/gorilla/schema
-	$(GO) get github.com/gorilla/sessions
-	$(GO) get code.google.com/p/go.crypto/bcrypt
+	ln -s -t go/src/github.com/ ../../../monsti/
+	ln -s -t go/src/github.com/ ../../../monsti/tools/bcrypt
 
 .PHONY: extract-messages
 extract-messages:
@@ -26,46 +20,33 @@ extract-messages:
 
 .PHONY: bcrypt
 bcrypt: go/
-	$(GO) install datenkarussell.de/monsti/tools/bcrypt
+	#$(GO) get github.com/monsti/tools/bcrypt
+	$(GO) install github.com/monsti/tools/bcrypt
 
 .PHONY: monsti
 monsti: go/
-	$(GO) install datenkarussell.de/monsti
+	#$(GO) get github.com/monsti
+	$(GO) install github.com/monsti
 
 .PHONY: document
 document: go/
-	$(GO) install datenkarussell.de/monsti/node/document
-
-.PHONY: contactform
-contactform: go/
-	$(GO) install datenkarussell.de/monsti/node/contactform
+	$(GO) get github.com/monsti/node/document
+	$(GO) install github.com/monsti/node/document
 
 .PHONY: clean
 clean:
 	rm go/ -Rf
 	rm static/aloha/ -R
 
-tests: test-worker test-template test-form test-contactform test-monsti
+tests: test-worker test-monsti
 
 .PHONY: test-monsti
 test-monsti: go/
-	$(GO) test datenkarussell.de/monsti
+	$(GO) test github.com/monsti
 
 .PHONY: test-worker
 test-worker: go/
-	$(GO) test datenkarussell.de/monsti/worker
-
-.PHONY: test-contactform
-test-contactform: go/
-	$(GO) test datenkarussell.de/monsti/node/contactform
-
-.PHONY: test-template
-test-template: go/
-	$(GO) test datenkarussell.de/monsti/template
-
-.PHONY: test-form
-test-form: go/
-	$(GO) test datenkarussell.de/monsti/form
+	$(GO) test github.com/monsti/worker
 
 dep-aloha-editor: static/aloha/
 static/aloha/:

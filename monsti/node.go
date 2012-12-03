@@ -1,10 +1,10 @@
 package main
 
 import (
-	"datenkarussell.de/monsti/form"
-	"datenkarussell.de/monsti/l10n"
-	"datenkarussell.de/monsti/rpc/client"
-	"datenkarussell.de/monsti/template"
+	"github.com/monsti/form"
+	"github.com/monsti/l10n"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/template"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"io/ioutil"
