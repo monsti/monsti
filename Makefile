@@ -4,10 +4,10 @@ GO=GOPATH=$(GOPATH) go
 all: go/ monsti-contactform
 
 go/:
-	mkdir -p go/src/github.com/monsti/monsti-contactform
+	mkdir -p go/src/github.com/monsti
 	mkdir -p go/bin
 	mkdir -p go/pkg
-	ln -s -t go/src/github.com/monsti/monsti-contactform ../../../../../monsti-contactform/
+	ln -s -t go/src/github.com/monsti ../../../../monsti-contactform/
 
 .PHONY: extract-messages
 extract-messages:
@@ -17,7 +17,7 @@ extract-messages:
 	  | xgettext -d monsti-contactform -L C -p locale/ -kG -kGN:1,2 -
 
 .PHONY: monsti-contactform
-document: go/
+monsti-contactform: go/
 	$(GO) get github.com/monsti/monsti-contactform/
 
 .PHONY: clean
