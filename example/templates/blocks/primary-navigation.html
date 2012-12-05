@@ -1,0 +1,10 @@
+<div id="primary-navigation">
+    <p style="border-top:5px dashed #ccc";>&nbsp;</p>
+    <ul>
+        {{range .}}
+        <li {{if .Active}}class="active"{{end}}>
+        <a href="{{.Target}}"><span>{{.Name}}</span></a>
+        </li>
+        {{end}}
+    </ul>
+</div>

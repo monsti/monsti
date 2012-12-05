@@ -1,0 +1,40 @@
+# SMTP settings for outgoing mail
+#mail:
+#  host: localhost
+#  username: user
+#  password: password
+
+# Enabled node types
+nodetypes: [Document, ContactForm]
+
+# Listen for HTTP connections on this address and port
+listen: localhost:8080
+
+directories:
+  # Path to the static files.
+  statics: ../static
+  # Path to the template directory.
+  templates: ../templates
+  locales: ../locale
+  config: config
+
+sites:
+  example:
+    title: "Monsti CMS Example Site"
+    hosts: ["localhost:8080"]
+    locale: en
+    # Name and email address of site owner.
+    #
+    # The owner's address is used as recipient of contact form submissions.
+    owner:
+      name: The Owner
+      email: owner@example.com
+    # Key used for signing session cookie data. Change this!
+    sessionauthkey: aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao
+    directories:
+      # Path to the site specific static files.
+      statics: site-static
+      # Path to the data directory.
+      data: data/
+      # Path to site custom template
+      templates: templates/
