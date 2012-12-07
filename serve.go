@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/l10n"
-	"github.com/monsti/monsti/worker"
+	"github.com/monsti/monsti-daemon/worker"
 	"github.com/monsti/rpc/client"
 	"github.com/monsti/template"
 	"log"

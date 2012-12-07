@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/rpc/types"
-	"github.com/monsti/monsti/worker"
 	"errors"
 	"fmt"
 	"github.com/chrneumann/mimemail"
 	"github.com/gorilla/sessions"
+	"github.com/monsti/monsti-daemon/worker"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/rpc/types"
 	"io/ioutil"
 	"log"
 	"net/smtp"
@@ -51,10 +51,10 @@ func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 }
 
 func (m *NodeRPC) GetFileData(key *string, reply *[]byte) error {
-	if err := m.Worker.Ticket.Request.ParseMultipartForm(1024*1024); err != nil {
+	if err := m.Worker.Ticket.Request.ParseMultipartForm(1024 * 1024); err != nil {
 		return err
 	}
-	file, _, err := m.Worker.Ticket.Request.FormFile(*key);
+	file, _, err := m.Worker.Ticket.Request.FormFile(*key)
 	if err != nil {
 		return err
 	}

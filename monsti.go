@@ -11,7 +11,7 @@ import (
 	"github.com/monsti/l10n"
 	"github.com/monsti/template"
 	"github.com/monsti/util"
-	"github.com/monsti/monsti/worker"
+	"github.com/monsti/monsti-daemon/worker"
 	"flag"
 	"log"
 	"net/http"
