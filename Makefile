@@ -35,8 +35,8 @@ tests:
 
 .PHONY: clean
 clean:
-	rm go/bin/*
-	rm go/pkg/* -R
+	rm go/bin/* -Rf
+	rm go/pkg/* -Rf
 	rm static/aloha/ -R
 
 dep-aloha-editor: static/aloha/
