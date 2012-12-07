@@ -50,6 +50,19 @@ func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 	return err
 }
 
+func (m *NodeRPC) GetFileData(key *string, reply *[]byte) error {
+	if err := m.Worker.Ticket.Request.ParseMultipartForm(1024*1024); err != nil {
+		return err
+	}
+	file, _, err := m.Worker.Ticket.Request.FormFile(*key);
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	*reply, err = ioutil.ReadAll(file)
+	return err
+}
+
 func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
 	err := m.Worker.Ticket.Request.ParseForm()
 	if err != nil {
