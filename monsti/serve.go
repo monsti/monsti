@@ -154,7 +154,7 @@ func (h *nodeHandler) AddNodeProcess(nodeType string, logger *log.Logger) {
 		h.NodeQueues[nodeType] = make(chan worker.Ticket)
 	}
 	nodeRPC := NodeRPC{Settings: h.Settings, Log: logger}
-	worker := worker.NewWorker(nodeType, h.NodeQueues[nodeType],
+	worker := worker.NewWorker("monsti-"+nodeType, h.NodeQueues[nodeType],
 		&nodeRPC, h.Settings.Directories.Config, h.Log)
 	nodeRPC.Worker = worker
 	callback := func() {
