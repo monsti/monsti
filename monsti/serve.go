@@ -2,12 +2,12 @@ package main
 
 import (
 	"bytes"
-	"github.com/monsti/l10n"
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/template"
-	"github.com/monsti/monsti/worker"
 	"fmt"
 	"github.com/gorilla/sessions"
+	"github.com/monsti/l10n"
+	"github.com/monsti/monsti/worker"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/template"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -105,7 +105,6 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	node client.Node, action string, session *sessions.Session,
 	cSession *client.Session, site site) {
-	G := l10n.UseCatalog(cSession.Locale)
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 	c := make(chan client.Response)
@@ -120,6 +119,15 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	// Process response received from a worker.
 	// If the worker process dies, the channel will be closed.
 	res := <-c
+	h.ProcessNodeResponse(res, w, r, node, action, session,
+		cSession, site)
+}
+
+func (h *nodeHandler) ProcessNodeResponse(res client.Response,
+	w http.ResponseWriter, r *http.Request, node client.Node,
+	action string, session *sessions.Session,
+	cSession *client.Session, site site) {
+	G := l10n.UseCatalog(cSession.Locale)
 	if len(res.Body) == 0 && len(res.Redirect) == 0 {
 		http.Error(w, "Application error.",
 			http.StatusInternalServerError)
@@ -139,13 +147,18 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		env.Title = fmt.Sprintf(G("Edit \"%s\""), node.Title)
 		env.Flags = EDIT_VIEW
 	}
-	content := renderInMaster(h.Renderer, res.Body, env, h.Settings, site,
-		cSession.Locale)
+	var content []byte
+	if res.Raw {
+		content = res.Body
+	} else {
+		content = []byte(renderInMaster(h.Renderer, res.Body, env, h.Settings,
+			site, cSession.Locale))
+	}
 	err := session.Save(r, w)
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Fprint(w, content)
+	w.Write(content)
 }
 
 // AddNodeProcess starts a worker process to handle the given node type.
