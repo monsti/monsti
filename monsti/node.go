@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
 	"github.com/monsti/l10n"
 	"github.com/monsti/rpc/client"
 	"github.com/monsti/template"
-	"fmt"
-	"github.com/gorilla/sessions"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
@@ -163,8 +163,12 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := addFormData{}
-	selectWidget := form.SelectWidget{[]form.Option{
-		{"Document", G("Document")}}}
+	nodeTypeOptions := []form.Option{}
+	for _, nodeType := range h.Settings.NodeTypes {
+		nodeTypeOptions = append(nodeTypeOptions,
+			form.Option{nodeType, nodeType})
+	}
+	selectWidget := form.SelectWidget{nodeTypeOptions}
 	form := form.NewForm(&data, form.Fields{
 		"Type": form.Field{G("Content type"), "", form.Required(G("Required.")), selectWidget},
 		"Name": form.Field{G("Name"),
@@ -178,8 +182,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		r.ParseForm()
 		if form.Fill(r.Form) {
 			data.Name = strings.ToLower(data.Name)
-			// TODO Allow other content types.
-			if data.Type != "Document" {
+			if !inStringSlice(data.Type, h.Settings.NodeTypes) {
 				panic("Can't add this content type.")
 			}
 			newPath := filepath.Join(node.Path, data.Name)
