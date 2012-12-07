@@ -9,6 +9,7 @@ go/:
 	mkdir -p go/bin
 	mkdir -p go/pkg
 	ln -s -t go/src/github.com/monsti/ ../../../../monsti/
+	ln -s -t go/src/github.com/monsti/ ../../../../monsti-document/
 
 .PHONY: extract-messages
 extract-messages:
@@ -27,7 +28,7 @@ monsti: go/
 
 .PHONY: document
 document: go/
-	$(GO) get github.com/monsti/monsti/node/document
+	$(GO) get github.com/monsti/monsti-document
 
 .PHONY: clean
 clean:

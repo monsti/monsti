@@ -79,12 +79,10 @@ func main() {
 	flag.Parse()
 	cfgPath := util.GetConfigPath("document", flag.Arg(0))
 	var settings settings
-	err := util.ParseYAML(cfgPath, &settings)
-	if err != nil {
-		panic("Could not load document configuration file: " + err.Error())
+	if err := util.ParseYAML(cfgPath, &settings); err != nil {
+		logger.Fatal("Could not load document configuration file: ", err)
 	}
-	l10n.DefaultSettings.Domain = "monsti"
-	l10n.DefaultSettings.Directory = settings.Directories.Locales
+	l10n.Setup("monsti", settings.Directories.Locales)
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("document", logger).Serve(handle)
 }
