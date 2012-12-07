@@ -2,48 +2,42 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.3
 
-all: dep-aloha-editor dep-jquery go/ document monsti bcrypt
-
-go/:
-	mkdir -p go/src/github.com/monsti/
-	mkdir -p go/bin
-	mkdir -p go/pkg
-	ln -s -t go/src/github.com/monsti/ ../../../../monsti/
-	ln -s -t go/src/github.com/monsti/ ../../../../monsti-document/
+all: dep-aloha-editor dep-jquery monsti node-types bcrypt
 
 .PHONY: extract-messages
 extract-messages:
 	mkdir -p locale/
-	find templates/ monsti/ -name "*.html" -o -name "*.go"| xargs cat \
+	find templates/ -name "*.html" | xargs cat \
 	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
-	  | xgettext -d monsti -L C -p locale/ -kG -kGN:1,2 -
+	  | xgettext -d monsti-cms -L C -p locale/ -kG -kGN:1,2 -
 
 .PHONY: bcrypt
-bcrypt: go/
-	$(GO) get github.com/monsti/monsti/tools/bcrypt
+bcrypt: 
+	$(GO) get github.com/monsti/monsti-daemon/tools/bcrypt
 
 .PHONY: monsti
-monsti: go/
-	$(GO) get github.com/monsti/monsti
+monsti:
+	$(GO) get github.com/monsti/monsti-daemon
 
-.PHONY: document
-document: go/
+.PHONY: node-types
+node-types:
+	$(GO) get github.com/monsti/monsti-contactform
 	$(GO) get github.com/monsti/monsti-document
+	$(GO) get github.com/monsti/monsti-image
+
+.PHONY: tests
+tests:
+	$(GO) test github.com/monsti/monsti-daemon
+	$(GO) test github.com/monsti/monsti-daemon/worker
+	$(GO) test github.com/monsti/monsti-contactform
+	$(GO) test github.com/monsti/monsti-document
+	$(GO) test github.com/monsti/monsti-image
 
 .PHONY: clean
 clean:
-	rm go/ -Rf
+	rm go/bin/*
+	rm go/pkg/* -R
 	rm static/aloha/ -R
-
-tests: test-worker test-monsti
-
-.PHONY: test-monsti
-test-monsti: go/
-	$(GO) test github.com/monsti/monsti
-
-.PHONY: test-worker
-test-worker: go/
-	$(GO) test github.com/monsti/monsti/worker
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
