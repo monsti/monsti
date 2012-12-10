@@ -112,12 +112,10 @@ func main() {
 	logger := log.New(os.Stderr, "contactform", log.LstdFlags)
 	flag.Parse()
 	cfgPath := util.GetConfigPath("contactform", flag.Arg(0))
-	err := util.ParseYAML(cfgPath, &settings)
-	if err != nil {
-		panic("Could not load contactform configuration file: " + err.Error())
+	if err := util.ParseYAML(cfgPath, &settings); err != nil {
+		logger.Fatal("Could not load monsti-contactform configuration file: ", err)
 	}
-	l10n.DefaultSettings.Domain = "monsti"
-	l10n.DefaultSettings.Directory = settings.Directories.Locales
+	l10n.Setup("monsti-contactform", settings.Directories.Locales)
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("contactform", logger).Serve(handle)
 }
