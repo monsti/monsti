@@ -4,13 +4,6 @@ ALOHA_VERSION=0.22.3
 
 all: dep-aloha-editor dep-jquery monsti node-types bcrypt
 
-.PHONY: extract-messages
-extract-messages:
-	mkdir -p locale/
-	find templates/ -name "*.html" | xargs cat \
-	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
-	  | xgettext -d monsti-cms -L C -p locale/ -kG -kGN:1,2 -
-
 .PHONY: bcrypt
 bcrypt: 
 	$(GO) get github.com/monsti/monsti-daemon/tools/bcrypt
