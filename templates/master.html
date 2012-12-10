@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    {{template "blocks/headers-edit" .Page.EditView}}
+    {{template "blocks/headers" .}}
+  </head>
+  <body>
+    {{template "blocks/admin-bar" .}}
+    <div id="top-wrap">
+      <div id="header-wrap">
+        <div id="header" class="container">
+          <div id="logo">
+              <a href="/"><img src="/site-static/logo.png" alt="{{.Site.Title}}"/></a>
+          </div>
+          <div id="primary-navigation-wrap">
+            {{template "blocks/primary-navigation" .Page.PrimaryNav}}
+          </div>
+        </div>
+      </div>
+      {{template "blocks/below-header" .}}
+      <div id="content-wrap" class="container">
+        <div id="messages" class="">
+        </div>
+        {{template "blocks/sidebar" .}}
+        <div id="content"
+            {{if not .Page.ShowSidebar}}class="without-sidebar"{{end}}>
+          <article class="document-view content">
+          <h1>{{.Page.Title}}</h1>
+            <p class="description">
+              {{.Page.Description}}
+            </p>
+            <div class="body">
+              {{.Page.Content}}
+            </div>
+          </article>
+        </div>
+      </div>
+      <div id="footer-push"></div>
+    </div>
+    <div id="bottom-wrap">
+      <div id="footer-wrap">
+        <div id="footer" class="container">
+          {{.Page.Footer}}
+        </div>
+          <p id="attribution">Powered by <a href="https://github.com/chrneumann/monsti">Monsti</a></p>
+      </div>
+    </div>
+  </body>
+</html>
