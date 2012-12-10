@@ -1,4 +1,4 @@
-type: Document
-title: Start
-description: ""
-hidesidebar: true
+type: ContactForm
+title: Contact
+description: "Contact form example"
+hidesidebar: false
