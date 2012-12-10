@@ -2,6 +2,8 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.3
 
+NODE_TYPES = document contactform image
+
 all: dep-aloha-editor dep-jquery monsti node-types bcrypt
 
 .PHONY: bcrypt
@@ -12,19 +14,24 @@ bcrypt:
 monsti:
 	$(GO) get github.com/monsti/monsti-daemon
 
-.PHONY: node-types
-node-types:
-	$(GO) get github.com/monsti/monsti-contactform
-	$(GO) get github.com/monsti/monsti-document
-	$(GO) get github.com/monsti/monsti-image
+node-types: $(NODE_TYPES)
+$(NODE_TYPES): %: ext/% go/bin/monsti-%
+
+ext/%:
+	mkdir -p ext/
+	wget https://github.com/monsti/monsti-$*/archive/master.tar.gz -O ext/$*.tar.gz
+	cd ext; tar xvf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
+	mkdir -p go/src/github.com/monsti/
+	ln -s ../../../../ext/$* go/src/github.com/monsti/monsti-$*
+
+go/bin/monsti-%:
+	$(GO) install github.com/monsti/monsti-$*
 
 .PHONY: tests
-tests:
-	$(GO) test github.com/monsti/monsti-daemon
-	$(GO) test github.com/monsti/monsti-daemon/worker
-	$(GO) test github.com/monsti/monsti-contactform
-	$(GO) test github.com/monsti/monsti-document
-	$(GO) test github.com/monsti/monsti-image
+tests: $(NODE_TYPES:%=test-ext-%) test-daemon daemon/test-worker
+
+test-ext-% test-%:
+	$(GO) test github.com/monsti/monsti-$*
 
 .PHONY: clean
 clean:
