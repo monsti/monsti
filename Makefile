@@ -2,42 +2,46 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.3
 
-NODE_TYPES = document contactform image
+MODULES = daemon document contactform image
 
-all: dep-aloha-editor dep-jquery monsti node-types bcrypt
+all: monsti bcrypt
+
+monsti: dep-aloha-editor dep-jquery modules
 
 .PHONY: bcrypt
 bcrypt: 
 	$(GO) get github.com/monsti/monsti-daemon/tools/bcrypt
 
-.PHONY: monsti
-monsti:
-	$(GO) get github.com/monsti/monsti-daemon
+modules: $(MODULES)
+$(MODULES): %: go/bin/monsti-%
 
-node-types: $(NODE_TYPES)
-$(NODE_TYPES): %: ext/% go/bin/monsti-%
-
-ext/%:
-	mkdir -p ext/
-	wget https://github.com/monsti/monsti-$*/archive/master.tar.gz -O ext/$*.tar.gz
-	cd ext; tar xvf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
+# Fetch and setup given module
+module/%:
+	mkdir -p module/
+	wget https://github.com/monsti/monsti-$*/archive/master.tar.gz -O module/$*.tar.gz
+	cd module; tar xvf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
 	mkdir -p go/src/github.com/monsti/
-	ln -s ../../../../ext/$* go/src/github.com/monsti/monsti-$*
+	ln -s ../../../../module/$* go/src/github.com/monsti/monsti-$*
+	cp -Rn module/$*/templates .
+	cp -Rn module/$*/locale .
 
-go/bin/monsti-%:
-	$(GO) install github.com/monsti/monsti-$*
+# Build module executable
+go/bin/monsti-%: module/%
+	$(GO) get github.com/monsti/monsti-$*
 
 .PHONY: tests
-tests: $(NODE_TYPES:%=test-ext-%) test-daemon daemon/test-worker
+tests: $(MODULES:%=test-module-%) daemon/test-worker
 
-test-ext-% test-%:
+test-module-% test-%:
 	$(GO) test github.com/monsti/monsti-$*
 
 .PHONY: clean
 clean:
-	rm go/bin/* -Rf
-	rm go/pkg/* -Rf
+	rm go/* -Rf
 	rm static/aloha/ -R
+	rm module/ -Rf
+	rm templates/ -Rf
+	rm locale/ -Rf
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
