@@ -1,3 +1,3 @@
 #!/bin/sh
 
-PATH=$PATH:../go/bin monsti config
+PATH=$PATH:../go/bin monsti-daemon config
