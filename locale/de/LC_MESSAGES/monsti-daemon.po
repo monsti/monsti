@@ -1,14 +1,14 @@
-# German translations for PACKAGE package.
-# Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# German translations for monsti-daemon package.
+# Copyright (C) 2012 THE MONSTI-DAEMON'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the monsti-daemon package.
 # Christian Neumann <cneumann@datenkarussell.de>, 2012.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-10-17 15:14+0200\n"
-"PO-Revision-Date: 2012-09-12 14:54+0200\n"
+"POT-Creation-Date: 2012-12-14 15:36+0100\n"
+"PO-Revision-Date: 2012-12-14 15:32+0100\n"
 "Last-Translator: Christian Neumann <cneumann@datenkarussell.de>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -17,90 +17,99 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Standardeingabe:10
-msgid "Thanks for your message!"
-msgstr "Vielen Dank für Ihre Mitteilung!"
+#: Standardeingabe:14
+msgid "Abort"
+msgstr "Abbruch"
 
-#: Standardeingabe:50
-msgid "Edit"
-msgstr "Bearbeiten"
-
-#: Standardeingabe:55
+#: Standardeingabe:114
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: Standardeingabe:59
-msgid "Logout"
-msgstr "Abmelden"
+#: Standardeingabe:539
+msgid "Add content"
+msgstr "Neuer Inhalte"
 
-#: Standardeingabe:174 Standardeingabe:197
-msgid "Submit"
-msgstr "Senden"
+#: Standardeingabe:555
+msgid "Confirm"
+msgstr "Bestätigen"
 
-#: Standardeingabe:467
-msgid "Document"
-msgstr "Dokument"
+#: Standardeingabe:508
+msgid "Contains\tinvalid characters."
+msgstr "Beinhaltet ungültige Zeichen."
 
-#: Standardeingabe:469
+#: Standardeingabe:504
 msgid "Content type"
 msgstr "Inhaltstyp"
 
-#: Standardeingabe:470 Standardeingabe:1041
-msgid "Name"
-msgstr "Name"
+#: Standardeingabe:109
+msgid "Edit"
+msgstr "Bearbeiten"
 
-#: Standardeingabe:471
-msgid "The name as it should appear in the URL."
-msgstr "Der Name wie er in der URL erscheinen soll."
-
-#: Standardeingabe:473
-msgid "Contains\tinvalid characters."
-msgstr "Enthält ungültige Zeichen."
-
-#: Standardeingabe:474 Standardeingabe:1079 Standardeingabe:1180
-msgid "Title"
-msgstr "Titel"
-
-#: Standardeingabe:501
-msgid "Add content"
-msgstr "Neuen Inhalt anlegen"
-
-#: Standardeingabe:559 Standardeingabe:581
-msgid "Login"
-msgstr "Login"
-
-#: Standardeingabe:560
-msgid "Password"
-msgstr "Passwort"
-
-#: Standardeingabe:573
-msgid "Wrong login or password."
-msgstr "Falscher Login oder falsches Passwort."
-
-#: Standardeingabe:582
-msgid "Login with your site account."
-msgstr "Mit Ihrem Benutzerkonto anmelden."
-
-#: Standardeingabe:968
+#: Standardeingabe:1098
+#, c-format
 msgid "Edit \"%s\""
 msgstr "Bearbeite \"%s\""
 
-#: Standardeingabe:1042
-msgid "Email"
-msgstr "E-Mail"
+#: Standardeingabe:1234 Standardeingabe:1258
+msgid "Login"
+msgstr "Anmelden"
 
-#: Standardeingabe:1043
-msgid "Subject"
-msgstr "Betreff"
+#: Standardeingabe:1259
+msgid "Login with your site account."
+msgstr "Melden Sie sich mit Ihrem Konto an."
 
-#: Standardeingabe:1044
-msgid "Message"
-msgstr "Nachricht"
+#: Standardeingabe:123
+msgid "Logout"
+msgstr "Abmelden"
 
-#: Standardeingabe:1080 Standardeingabe:1181
-msgid "Body"
-msgstr "Textrumpf"
+#: Standardeingabe:505
+msgid "Name"
+msgstr "Name"
 
-#: Standardeingabe:1850
+#: Standardeingabe:1236
+msgid "Password"
+msgstr "Passwort"
+
+#: Standardeingabe:13
+msgid "Proceed"
+msgstr "Fortfahren"
+
+#: Standardeingabe:119
+msgid "Remove"
+msgstr "Entfernen"
+
+#: Standardeingabe:574
+msgid "Remove \"%v\""
+msgstr "Entferne \"%v\""
+
+#: Standardeingabe:504 Standardeingabe:507 Standardeingabe:509
+#: Standardeingabe:555 Standardeingabe:1234 Standardeingabe:1236
 msgid "Required."
 msgstr "Benötigte Angabe."
+
+#: Standardeingabe:97 Standardeingabe:199
+msgid "Submit"
+msgstr "Absenden"
+
+#: Standardeingabe:506
+msgid "The name as it should appear in the URL."
+msgstr "Der Name wie er in der URL erscheinen soll."
+
+#: Standardeingabe:9
+msgid "The removed content will be lost, so be careful!"
+msgstr ""
+"Der entfernte Inhalt wird nicht mehr verfügbar sein, also passen Sie auf!"
+
+#: Standardeingabe:509
+msgid "Title"
+msgstr "Titel"
+
+#: Standardeingabe:8
+msgid "WARNING: You are about to remove this content and all content below."
+msgstr ""
+"ACHTUNG: Sie sind dabei diesen Inhalt und alle untergeordneten Inhalte zu "
+"löschen!"
+
+#: Standardeingabe:1250
+msgid "Wrong login or password."
+msgstr "Falscher Benutzername oder falsches Passwort."
