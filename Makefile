@@ -2,7 +2,8 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.3
 
-MODULES = daemon document contactform image
+MODULES=daemon document contactform image
+MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt
 
@@ -26,7 +27,8 @@ module/%:
 	cp -Rn module/$*/locale .
 
 # Build module executable
-go/bin/monsti-%: module/%
+.PHONY: $(MODULE_PROGRAMS)
+$(MODULE_PROGRAMS): go/bin/monsti-%: module/%
 	$(GO) get github.com/monsti/monsti-$*
 
 .PHONY: tests
@@ -36,12 +38,15 @@ test-module-% test-%:
 	$(GO) test github.com/monsti/monsti-$*
 
 .PHONY: clean
-clean:
+clean: clean-templates
 	rm go/* -Rf
 	rm static/aloha/ -R
 	rm module/ -Rf
-	rm templates/ -Rf
 	rm locale/ -Rf
+
+.PHONY: clean-templates
+clean-templates:
+	rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
