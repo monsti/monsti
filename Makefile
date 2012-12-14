@@ -18,8 +18,8 @@ $(MODULES): %: go/bin/monsti-%
 # Fetch and setup given module
 module/%:
 	mkdir -p module/
-	wget https://github.com/monsti/monsti-$*/archive/master.tar.gz -O module/$*.tar.gz
-	cd module; tar xvf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
+	wget -nv https://github.com/monsti/monsti-$*/archive/master.tar.gz -O module/$*.tar.gz
+	cd module; tar xf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
 	mkdir -p go/src/github.com/monsti/
 	ln -s ../../../../module/$* go/src/github.com/monsti/monsti-$*
 	cp -Rn module/$*/templates .
@@ -45,8 +45,8 @@ clean:
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
-	wget https://github.com/downloads/alohaeditor/Aloha-Editor/alohaeditor-$(ALOHA_VERSION).zip
-	unzip alohaeditor-$(ALOHA_VERSION).zip
+	wget -nv https://github.com/downloads/alohaeditor/Aloha-Editor/alohaeditor-$(ALOHA_VERSION).zip
+	unzip -q alohaeditor-$(ALOHA_VERSION).zip
 	mkdir static/aloha
 	mv alohaeditor-$(ALOHA_VERSION)/aloha/lib static/aloha
 	mv alohaeditor-$(ALOHA_VERSION)/aloha/css static/aloha
@@ -57,5 +57,5 @@ static/aloha/:
 
 dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
-	wget http://code.jquery.com/jquery-1.8.2.min.js
+	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
 	mv jquery-1.8.2.min.js static/js/jquery.min.js
