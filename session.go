@@ -3,9 +3,9 @@ package main
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/monsti/form"
-	"github.com/monsti/l10n"
+	"github.com/monsti/util/l10n"
 	"github.com/monsti/rpc/client"
-	"github.com/monsti/template"
+	"github.com/monsti/util/template"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"io/ioutil"

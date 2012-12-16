@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/monsti/rpc/client"
-	"github.com/monsti/template"
+	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"strings"
 )

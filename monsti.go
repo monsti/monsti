@@ -8,8 +8,8 @@
 package main
 
 import (
-	"github.com/monsti/l10n"
-	"github.com/monsti/template"
+	"github.com/monsti/util/l10n"
+	"github.com/monsti/util/template"
 	"github.com/monsti/util"
 	"github.com/monsti/monsti-daemon/worker"
 	"flag"
