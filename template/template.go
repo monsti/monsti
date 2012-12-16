@@ -1,4 +1,4 @@
-// This file is part of monsti/template.
+// This file is part of monsti/util.
 // Copyright 2012 Christian Neumann
 
 // monsti/util is free software: you can redistribute it and/or modify it under
@@ -15,7 +15,7 @@
 // along with monsti/util. If not, see <http://www.gnu.org/licenses/>.
 
 /*
-Package monsti/util/template implements template rendering services for Monsti
+Package template implements template rendering services for Monsti
 and Monsti content worker types.
 */
 package template
