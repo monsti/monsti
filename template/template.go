@@ -1,28 +1,28 @@
 // This file is part of monsti/template.
 // Copyright 2012 Christian Neumann
 
-// monsti/template is free software: you can redistribute it and/or modify it under
+// monsti/util is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
 // later version.
 
-// monsti/template is distributed in the hope that it will be useful, but WITHOUT
+// monsti/util is distributed in the hope that it will be useful, but WITHOUT
 // ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 // FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 // details.
 
 // You should have received a copy of the GNU Lesser General Public License
-// along with monsti/template. If not, see <http://www.gnu.org/licenses/>.
+// along with monsti/util. If not, see <http://www.gnu.org/licenses/>.
 
 /*
-Package monsti/template implements template rendering services for Monsti and
-Monsti content worker types.
+Package monsti/util/template implements template rendering services for Monsti
+and Monsti content worker types.
 */
 package template
 
 import (
 	"bytes"
-	"github.com/monsti/l10n"
+	"github.com/monsti/util/l10n"
 	"html/template"
 	"io/ioutil"
 	"path"
