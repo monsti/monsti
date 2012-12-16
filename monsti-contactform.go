@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/monsti/form"
-	"github.com/monsti/l10n"
+	"github.com/monsti/util/l10n"
 	"github.com/monsti/rpc/client"
-	"github.com/monsti/template"
+	"github.com/monsti/util/template"
 	"github.com/monsti/util"
 	"flag"
 	"fmt"
