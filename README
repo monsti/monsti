@@ -1,15 +1,20 @@
-* Monsti
-
-!! Monsti is still under heavy development and unstable. !!
-
-Have a look at Monsti's roadmap:
-https://github.com/monsti/monsti/wiki/RoadMap
+Monsti CMS
+==========
 
 Monsti is a simple and resource efficient CMS for low dynamic private and small
 business sites with mostly static pages and simple structure.
 
+Its written in Go, a statically typed compiled language that feels almost like a
+dynamic language.
 
-** Design goals
+Monsti is still under heavy development and unstable. You should not use it for
+critical tasks.
+
+Have a look at Monsti's roadmap:
+https://github.com/monsti/monsti-cms/wiki/RoadMap
+
+Design goals
+------------
 
  - Simple design.
  - Low resource usage, especially memory usage. This goal is more important for
@@ -20,7 +25,8 @@ business sites with mostly static pages and simple structure.
  - Simple and intuitive web user interface.
 
 
-** Flat files
+Flat files
+----------
 
 Monsti doesn't use a DBMS but flat files. Sites are organized as trees where
 each node corresponds to a subdirectory in the flat file directory tree. Each
@@ -39,10 +45,11 @@ look like this ('/' is the root of the site's data directory):
 /node.yaml
 
 
-** Project
+Project
+-------
 
 Development happens at
-https://github.com/chrneumann/monsti
+https://github.com/monsti
 
 Contact the author at
 cneumann@datenkarussell.de
