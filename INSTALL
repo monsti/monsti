@@ -5,7 +5,7 @@ Installation instructions
 
 - make
 - C compiler
-- Git (to fetch go packages)
+- Git (to fetch Go packages)
 - Go compiler and tools
 
 2) Build:
@@ -22,16 +22,17 @@ $ make clean
 
 3) Run:
 
-$ go/bin/monsti <configuration file>
+$ go/bin/monsti-daemon <configuration file>
 
 To run the example site, go to the example site directory (example/)
 and run the start script:
 $ ./start.sh
-Monsti will be listening on localhost:8080
+Monsti will be listening on http://localhost:8080
 
-# Problems?
+Problems?
+---------
 
 Fill an issue at:
-https://github.com/chrneumann/monsti/issues
+https://github.com/monsti/monsti-cms/issues
 
 Thanks and have fun!
