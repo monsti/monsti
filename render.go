@@ -22,11 +22,19 @@ type masterTmplEnv struct {
 	Flags              masterTmplFlags
 }
 
+// splitFirstDir returns the first directory in the given path.
+func splitFirstDir(path string) string {
+	for len(path) > 0 && path[0] == '/' {
+		path = path[1:]
+	}
+	return strings.SplitN(path, "/", 2)[0]
+}
+
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings settings, site site, locale string) string {
-	prinav := getNav("/", "/"+strings.SplitN(env.Node.Path[1:], "/", 2)[0],
-		true, site.Directories.Data)
+	prinav := getNav("/", splitFirstDir(env.Node.Path), true,
+		site.Directories.Data)
 	var secnav []navLink = nil
 	if env.Node.Path != "/" {
 		secnav = getNav(env.Node.Path, env.Node.Path, true,
