@@ -38,6 +38,42 @@ type Renderer struct {
 	Root string
 }
 
+// getIncludes searches for include and template.include files.
+//
+// roots are the template roots to search (results will be joined and duplicates
+// removed).
+// name is the name of the template (e.g. "blocks/sidebar").
+//
+// Returns a list of templates to be included.
+func getIncludes(roots []string, name string) (includes []string) {
+	if len(name) == 0 || name[0] == filepath.Separator {
+		panic("Invalid template name: " + name)
+	}
+	duplicateCheck := make(map[string]bool)
+	paths := []string{
+		name + ".include"}
+	for path := name; path != "."; {
+		path = filepath.Dir(path)
+		paths = append(paths, filepath.Join(path, "include"))
+	}
+	for _, root := range roots {
+		for _, path := range paths {
+			contents, err := ioutil.ReadFile(filepath.Join(root, path))
+			if err != nil {
+				continue
+			}
+			for _, line := range bytes.Split(contents, []byte("\n")) {
+				if _, ok := duplicateCheck[string(line)]; ok {
+					continue
+				}
+				duplicateCheck[string(line)] = true
+				includes = append(includes, string(line))
+			}
+		}
+	}
+	return
+}
+
 // Render the named template with given context. 
 //
 // name is the name of the template (e.g. "blocks/sidebar").
@@ -45,6 +81,11 @@ type Renderer struct {
 // locale is the locale to use for translation strings in templates.
 // siteTemplates is the path to the site's overridden templates. If it's an empty
 // string, Render will not search for overridden templates.
+//
+// Render searches for nested templates to include in these files:
+// <dir_of_template>/<template>.include
+// <dir_of_template>/include
+// <any_parent_dir_of_template>/include
 //
 // Returns the rendered template.
 func (r Renderer) Render(name string, context interface{},
@@ -56,15 +97,7 @@ func (r Renderer) Render(name string, context interface{},
 		"G":        G}
 	tmpl.Funcs(funcs)
 	parse(name, tmpl, r.Root, siteTemplates)
-	for _, v := range []string{
-		"blocks/form-horizontal",
-		"blocks/form-vertical",
-		"blocks/primary-navigation",
-		"blocks/headers-edit",
-		"blocks/headers",
-		"blocks/admin-bar",
-		"blocks/sidebar",
-		"blocks/below-header"} {
+	for _, v := range getIncludes([]string{r.Root, siteTemplates}, name) {
 		parse(v, tmpl.New(v), r.Root, siteTemplates)
 	}
 	out := bytes.Buffer{}
