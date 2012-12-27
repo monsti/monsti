@@ -2,3 +2,5 @@
   target: /
 - name: About
   target: /about
+- name: Contact
+  target: contact
