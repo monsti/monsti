@@ -10,7 +10,7 @@ import (
 
 func TestGetIncludes(t *testing.T) {
 	root, cleanup, err := mtesting.CreateDirectoryTree(map[string]string{
-		"/first/include":                        "one\ntwo\nfour",
+		"/first/include":                        "one\ntwo\nfour\n\n",
 		"/first/master.include":                 "three",
 		"/first/foo/bar/include":                "four",
 		"/first/foo/bar/cruz/include":           "five",

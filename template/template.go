@@ -63,6 +63,9 @@ func getIncludes(roots []string, name string) (includes []string) {
 				continue
 			}
 			for _, line := range bytes.Split(contents, []byte("\n")) {
+				if len(line) == 0 {
+					continue
+				}
 				if _, ok := duplicateCheck[string(line)]; ok {
 					continue
 				}
