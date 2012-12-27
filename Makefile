@@ -1,6 +1,6 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
-ALOHA_VERSION=0.22.3
+ALOHA_VERSION=0.22.6
 
 MODULES=daemon document contactform image
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
@@ -32,10 +32,14 @@ $(MODULE_PROGRAMS): go/bin/monsti-%: module/%
 	$(GO) get github.com/monsti/monsti-$*
 
 .PHONY: tests
-tests: $(MODULES:%=test-module-%) daemon/test-worker
+tests: $(MODULES:%=test-module-%) monsti-daemon/test-worker util/test-template util/test-testing\
+	util/test-l10n
 
-test-module-% test-%:
+test-module-%:
 	$(GO) test github.com/monsti/monsti-$*
+
+test-%:
+	$(GO) test github.com/monsti/$*
 
 .PHONY: clean
 clean: clean-templates
