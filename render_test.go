@@ -3,8 +3,9 @@ package main
 import (
 	"github.com/monsti/rpc/client"
 	"github.com/monsti/util/template"
-	"io/ioutil"
+	utesting "github.com/monsti/util/testing"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -30,32 +31,57 @@ func TestSplitFirstDir(t *testing.T) {
 }
 
 func TestRenderInMaster(t *testing.T) {
-	root, err := ioutil.TempDir("", "_monsti_TestRenderInMaster")
+	masterTmpl := `{{.Page.Title}}
+{{.Page.Description}}
+{{if .Page.ShowSidebar}}
+{{if .Page.ShowSecondaryNav}}
+{{range .Page.SecondaryNav}}
+{{if .Active}}class="active"{{end}}
+{{.Target}}|{{.Name}}
+{{end}}
+{{end}}
+{{with .Page.Sidebar}}
+{{.}}
+{{end}}
+{{end}}
+{{.Page.Content}}`
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/data/foo/navigation.yaml": `
+- name: Home
+  target: /
+- name: Bar
+  target: bar`,
+		"/templates/master.html": masterTmpl}, "_monsti_TestRenderInMaster")
+	if err != nil {
+		t.Fatalf("Could not create temporary files: ", err)
+	}
+	defer cleanup()
+	renderer := template.Renderer{Root: filepath.Join(root, "templates")}
+	site := site{}
+	site.Directories.Data = filepath.Join(root, "data")
 	if err != nil {
 		t.Fatalf("Could not create temp dir: %s", err)
 	}
 	tests := []struct {
-		Title, Description string
-		Flags              masterTmplFlags
-		Master             string
-		Content            string
-		Rendered           string
+		Node              client.Node
+		Flags             masterTmplFlags
+		Content, Rendered string
 	}{
-		{"Foo", "Bar!", 0, "{{.Page.Title}}|{{.Page.Description}}|{{.Page.Content}}",
-			"The content.", "Foo|Bar!|The content."},
-		{}}
+		{client.Node{Title: "Foo", Description: "Bar!", Path: "/foo"}, 0,
+			"The content.", `Foo
+Bar!
+/|Home
+/foo/bar|Bar
+The content.`}}
 	for i, v := range tests {
 		session := client.Session{
 			User: &client.User{Login: "admin", Name: "Administrator"}}
-		node := client.Node{Title: v.Title, Description: v.Description}
-		env := masterTmplEnv{node, &session, v.Title, v.Description, 0}
-		renderer := template.Renderer{Root: root}
-		if err = ioutil.WriteFile(filepath.Join(root, "master.html"),
-			[]byte(v.Master), 0600); err != nil {
-			t.Fatalf("Could not write master template: %s", err)
-		}
+		env := masterTmplEnv{v.Node, &session, "", "", 0}
 		ret := renderInMaster(renderer, []byte(v.Content), env, settings{},
-			site{}, "")
+			site, "")
+		for strings.Contains(ret, "\n\n") {
+			ret = strings.Replace(ret, "\n\n", "\n", -1)
+		}
 		if ret != v.Rendered {
 			t.Errorf(`Test %v: renderInMaster(...) returned:
 ================================================================

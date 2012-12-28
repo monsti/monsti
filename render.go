@@ -35,10 +35,12 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings settings, site site, locale string) string {
 	prinav := getNav("/", splitFirstDir(env.Node.Path), true,
 		site.Directories.Data)
-	var secnav []navLink = nil
+	prinav.MakeAbsolute("/")
+	var secnav navigation = nil
 	if env.Node.Path != "/" {
 		secnav = getNav(env.Node.Path, env.Node.Path, true,
 			site.Directories.Data)
+		secnav.MakeAbsolute(env.Node.Path)
 	}
 	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
 	showSidebar := (len(secnav) > 0 || len(sidebarContent) > 0) &&

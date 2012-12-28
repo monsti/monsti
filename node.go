@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
-	"github.com/monsti/util/l10n"
 	"github.com/monsti/rpc/client"
+	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -90,19 +90,19 @@ type navigation []navLink
 // If the given node has no navigation (i.e. no navigation.yaml) and recursive
 // is true, search recursively up to the root for a navigation. If recursive is
 // false, getNav returns nil for this case.
-func getNav(path, active string, recursive bool, root string) navigation {
+func getNav(nodePath, active string, recursive bool, root string) navigation {
 	var content []byte
 	hasNav := true
 	for {
-		file := filepath.Join(root, path, "navigation.yaml")
+		file := filepath.Join(root, nodePath, "navigation.yaml")
 		var err error
 		content, err = ioutil.ReadFile(file)
 		if err != nil {
 			hasNav = false
-			if !recursive || path == filepath.Dir(path) {
+			if !recursive || nodePath == filepath.Dir(nodePath) {
 				break
 			}
-			path = filepath.Dir(path)
+			nodePath = filepath.Dir(nodePath)
 			continue
 		}
 		break
@@ -134,6 +134,16 @@ func (nav navigation) Dump(nodePath, root string) {
 	err = ioutil.WriteFile(path, content, 0600)
 	if err != nil {
 		panic("Could not write navigation: " + err.Error())
+	}
+}
+
+// MakeAbsolute converts relative targets to absolute ones by adding the given
+// root path.
+func (nav *navigation) MakeAbsolute(root string) {
+	for i := range *nav {
+		if (*nav)[i].Target[0] != '/' {
+			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
+		}
 	}
 }
 

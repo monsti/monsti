@@ -1,6 +1,7 @@
 package main
 
 import (
+	utesting "github.com/monsti/util/testing"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,38 +9,23 @@ import (
 	"testing"
 )
 
-// Create test data directory and return path to root.
-func createTestRoot(t *testing.T, testName string) string {
-	root, err := ioutil.TempDir("", "_monsti_" + testName)
-	if err != nil {
-		t.Fatalf("Could not create temp dir: %s", err)
-	}
-	nav := []byte(`- name: foo Page
+func TestGetNav(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/navigation.yaml": `
+- name: foo Page
   target: foo
 - name: bar Page
-  target: bar
-`)
-	if err = ioutil.WriteFile(filepath.Join(root, "navigation.yaml"),
-		nav, 0600); err != nil {
-		t.Fatalf("Could not write navigation: %s", err)
+  target: bar`,
+		"/foo/__empty__": "",
+		"/bar/navigation.yaml": `
+- name: Absolute
+  target: /absolute
+- name: Cruz
+  target: cruz`}, "TestGetNav")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
 	}
-
-	if err = os.Mkdir(filepath.Join(root, "foo"), 0700); err != nil {
-		t.Fatalf("Could not create node directory: %s", err)
-	}
-	if err = os.Mkdir(filepath.Join(root, "bar"), 0700); err != nil {
-		t.Fatalf("Could not create node directory: %s", err)
-	}
-	if err = ioutil.WriteFile(filepath.Join(root, "bar", "navigation.yaml"),
-		[]byte(""), 0600); err != nil {
-		t.Fatalf("Could not write navigation: %s", err)
-	}
-	return root
-}
-
-func TestGetNav(t *testing.T) {
-	root := createTestRoot(t, "TestGetNav")
-	defer os.RemoveAll(root)
+	defer cleanup()
 	tests := []struct {
 		Path, Active string
 		Recursive    bool
@@ -52,7 +38,9 @@ func TestGetNav(t *testing.T) {
 			{Name: "foo Page", Target: "foo", Active: true},
 			{Name: "bar Page", Target: "bar"}}},
 		{"/foo", "foo", false, nil},
-		{"/bar", "foo", false, navigation{}},
+		{"/bar", "bar", false, navigation{
+			{Name: "Absolute", Target: "/absolute", Active: false},
+			{Name: "Cruz", Target: "cruz", Active: false}}},
 		{"/foo", "foo", true, navigation{
 			{Name: "foo Page", Target: "foo", Active: true},
 			{Name: "bar Page", Target: "bar"}}},
@@ -120,9 +108,33 @@ func TestNavigationRemove(t *testing.T) {
 	}
 }
 
+func TestNavigationMakeAbsolute(t *testing.T) {
+	nav := navigation{
+		{Target: "foo"},
+		{Target: "/bar"}}
+	nav.MakeAbsolute("/root")
+	expected := navigation{
+		{Target: "/root/foo"},
+		{Target: "/bar"}}
+	if !reflect.DeepEqual(nav, expected) {
+		t.Errorf(`navigation.MakeAbsolute("/root") = %q, should be %q`,
+			nav, expected)
+	}
+}
+
 func TestRemoveNode(t *testing.T) {
-	root := createTestRoot(t, "TestGetNav")
-	defer os.RemoveAll(root)
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/navigation.yaml": `
+- name: foo Page
+  target: foo
+- name: bar Page
+  target: bar`,
+		"/foo/__empty__":       "",
+		"/bar/navigation.yaml": ""}, "TestRemoveNode")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
 	removeNode("/foo", root)
 	if f, err := os.Open(filepath.Join(root, "foo")); !os.IsNotExist(err) {
 		f.Close()
@@ -130,7 +142,7 @@ func TestRemoveNode(t *testing.T) {
 	}
 	nav := getNav("/", "", false, root)
 	expectedNav := navigation{
-			{Name: "bar Page", Target: "bar"}}
+		{Name: "bar Page", Target: "bar"}}
 	if !reflect.DeepEqual(nav, expectedNav) {
 		t.Errorf(`Navigation should be %v after removal, but is %v.`,
 			expectedNav, nav)
