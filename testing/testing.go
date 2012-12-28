@@ -21,7 +21,10 @@ import (
 //       "/foo/bar.html": "<b>Hello World</b>",
 //       "/bar/foo/foo.txt": "Hey World."
 //     }
-//     root, cleanup := CreateDirectoryTree(files, "TestDoSomethingFunc")
+//     root, cleanup, err := CreateDirectoryTree(files, "TestDoSomethingFunc")
+//     if err != nil {
+//       panic("Could not create directory tree.")
+//     }
 //     defer cleanup()
 func CreateDirectoryTree(files map[string]string, prefix string) (string,
 	func(), error) {
