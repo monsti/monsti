@@ -1,6 +1,6 @@
 - name: Home
   target: /
 - name: About
-  target: /about
+  target: about
 - name: Contact
   target: contact
