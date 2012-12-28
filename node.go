@@ -80,7 +80,7 @@ type navigation []navLink
 
 // getNav returns the navigation for the given node.
 // 
-// node is the path of the node for which to get the navigation.
+// nodePath is the path of the node for which to get the navigation.
 // active is the currently active node.
 // root is the path of the data directory.
 //
@@ -88,8 +88,8 @@ type navigation []navLink
 // the link targets.
 //
 // If the given node has no navigation (i.e. no navigation.yaml) and recursive
-// is true, search recursively up to the root for a navigation. If recursive is
-// false, getNav returns nil for this case.
+// is true, search recursively up but excluding the root for a navigation. If
+// recursive is false, getNav returns nil for this case.
 func getNav(nodePath, active string, recursive bool, root string) navigation {
 	var content []byte
 	hasNav := true
@@ -99,10 +99,10 @@ func getNav(nodePath, active string, recursive bool, root string) navigation {
 		content, err = ioutil.ReadFile(file)
 		if err != nil {
 			hasNav = false
+			nodePath = filepath.Dir(nodePath)
 			if !recursive || nodePath == filepath.Dir(nodePath) {
 				break
 			}
-			nodePath = filepath.Dir(nodePath)
 			continue
 		}
 		break

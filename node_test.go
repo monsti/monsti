@@ -17,6 +17,7 @@ func TestGetNav(t *testing.T) {
 - name: bar Page
   target: bar`,
 		"/foo/__empty__": "",
+		"/bar/cruz/__empty__": "",
 		"/bar/navigation.yaml": `
 - name: Absolute
   target: /absolute
@@ -41,9 +42,10 @@ func TestGetNav(t *testing.T) {
 		{"/bar", "bar", false, navigation{
 			{Name: "Absolute", Target: "/absolute", Active: false},
 			{Name: "Cruz", Target: "cruz", Active: false}}},
-		{"/foo", "foo", true, navigation{
-			{Name: "foo Page", Target: "foo", Active: true},
-			{Name: "bar Page", Target: "bar"}}},
+		{"/foo", "foo", true, nil},
+		{"/bar/cruz", "cruz", true, navigation{
+			{Name: "Absolute", Target: "/absolute", Active: false},
+			{Name: "Cruz", Target: "cruz", Active: true}}},
 		{"/", "", false, navigation{
 			{Name: "foo Page", Target: "foo"},
 			{Name: "bar Page", Target: "bar"}}}}
