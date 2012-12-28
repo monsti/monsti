@@ -28,7 +28,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
 			nil},
 		"Password": form.Field{G("Password"), "", form.Required(G("Required.")),
-			nil}})
+			new(form.PasswordWidget)}})
 	switch r.Method {
 	case "GET":
 	case "POST":
