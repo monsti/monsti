@@ -16,7 +16,7 @@ func TestGetNav(t *testing.T) {
   target: foo
 - name: bar Page
   target: bar`,
-		"/foo/__empty__": "",
+		"/foo/__empty__":      "",
 		"/bar/cruz/__empty__": "",
 		"/bar/navigation.yaml": `
 - name: Absolute
@@ -31,29 +31,34 @@ func TestGetNav(t *testing.T) {
 		Path, Active string
 		Recursive    bool
 		Expected     navigation
+		Root         string
 	}{
 		{"/", "", false, navigation{
 			{Name: "foo Page", Target: "foo"},
-			{Name: "bar Page", Target: "bar"}}},
+			{Name: "bar Page", Target: "bar"}}, ""},
 		{"/", "foo", false, navigation{
 			{Name: "foo Page", Target: "foo", Active: true},
-			{Name: "bar Page", Target: "bar"}}},
-		{"/foo", "foo", false, nil},
+			{Name: "bar Page", Target: "bar"}}, ""},
+		{"/foo", "foo", false, nil, ""},
 		{"/bar", "bar", false, navigation{
 			{Name: "Absolute", Target: "/absolute", Active: false},
-			{Name: "Cruz", Target: "cruz", Active: false}}},
-		{"/foo", "foo", true, nil},
+			{Name: "Cruz", Target: "cruz", Active: false}}, ""},
+		{"/bar", "bar", true, navigation{
+			{Name: "Absolute", Target: "/absolute", Active: false},
+			{Name: "Cruz", Target: "cruz", Active: false}}, "/bar"},
+		{"/foo", "foo", true, nil, ""},
 		{"/bar/cruz", "cruz", true, navigation{
 			{Name: "Absolute", Target: "/absolute", Active: false},
-			{Name: "Cruz", Target: "cruz", Active: true}}},
+			{Name: "Cruz", Target: "cruz", Active: true}}, "/bar"},
 		{"/", "", false, navigation{
 			{Name: "foo Page", Target: "foo"},
-			{Name: "bar Page", Target: "bar"}}}}
+			{Name: "bar Page", Target: "bar"}}, ""}}
 	for _, test := range tests {
-		ret := getNav(test.Path, test.Active, test.Recursive, root)
-		if !reflect.DeepEqual(ret, test.Expected) {
-			t.Errorf(`getNav(%q, %q, %v, _) = %v, should be %v`,
-				test.Path, test.Active, test.Recursive, ret, test.Expected)
+		ret, retRoot := getNav(test.Path, test.Active, test.Recursive, root)
+		if !reflect.DeepEqual(ret, test.Expected) || retRoot != test.Root {
+			t.Errorf(`getNav(%q, %q, %v, _) = %v, %v, should be %v, %v`,
+				test.Path, test.Active, test.Recursive, ret, retRoot,
+				test.Expected, test.Root)
 		}
 	}
 }
@@ -142,7 +147,7 @@ func TestRemoveNode(t *testing.T) {
 		f.Close()
 		t.Errorf(`/foo does still exist, should be removed`)
 	}
-	nav := getNav("/", "", false, root)
+	nav, _ := getNav("/", "", false, root)
 	expectedNav := navigation{
 		{Name: "bar Page", Target: "bar"}}
 	if !reflect.DeepEqual(nav, expectedNav) {

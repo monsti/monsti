@@ -33,14 +33,15 @@ func splitFirstDir(path string) string {
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings settings, site site, locale string) string {
-	prinav := getNav("/", splitFirstDir(env.Node.Path), true,
+	prinav, _ := getNav("/", splitFirstDir(env.Node.Path), false,
 		site.Directories.Data)
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		secnav = getNav(env.Node.Path, env.Node.Path, true,
+		var root string
+		secnav, root = getNav(env.Node.Path, env.Node.Path, true,
 			site.Directories.Data)
-		secnav.MakeAbsolute(env.Node.Path)
+		secnav.MakeAbsolute(root)
 	}
 	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
 	showSidebar := (len(secnav) > 0 || len(sidebarContent) > 0) &&

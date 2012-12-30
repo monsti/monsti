@@ -59,9 +59,6 @@ func TestRenderInMaster(t *testing.T) {
 	renderer := template.Renderer{Root: filepath.Join(root, "templates")}
 	site := site{}
 	site.Directories.Data = filepath.Join(root, "data")
-	if err != nil {
-		t.Fatalf("Could not create temp dir: %s", err)
-	}
 	tests := []struct {
 		Node              client.Node
 		Flags             masterTmplFlags

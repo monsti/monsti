@@ -90,7 +90,11 @@ type navigation []navLink
 // If the given node has no navigation (i.e. no navigation.yaml) and recursive
 // is true, search recursively up but excluding the root for a navigation. If
 // recursive is false, getNav returns nil for this case.
-func getNav(nodePath, active string, recursive bool, root string) navigation {
+//
+// The second return value is set to the path of the node for which a navigation
+// was found via a recursive search. In all other cases, it's an empty string.
+func getNav(nodePath, active string, recursive bool, root string) (navLinks navigation,
+	navRoot string) {
 	var content []byte
 	hasNav := true
 	for {
@@ -105,9 +109,11 @@ func getNav(nodePath, active string, recursive bool, root string) navigation {
 			}
 			continue
 		}
+		if recursive {
+			navRoot = nodePath
+		}
 		break
 	}
-	var navLinks []navLink
 	goyaml.Unmarshal(content, &navLinks)
 	for i, link := range navLinks {
 		if link.Target == active {
@@ -116,9 +122,10 @@ func getNav(nodePath, active string, recursive bool, root string) navigation {
 		}
 	}
 	if len(navLinks) == 0 && hasNav {
-		return navigation{}
+		navLinks = navigation{}
+		return
 	}
-	return navLinks
+	return
 }
 
 // dumpNav unmarshals the navigation and writes it to the given node directory.
@@ -203,7 +210,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			if err := writeNode(newNode, site.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
-			nav := getNav(node.Path, "", false, site.Directories.Data)
+			nav, _ := getNav(node.Path, "", false, site.Directories.Data)
 			nav.Add(data.Title, data.Name)
 			nav.Dump(node.Path, site.Directories.Data)
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
@@ -296,7 +303,7 @@ func removeNode(path, root string) {
 	nodePath := filepath.Join(root, path[1:])
 	parent := filepath.Dir(path)
 	if parent != path {
-		nav := getNav(parent, "", false, root)
+		nav, _ := getNav(parent, "", false, root)
 		nav.Remove(filepath.Base(path))
 		nav.Dump(parent, root)
 	}
