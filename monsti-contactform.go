@@ -68,7 +68,6 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 		panic("Request method not supported: " + req.Method)
 	}
 	res.Node = &req.Node
-	res.Node.HideSidebar = true
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
