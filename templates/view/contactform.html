@@ -1,16 +1,10 @@
-<div class="row-fluid">
-  <div class="span6">
-    {{.Body}}
-  </div>
-  <div class="span6">
-    <div>
-      {{if .Submitted}}
-        <p class="alert alert-success">
-        {{G "Thanks for your message!"}}
-        </p>
-      {{else}}
-        {{template "blocks/form-horizontal" .Form}}
-      {{end}}
-    </div>
-  </div>
+{{.Body}}
+<div>
+  {{if .Submitted}}
+    <p class="alert alert-success">
+    {{G "Thanks for your message!"}}
+    </p>
+  {{else}}
+    {{template "blocks/form-horizontal" .Form}}
+  {{end}}
 </div>
