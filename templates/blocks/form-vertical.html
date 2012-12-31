@@ -1,0 +1,23 @@
+<form class="form" action="" method="POST" accept-charset="utf-8" {{.EncTypeAttr}}>
+    <fieldset>
+        <div class="control-group {{if .Errors}}error{{end}}">
+            <div class="controls">
+                <span class="help-block"
+                    >{{range .Errors}}{{.}}{{end}}</span>
+            </div>
+        </div>
+        {{range .Fields}}
+        <div class="control-group {{if .Errors}}error{{end}}">
+            <label class="control-label" for="name">{{.Label}}</label>
+            <div class="controls">{{.Input}}
+                <span class="help-block">{{.Help}}
+                    {{range .Errors}}{{.}}{{end}}</span></div>
+        </div>
+        {{end}}
+        <div class="control-group">
+            <div class="controls">
+                <button type="submit" class="btn btn-primary">{{G "Submit"}}</button>
+            </div>
+        </div>
+    </fieldset>
+</form>

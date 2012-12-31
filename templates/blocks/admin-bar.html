@@ -1,0 +1,26 @@
+{{if .Session.User}}
+<div id="admin-bar" class="navbar">
+    <div class="navbar-inner navbar-fixed-top">
+        <span class="brand">Monsti</span>
+        {{$path := .Page.Node.Path}}
+        <ul class="nav">
+            <li><a href="{{pathJoin $path "@@edit"}}"
+                ><img src="/static/img/icons/silk/page_white_edit.png"/> {{G "Edit"}}</a></li>
+        </ul>
+        <ul class="nav">
+            <li><a href="{{pathJoin $path "@@add"}}"
+                ><img src="/static/img/icons/silk/page_white_add.png"/>
+                {{G "Add"}}</a></li>
+        </ul>
+        <ul class="nav">
+            <li><a href="{{pathJoin $path "@@remove"}}"
+                ><img src="/static/img/icons/silk/page_white_delete.png"/>
+                {{G "Remove"}}</a></li>
+        </ul>
+        <ul class="nav pull-right">
+            <li><a href="{{pathJoin $path "@@logout"}}"
+                ><img src="/static/img/icons/silk/stop.png"/> {{G "Logout"}}</a></li>
+        </ul>
+    </div>
+</div>
+{{end}}
