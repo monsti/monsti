@@ -3,7 +3,11 @@ GO=GOPATH=$(GOPATH) go
 ALOHA_VERSION=0.22.6
 
 MODULES=daemon document contactform image
+
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
+MODULE_SOURCES=$(MODULES:%=go/src/github.com/monsti/monsti-%)
+MODULE_TEMPLATES=$(MODULES:%=templates/%)
+MODULE_LOCALES=$(MODULES:%=locale/monsti-%.pot)
 
 all: monsti bcrypt
 
@@ -14,21 +18,28 @@ bcrypt:
 	$(GO) get github.com/monsti/monsti-daemon/tools/bcrypt
 
 modules: $(MODULES)
-$(MODULES): %: go/bin/monsti-%
+$(MODULES): %: go/bin/monsti-% locale/monsti-%.pot templates/%
 
-# Fetch and setup given module
 module/%:
 	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-$*/archive/master.tar.gz -O module/$*.tar.gz
 	cd module; tar xf $*.tar.gz && mv monsti-$*-master $* && rm $*.tar.gz
+
+$(MODULE_SOURCES): go/src/github.com/monsti/monsti-%: module/%
 	mkdir -p go/src/github.com/monsti/
-	ln -s ../../../../module/$* go/src/github.com/monsti/monsti-$*
-	cp -Rn module/$*/templates .
+	ln -sf ../../../../module/$* go/src/github.com/monsti/monsti-$*
+
+$(MODULE_TEMPLATES): templates/%: module/%
+	mkdir -p templates/
+	ln -sf ../module/$*/templates templates/$*
+
+$(MODULE_LOCALES): locale/monsti-%.pot: module/%
+	mkdir -p locale/
 	cp -Rn module/$*/locale .
 
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
-$(MODULE_PROGRAMS): go/bin/monsti-%: module/%
+$(MODULE_PROGRAMS): go/bin/monsti-%: go/src/github.com/monsti/monsti-%
 	$(GO) get github.com/monsti/monsti-$*
 
 .PHONY: tests
