@@ -30,7 +30,6 @@ $(MODULE_SOURCES): go/src/github.com/monsti/monsti-%: module/%
 	ln -sf ../../../../module/$* go/src/github.com/monsti/monsti-$*
 
 $(MODULE_TEMPLATES): templates/%: module/%
-	mkdir -p templates/
 	ln -sf ../module/$*/templates templates/$*
 
 $(MODULE_LOCALES): locale/monsti-%.pot: module/%
@@ -59,9 +58,8 @@ clean: clean-templates
 	rm module/ -Rf
 	rm locale/ -Rf
 
-.PHONY: clean-templates
 clean-templates:
-	rm templates/ -Rf
+	# FIXME rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
