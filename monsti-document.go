@@ -61,14 +61,14 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	default:
 		panic("Request method not supported: " + req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("edit/document",
+	fmt.Fprint(res, renderer.Render("document/edit",
 		template.Context{"Form": form.RenderData()},
 		req.Session.Locale, ""))
 }
 
 func view(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
-	content := renderer.Render("view/document",
+	content := renderer.Render("document/view",
 		template.Context{"Body": htmlT.HTML(body)},
 		req.Session.Locale, "")
 	fmt.Fprint(res, content)
