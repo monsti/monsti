@@ -65,7 +65,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	default:
 		panic("Request method not supported: " + req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("edit/image",
+	fmt.Fprint(res, renderer.Render("image/edit",
 		template.Context{"Form": form.RenderData()},
 		req.Session.Locale, ""))
 }
