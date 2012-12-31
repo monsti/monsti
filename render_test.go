@@ -33,7 +33,6 @@ func TestSplitFirstDir(t *testing.T) {
 func TestRenderInMaster(t *testing.T) {
 	masterTmpl := `{{.Page.Title}}
 {{.Page.Description}}
-{{if .Page.ShowSidebar}}
 {{if .Page.ShowSecondaryNav}}
 {{range .Page.SecondaryNav}}
 {{if .Active}}class="active"{{end}}
@@ -42,7 +41,6 @@ func TestRenderInMaster(t *testing.T) {
 {{end}}
 {{with .Page.Sidebar}}
 {{.}}
-{{end}}
 {{end}}
 {{.Page.Content}}`
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{

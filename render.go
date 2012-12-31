@@ -44,8 +44,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		secnav.MakeAbsolute(root)
 	}
 	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
-	showSidebar := (len(secnav) > 0 || len(sidebarContent) > 0) &&
-		!env.Node.HideSidebar && (env.Flags&EDIT_VIEW == 0)
 	belowHeader := getBelowHeader(env.Node.Path, site.Directories.Data)
 	title := env.Node.Title
 	if env.Title != "" {
@@ -71,8 +69,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Title":            title,
 			"Description":      description,
 			"Content":          htmlT.HTML(content),
-			"ShowSecondaryNav": len(secnav) > 0,
-			"ShowSidebar":      showSidebar,
+			"ShowSecondaryNav": len(secnav) > 0
 		},
 		"Session": env.Session}, locale, site.Directories.Templates)
 }
