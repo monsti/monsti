@@ -71,7 +71,7 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 	body := c.GetNodeData(req.Node.Path, "body.html")
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
-	fmt.Fprint(res, renderer.Render("view/contactform", context,
+	fmt.Fprint(res, renderer.Render("contactform/view", context,
 		req.Session.Locale, ""))
 }
 
@@ -102,7 +102,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	default:
 		panic("Request method not supported: " + req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("edit/contactform",
+	fmt.Fprint(res, renderer.Render("contactform/edit",
 		template.Context{"Form": form.RenderData()},
 		req.Session.Locale, ""))
 }
