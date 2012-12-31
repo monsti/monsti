@@ -69,7 +69,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Title":            title,
 			"Description":      description,
 			"Content":          htmlT.HTML(content),
-			"ShowSecondaryNav": len(secnav) > 0
-		},
+			"ShowSecondaryNav": len(secnav) > 0},
 		"Session": env.Session}, locale, site.Directories.Templates)
 }
