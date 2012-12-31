@@ -219,7 +219,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
-	body := h.Renderer.Render("actions/addform", template.Context{
+	body := h.Renderer.Render("daemon/actions/addform", template.Context{
 		"Form": form.RenderData()}, cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
@@ -253,7 +253,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Confirm = 1489
-	body := h.Renderer.Render("actions/removeform", template.Context{
+	body := h.Renderer.Render("daemon/actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": node},
 		cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: node, Session: cSession,
