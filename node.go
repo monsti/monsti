@@ -190,7 +190,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		"Type": form.Field{G("Content type"), "", form.Required(G("Required.")), selectWidget},
 		"Name": form.Field{G("Name"),
 			G("The name as it should appear in the URL."),
-			form.And(form.Required(G("Required.")), form.Regex(`^\w*$`,
+			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
 				G("Contains	invalid characters."))), nil},
 		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil}})
 	switch r.Method {
