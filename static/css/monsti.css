@@ -22,6 +22,4 @@ a, a:hover { font-weight:bold; }
 a:hover { text-decoration:underline; }
 #primary-navigation li { display:block; float:left; }
 #primary-navigation ul { margin: 0; }
-#admin-bar img { margin-bottom:2px; }
-.editable { border: 2px dashed gray; padding:1em; border-radius: 2px; }
 #attribution { text-align:center; font-size:70%; }
