@@ -3,4 +3,9 @@
 <meta name="description" content="" />
 <link rel="shortcut icon" href="/static/favicon.png" />
 <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
-{{template "blocks/headers-edit" .Page.EditView}}
+{{if .Page.EditView}}
+{{template "blocks/headers-edit"}}
+{{end}}
+{{if .Session.User}}
+{{template "blocks/headers-admin"}}
+{{end}}

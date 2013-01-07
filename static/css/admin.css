@@ -1,0 +1,9 @@
+#admin-bar { position:absolute; width:100%; background:#EEE; padding:0; margin:0; border-bottom:1px solid #aaa; box-shadow:0 0 2px 1px #666; background-image: linear-gradient(bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%); background-image: -o-linear-gradient(bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%); background-image: -moz-linear-gradient(bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%); background-image: -webkit-linear-gradient(bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%); background-image: -ms-linear-gradient(bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%); background-image: -webkit-gradient( linear, left bottom, left top, color-stop(0.25, rgb(222,222,222)), color-stop(0.63, rgb(247,247,247))); }
+#admin-bar > div { padding: 10px; }
+#admin-bar .brand { float:left; line-height:30px; vertical-align:middle; margin:0 20px 0 0; padding:0: }
+#admin-bar ul { list-style:none; padding:0; margin:0; }
+#admin-bar li { float:left; margin-left:20px; padding:0; line-height:30px; }
+#admin-bar li img { vertical-align:middle; }
+#admin-bar .pull-right { float:right; }
+#admin-bar .pull-right li { margin-left:0; }
+#admin-bar a { text-decoration:none; color:#333; font-weight:200; }
