@@ -2,6 +2,8 @@
  - Removed ShowSidebar option.
  - Changed module templates directory conventions.
  - Fix: Allow '-' in node names.
+ - Made default templates and css "cleaner" (less default css, no bootstrap,
+   ...)
 
 * 0.3 - 2012/12/30
  - Upgrade to Aloha 0.22.3
