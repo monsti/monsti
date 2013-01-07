@@ -2,3 +2,6 @@ go/
 static/aloha/
 *.swp
 *~
+locale/
+module/
+templates/
