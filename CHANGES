@@ -6,6 +6,8 @@
    ...)
  - Removed Bootstrap dependency.
  - Refactored navigation templates.
+ - Change navigation generation, navigation.yaml no longer used. Instead,
+   navigations are generated on the fly.
 
 * 0.3 - 2012/12/30
  - Upgrade to Aloha 0.22.3
