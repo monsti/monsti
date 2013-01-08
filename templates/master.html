@@ -12,7 +12,7 @@
           <div id="logo">
               <a href="/"><img src="/site-static/logo.png" alt="{{.Site.Title}}"/></a>
           </div>
-          <div id="primary-navigation-wrap">
+          <div id="primary-nav-wrap">
             {{template "blocks/primary-navigation" .Page.PrimaryNav}}
             <br style="clear:both"/>
           </div>
@@ -22,7 +22,10 @@
       <div id="content-wrap" class="container">
         <div id="messages" class="">
         </div>
-        {{template "blocks/sidebar" .}}
+        <div id="sidebar">
+          {{template "blocks/secondary-navigation" .}}
+          {{template "blocks/sidebar" .}}
+        </div>
         <div id="content">
           <article class="document-view content">
           <h1>{{.Page.Title}}</h1>

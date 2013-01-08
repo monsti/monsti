@@ -1,7 +1,8 @@
-blocks/primary-navigation
+blocks/admin-bar
+blocks/below-header
+blocks/headers
 blocks/headers-admin
 blocks/headers-edit
-blocks/headers
-blocks/admin-bar
+blocks/primary-navigation
+blocks/secondary-navigation
 blocks/sidebar
-blocks/below-header

@@ -1,9 +1,5 @@
-<div id="primary-navigation">
+<div id="primary-nav">
     <ul>
-        {{range .}}
-        <li {{if .Active}}class="active"{{end}}>
-        <a href="{{.Target}}"><span>{{.Name}}</span></a>
-        </li>
-        {{end}}
+        {{range .}}<li><a {{if .Active}}class="active"{{end}} href="{{.Target}}"><span>{{.Name}}</span></a></li>{{end}}
     </ul>
 </div>

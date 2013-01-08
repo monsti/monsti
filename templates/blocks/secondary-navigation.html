@@ -1,0 +1,7 @@
+{{if .Page.ShowSecondaryNav}}
+<div id="secondary-nav">
+  <ul>
+    {{range .Page.SecondaryNav}}<li><a {{if .Active}}class="active"{{end}} href="{{.Target}}"><span>{{.Name}}</span></a></li>{{end}}
+  </ul>
+</div>
+{{end}}
