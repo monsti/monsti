@@ -33,23 +33,22 @@ func TestSplitFirstDir(t *testing.T) {
 func TestRenderInMaster(t *testing.T) {
 	masterTmpl := `{{.Page.Title}}
 {{.Page.Description}}
+{{range .Page.PrimaryNav}}#{{if .Active}}a{{end}}|{{.Target}}|{{.Name}}{{end}}
 {{if .Page.ShowSecondaryNav}}
-{{range .Page.SecondaryNav}}
-{{if .Active}}class="active"{{end}}
-{{.Target}}|{{.Name}}
-{{end}}
+{{range .Page.SecondaryNav}}#{{if .Active}}a{{end}}{{if .Child}}c{{end}}|{{.Target}}|{{.Name}}{{end}}
 {{end}}
 {{with .Page.Sidebar}}
 {{.}}
 {{end}}
 {{.Page.Content}}`
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/data/foo/navigation.yaml": `
-- name: Home
-  target: /
-- name: Bar
-  target: bar`,
-		"/templates/master.html": masterTmpl}, "_monsti_TestRenderInMaster")
+		"/data/foo/node.yaml":               "title: Foo",
+		"/data/foo/child1/node.yaml":        "title: Foo Child 1",
+		"/data/foo/child2/node.yaml":        "title: Foo Child 2",
+		"/data/foo/child2/child1/node.yaml": "title: Foo Child 2 Child 1",
+		"/data/bar/node.yaml":               "title: Bar",
+		"/data/cruz/node.yaml":              "title: Cruz",
+		"/templates/master.html":            masterTmpl}, "_monsti_TestRenderInMaster")
 	if err != nil {
 		t.Fatalf("Could not create temporary files: ", err)
 	}
@@ -62,11 +61,11 @@ func TestRenderInMaster(t *testing.T) {
 		Flags             masterTmplFlags
 		Content, Rendered string
 	}{
-		{client.Node{Title: "Foo", Description: "Bar!", Path: "/foo"}, 0,
-			"The content.", `Foo
+		{client.Node{Title: "Foo Child 2", Description: "Bar!", Path: "/foo/child2"}, 0,
+			"The content.", `Foo Child 2
 Bar!
-/|Home
-/foo/bar|Bar
+#|/bar|Bar#|/cruz|Cruz#a|/foo|Foo
+#|/foo/child1|Foo Child 1#a|/foo/child2|Foo Child 2#c|/foo/child2/child1|Foo Child 2 Child 1
 The content.`}}
 	for i, v := range tests {
 		session := client.Session{

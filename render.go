@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/monsti/rpc/client"
 	"github.com/monsti/util/template"
 	htmlT "html/template"
+	"path"
 	"strings"
 )
 
@@ -33,15 +35,21 @@ func splitFirstDir(path string) string {
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings settings, site site, locale string) string {
-	prinav, _ := getNav("/", splitFirstDir(env.Node.Path), false,
+	firstDir := splitFirstDir(env.Node.Path)
+	prinav, err := getNav("/", path.Join("/", firstDir),
 		site.Directories.Data)
+	prinav.MakeAbsolute(firstDir)
+	if err != nil {
+		panic(fmt.Sprint("Could not get primary navigation: ", err))
+	}
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		var root string
-		secnav, root = getNav(env.Node.Path, env.Node.Path, true,
-			site.Directories.Data)
-		secnav.MakeAbsolute(root)
+		secnav, err = getNav(env.Node.Path, env.Node.Path, site.Directories.Data)
+		if err != nil {
+			panic(fmt.Sprint("Could not get secondary navigation: ", err))
+		}
+		secnav.MakeAbsolute(env.Node.Path)
 	}
 	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
 	belowHeader := getBelowHeader(env.Node.Path, site.Directories.Data)

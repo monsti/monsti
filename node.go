@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -72,76 +73,112 @@ func getSidebar(path, root string) string {
 
 // navLink represents a link in the navigation.
 type navLink struct {
-	Name, Target string
-	Active       bool "active,omitempty"
+	Name, Target  string
+	Active, Child bool
 }
 
 type navigation []navLink
 
+func (n navigation) Len() int {
+	return len(n)
+}
+
+func (n navigation) Less(i, j int) bool {
+	return n[i].Name < n[j].Name
+}
+
+func (n *navigation) Swap(i, j int) {
+	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
+}
+
 // getNav returns the navigation for the given node.
 // 
-// nodePath is the path of the node for which to get the navigation.
-// active is the currently active node.
+// nodePath is the absolute path of the node for which to get the navigation.
+// active is the absolute path to the currently active node.
 // root is the path of the data directory.
-//
-// The keys of the returned map are the link titles, the values are
-// the link targets.
-//
-// If the given node has no navigation (i.e. no navigation.yaml) and recursive
-// is true, search recursively up but excluding the root for a navigation. If
-// recursive is false, getNav returns nil for this case.
-//
-// The second return value is set to the path of the node for which a navigation
-// was found via a recursive search. In all other cases, it's an empty string.
-func getNav(nodePath, active string, recursive bool, root string) (navLinks navigation,
-	navRoot string) {
-	var content []byte
-	hasNav := true
-	for {
-		file := filepath.Join(root, nodePath, "navigation.yaml")
-		var err error
-		content, err = ioutil.ReadFile(file)
-		if err != nil {
-			hasNav = false
-			nodePath = filepath.Dir(nodePath)
-			if !recursive || nodePath == filepath.Dir(nodePath) {
-				break
-			}
+func getNav(nodePath, active string, root string) (navLinks navigation,
+	err error) {
+	// Search children
+	children, err := ioutil.ReadDir(filepath.Join(root, nodePath))
+	if err != nil {
+		return nil, fmt.Errorf("Could not read node directory: %v", err)
+	}
+	anyChild := false
+	childrenNavLinks := navLinks[:]
+	for _, child := range children {
+		if !child.IsDir() {
 			continue
 		}
-		if recursive {
-			navRoot = nodePath
+		node, err := lookupNode(root, path.Join(nodePath,
+			child.Name()))
+		if err != nil {
+			continue
 		}
-		break
+		anyChild = true
+		childrenNavLinks = append(childrenNavLinks, navLink{Name: node.Title,
+			Target: child.Name(), Child: true})
 	}
-	goyaml.Unmarshal(content, &navLinks)
-	for i, link := range navLinks {
-		if link.Target == active {
-			navLinks[i].Active = true
+	if !anyChild {
+		if nodePath == "/" || path.Dir(nodePath) == "/" {
+			return nil, nil
+		}
+		return getNav(path.Dir(nodePath), active, root)
+	}
+	sort.Sort(&childrenNavLinks)
+	siblingsNavLinks := navLinks[:]
+	// Search siblings
+	if nodePath != "/" && path.Dir(nodePath) == "/" {
+		node, err := lookupNode(root, nodePath)
+		if err != nil {
+			return nil, fmt.Errorf("Could not find node: %v", err)
+		}
+		siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
+			Target: path.Join("..", path.Base(nodePath))})
+	} else if nodePath != "/" {
+		parent := path.Dir(nodePath)
+		siblings, err := ioutil.ReadDir(filepath.Join(root, parent))
+		if err != nil {
+			return nil, fmt.Errorf("Could not read node directory: %v", err)
+		}
+		for _, sibling := range siblings {
+			if !sibling.IsDir() {
+				continue
+			}
+			node, err := lookupNode(root, path.Join(parent,
+				sibling.Name()))
+			if err != nil {
+				continue
+			}
+			siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
+				Target: path.Join("..", sibling.Name())})
+		}
+	}
+	sort.Sort(&siblingsNavLinks)
+	// Insert children at their parent
+	for i, link := range siblingsNavLinks {
+		if link.Target == path.Join("..", path.Base(nodePath)) {
+			navLinks = append(navLinks, siblingsNavLinks[:i+1]...)
+			navLinks = append(navLinks, childrenNavLinks...)
+			navLinks = append(navLinks, siblingsNavLinks[i+1:]...)
 			break
 		}
 	}
-	if len(navLinks) == 0 && hasNav {
-		navLinks = navigation{}
-		return
+	if len(navLinks) == 0 {
+		navLinks = childrenNavLinks
+	}
+	// Compute node paths relative to active node and search and set the Active
+	// link
+	for i, link := range navLinks {
+		rel, err := filepath.Rel(active, path.Join(nodePath, link.Target))
+		if err != nil {
+			panic(fmt.Sprint("Could not comute relative path:", err))
+		}
+		navLinks[i].Target = rel
+		if rel == "." || (len(rel) >= 5 && rel[:2] == ".." && rel[len(rel)-2:] == "..") {
+			navLinks[i].Active = true
+		}
 	}
 	return
-}
-
-// dumpNav unmarshals the navigation and writes it to the given node directory.
-func (nav navigation) Dump(nodePath, root string) {
-	for i := range nav {
-		nav[i].Active = false
-	}
-	content, err := goyaml.Marshal(&nav)
-	if err != nil {
-		panic("Could not marshal navigation: " + err.Error())
-	}
-	path := filepath.Join(root, nodePath[1:], "navigation.yaml")
-	err = ioutil.WriteFile(path, content, 0600)
-	if err != nil {
-		panic("Could not write navigation: " + err.Error())
-	}
 }
 
 // MakeAbsolute converts relative targets to absolute ones by adding the given
@@ -152,22 +189,6 @@ func (nav *navigation) MakeAbsolute(root string) {
 			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
 		}
 	}
-}
-
-// Add adds a link with the given name and target to the navigation.
-func (nav *navigation) Add(name, target string) {
-	*nav = append(*nav, navLink{Name: name, Target: target})
-}
-
-// Remove removes all links with the given target from the navigation.
-func (nav *navigation) Remove(target string) {
-	ret := make(navigation, 0, len(*nav)-1)
-	for _, v := range *nav {
-		if v.Target != target {
-			ret = append(ret, v)
-		}
-	}
-	*nav = ret
 }
 
 type addFormData struct {
@@ -210,9 +231,6 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			if err := writeNode(newNode, site.Directories.Data); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
-			nav, _ := getNav(node.Path, "", false, site.Directories.Data)
-			nav.Add(data.Title, data.Name)
-			nav.Dump(node.Path, site.Directories.Data)
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
 			return
 		}
@@ -301,12 +319,6 @@ func writeNode(node client.Node, root string) error {
 // at the given root and from the navigation of the parent node.
 func removeNode(path, root string) {
 	nodePath := filepath.Join(root, path[1:])
-	parent := filepath.Dir(path)
-	if parent != path {
-		nav, _ := getNav(parent, "", false, root)
-		nav.Remove(filepath.Base(path))
-		nav.Dump(parent, root)
-	}
 	if err := os.RemoveAll(nodePath); err != nil {
 		panic("Can't remove node: " + err.Error())
 	}
