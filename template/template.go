@@ -124,7 +124,7 @@ func parse(name string, t *template.Template, root string,
 		if err == nil {
 			_, err = t.Parse(string(content))
 			if err != nil {
-				panic("Could not parse template:" + err.Error())
+				panic("Could not parse template: " + err.Error())
 			}
 			return
 		}
@@ -132,10 +132,10 @@ func parse(name string, t *template.Template, root string,
 	path := filepath.Join(root, name+".html")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("Could not load template:" + err.Error())
+		panic("Could not load template: " + err.Error())
 	}
 	_, err = t.Parse(string(content))
 	if err != nil {
-		panic("Could not parse template:" + err.Error())
+		panic("Could not parse template: " + err.Error())
 	}
 }
