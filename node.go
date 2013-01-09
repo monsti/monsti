@@ -75,18 +75,24 @@ func getSidebar(path, root string) string {
 type navLink struct {
 	Name, Target  string
 	Active, Child bool
+	Order         int
 }
 
 type navigation []navLink
 
+// Len is the number of elements in the navigation.
 func (n navigation) Len() int {
 	return len(n)
 }
 
+// Less returns whether the element with index i should sort
+// before the element with index j.
 func (n navigation) Less(i, j int) bool {
-	return n[i].Name < n[j].Name
+	return n[i].Order < n[j].Order || (n[i].Order == n[j].Order &&
+		n[i].Name < n[j].Name)
 }
 
+// Swap swaps the elements with indexes i and j.
 func (n *navigation) Swap(i, j int) {
 	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
 }
@@ -116,7 +122,7 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 		}
 		anyChild = true
 		childrenNavLinks = append(childrenNavLinks, navLink{Name: node.Title,
-			Target: child.Name(), Child: true})
+			Target: child.Name(), Child: true, Order: node.Order})
 	}
 	if !anyChild {
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
@@ -133,7 +139,7 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 			return nil, fmt.Errorf("Could not find node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
-			Target: path.Join("..", path.Base(nodePath))})
+			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
 		siblings, err := ioutil.ReadDir(filepath.Join(root, parent))
@@ -150,7 +156,7 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
-				Target: path.Join("..", sibling.Name())})
+				Target: path.Join("..", sibling.Name()), Order: node.Order})
 		}
 	}
 	sort.Sort(&siblingsNavLinks)

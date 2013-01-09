@@ -14,8 +14,8 @@ func TestGetNav(t *testing.T) {
 		"/foo/child1/node.yaml":        "title: a Foo Child 1",
 		"/foo/child2/node.yaml":        "title: Foo Child 2",
 		"/foo/child2/child1/node.yaml": "title: a Foo Child 2 Child 1",
-		"/bar/node.yaml":               "title: Bar",
-		"/cruz/node.yaml":              "title: Cruz",
+		"/bar/node.yaml":               "title: Bar\norder: 2",
+		"/cruz/node.yaml":              "title: Cruz\norder: -2",
 		"/cruz/child1/node.yaml":       "title: Cruz Child 1"}, "TestGetNav")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
@@ -26,13 +26,13 @@ func TestGetNav(t *testing.T) {
 		Expected     navigation
 	}{
 		{"/", "/", navigation{
-			{Name: "Bar", Target: "bar", Child: true},
-			{Name: "Cruz", Target: "cruz", Child: true},
-			{Name: "Foo", Target: "foo", Child: true}}},
+			{Name: "Cruz", Target: "cruz", Child: true, Order: -2},
+			{Name: "Foo", Target: "foo", Child: true},
+			{Name: "Bar", Target: "bar", Child: true, Order: 2}}},
 		{"/", "/foo/child1/child2", navigation{
-			{Name: "Bar", Target: "../../../bar", Child: true},
-			{Name: "Cruz", Target: "../../../cruz", Child: true},
-			{Name: "Foo", Target: "../..", Child: true, Active: true}}},
+			{Name: "Cruz", Target: "../../../cruz", Child: true, Order: -2},
+			{Name: "Foo", Target: "../..", Child: true, Active: true},
+			{Name: "Bar", Target: "../../../bar", Child: true, Order: 2}}},
 		{"/foo", "/foo", navigation{
 			{Name: "Foo", Target: ".", Active: true},
 			{Name: "Foo Child 2", Target: "child2", Child: true},
@@ -51,7 +51,7 @@ func TestGetNav(t *testing.T) {
 			{Name: "a Foo Child 1", Target: "../../child1"}}},
 		{"/bar", "/bar", navigation{}},
 		{"/cruz", "/cruz", navigation{
-			{Name: "Cruz", Target: ".", Active: true},
+			{Name: "Cruz", Target: ".", Active: true, Order: -2},
 			{Name: "Cruz Child 1", Target: "child1", Child: true}}}}
 	for _, test := range tests {
 		ret, err := getNav(test.Path, test.Active, root)
