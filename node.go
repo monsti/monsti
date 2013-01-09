@@ -117,7 +117,7 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 		}
 		node, err := lookupNode(root, path.Join(nodePath,
 			child.Name()))
-		if err != nil {
+		if err != nil || node.Hide {
 			continue
 		}
 		anyChild = true
@@ -152,7 +152,7 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 			}
 			node, err := lookupNode(root, path.Join(parent,
 				sibling.Name()))
-			if err != nil {
+			if err != nil || node.Hide {
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,

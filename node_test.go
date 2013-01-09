@@ -15,6 +15,7 @@ func TestGetNav(t *testing.T) {
 		"/foo/child2/node.yaml":        "title: Foo Child 2",
 		"/foo/child2/child1/node.yaml": "title: a Foo Child 2 Child 1",
 		"/bar/node.yaml":               "title: Bar\norder: 2",
+		"/hideme/node.yaml":            "title: Hide me!\nhide: true",
 		"/cruz/node.yaml":              "title: Cruz\norder: -2",
 		"/cruz/child1/node.yaml":       "title: Cruz Child 1"}, "TestGetNav")
 	if err != nil {
