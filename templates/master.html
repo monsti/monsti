@@ -4,7 +4,7 @@
     {{template "blocks/headers" .}}
     <link rel="stylesheet" type="text/css" href="/static/monsti.css" />
   </head>
-  <body>
+  <body id="{{.Page.Node.PathToID}}">
     {{template "blocks/admin-bar" .}}
     <div id="top-wrap">
       <div id="header-wrap">
