@@ -43,7 +43,7 @@ $(MODULE_PROGRAMS): go/bin/monsti-%: go/src/github.com/monsti/monsti-%
 
 .PHONY: tests
 tests: $(MODULES:%=test-module-%) monsti-daemon/test-worker util/test-template util/test-testing\
-	util/test-l10n
+	util/test-l10n rpc/test-client
 
 test-module-%:
 	$(GO) test github.com/monsti/monsti-$*
