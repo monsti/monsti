@@ -12,6 +12,8 @@
  - Add Hide attribute to Nodes to allow hiding in the navigation.
  - Add Node.PathToID method, used to set the node's body ID in the default
    template.
+ - Add redirect for node paths without trailing slash (redirects to same URL
+   with trailing slash).
 
 * 0.3 - 2012/12/30
  - Upgrade to Aloha 0.22.3
