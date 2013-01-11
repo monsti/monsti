@@ -64,8 +64,8 @@ func TestRenderInMaster(t *testing.T) {
 		{client.Node{Title: "Foo Child 2", Description: "Bar!", Path: "/foo/child2"}, 0,
 			"The content.", `Foo Child 2
 Bar!
-#|/bar|Bar#|/cruz|Cruz#a|/foo|Foo
-#|/foo/child1|Foo Child 1#a|/foo/child2|Foo Child 2#c|/foo/child2/child1|Foo Child 2 Child 1
+#|/bar/|Bar#|/cruz/|Cruz#a|/foo/|Foo
+#|/foo/child1/|Foo Child 1#a|/foo/child2/|Foo Child 2#c|/foo/child2/child1/|Foo Child 2 Child 1
 The content.`}}
 	for i, v := range tests {
 		session := client.Session{

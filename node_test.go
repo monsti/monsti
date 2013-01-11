@@ -70,9 +70,9 @@ func TestNavigationMakeAbsolute(t *testing.T) {
 		{Target: "../bar"}}
 	nav.MakeAbsolute("/root")
 	expected := navigation{
-		{Target: "/root/foo"},
-		{Target: "/root"},
-		{Target: "/bar"}}
+		{Target: "/root/foo/"},
+		{Target: "/root/"},
+		{Target: "/bar/"}}
 	if !(reflect.DeepEqual(nav, expected)) {
 		t.Errorf(`navigation.MakeAbsolute("/root") = %q, should be %q`,
 			nav, expected)

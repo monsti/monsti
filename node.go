@@ -188,12 +188,13 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 }
 
 // MakeAbsolute converts relative targets to absolute ones by adding the given
-// root path.
+// root path. It also adds a trailing slash.
 func (nav *navigation) MakeAbsolute(root string) {
 	for i := range *nav {
 		if (*nav)[i].Target[0] != '/' {
 			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
 		}
+		(*nav)[i].Target = (*nav)[i].Target + "/"
 	}
 }
 
