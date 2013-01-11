@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/gorilla/sessions"
-	"github.com/monsti/util/l10n"
 	"github.com/monsti/monsti-daemon/worker"
 	"github.com/monsti/rpc/client"
+	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"log"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -67,6 +68,15 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	nodePath, action := splitAction(r.URL.Path)
+	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
+		newPath, err := url.Parse(nodePath + "/")
+		if err != nil {
+			panic("Could not parse request URL:" + err.Error())
+		}
+		url := r.URL.ResolveReference(newPath)
+		http.Redirect(w, r, url.String(), http.StatusSeeOther)
+		return
+	}
 	site_name, ok := h.Hosts[r.Host]
 	if !ok {
 		panic("No site found for host " + r.Host)
