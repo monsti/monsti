@@ -12,31 +12,10 @@ body {
   #top-wrap:after, #bottom-wrap:after {
     clear: both; }
 
-#bottom-wrap {
-  margin-top: 3em; }
-
-#sidebar {
-  margin-top: 2em; }
-
-#header {
-  margin-top: 3em; }
-
-#site-title a {
-  display: block;
-  width: 301px;
-  height: 71px;
-  text-indent: -999999999em;
-  background: url("/static/img/logo.png"); }
-
 #primary-nav ul {
   margin: 2em 0 0 -1em;
   list-style: none;
-  padding: 0;
-  background: #eee;
-  border: thin solid #777777;
-  border-radius: 5px;
-  -webkit-box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5); }
+  padding: 0; }
 #primary-nav li {
   display: inline-block;
   vertical-align: baseline;
@@ -47,9 +26,7 @@ body {
   margin: 0; }
 #primary-nav a {
   padding: 0.5em 1em;
-  display: block;
-  border-right: thin solid gray;
-  border-left: thin solid white; }
+  display: block; }
 
 #sidebar {
   width: 20%;

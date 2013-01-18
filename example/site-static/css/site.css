@@ -1,0 +1,25 @@
+#bottom-wrap {
+  margin-top: 3em; }
+
+#sidebar {
+  margin-top: 2em; }
+
+#header {
+  margin-top: 3em; }
+
+#site-title a {
+  display: block;
+  width: 301px;
+  height: 71px;
+  text-indent: -999999999em;
+  background: url("/static/img/logo.png"); }
+
+#primary-nav ul {
+  background: #eee;
+  border: thin solid #777777;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5); }
+#primary-nav a {
+  border-right: thin solid gray;
+  border-left: thin solid white; }
