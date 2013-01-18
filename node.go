@@ -97,6 +97,15 @@ func (n *navigation) Swap(i, j int) {
 	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
 }
 
+// getShortTitle returns the given node's ShortTitle attribute, or, if the
+// ShortTitle is of zero length, its Title attribute.
+func getShortTitle(node client.Node) string {
+	if len(node.ShortTitle) > 0 {
+		return node.ShortTitle
+	}
+	return node.Title
+}
+
 // getNav returns the navigation for the given node.
 // 
 // nodePath is the absolute path of the node for which to get the navigation.
@@ -121,7 +130,8 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 			continue
 		}
 		anyChild = true
-		childrenNavLinks = append(childrenNavLinks, navLink{Name: node.Title,
+		childrenNavLinks = append(childrenNavLinks, navLink{
+			Name:   getShortTitle(node),
 			Target: child.Name(), Child: true, Order: node.Order})
 	}
 	if !anyChild {
@@ -138,7 +148,8 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 		if err != nil {
 			return nil, fmt.Errorf("Could not find node: %v", err)
 		}
-		siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
+		siblingsNavLinks = append(siblingsNavLinks, navLink{
+			Name:   getShortTitle(node),
 			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
@@ -155,7 +166,8 @@ func getNav(nodePath, active string, root string) (navLinks navigation,
 			if err != nil || node.Hide {
 				continue
 			}
-			siblingsNavLinks = append(siblingsNavLinks, navLink{Name: node.Title,
+			siblingsNavLinks = append(siblingsNavLinks, navLink{
+				Name:   getShortTitle(node),
 				Target: path.Join("..", sibling.Name()), Order: node.Order})
 		}
 	}

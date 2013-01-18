@@ -10,14 +10,21 @@ import (
 
 func TestGetNav(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/foo/node.yaml":               "title: Foo",
-		"/foo/child1/node.yaml":        "title: a Foo Child 1",
-		"/foo/child2/node.yaml":        "title: Foo Child 2",
-		"/foo/child2/child1/node.yaml": "title: a Foo Child 2 Child 1",
-		"/bar/node.yaml":               "title: Bar\norder: 2",
-		"/hideme/node.yaml":            "title: Hide me!\nhide: true",
-		"/cruz/node.yaml":              "title: Cruz\norder: -2",
-		"/cruz/child1/node.yaml":       "title: Cruz Child 1"}, "TestGetNav")
+		"/foo/node.yaml": "title: Node Foo\nshorttitle: Foo",
+		"/foo/child1/node.yaml": "title: Node a Foo Child 1\n" +
+			"shorttitle: a Foo Child 1",
+		"/foo/child2/node.yaml":        "title: Node Foo Child 2\n" +
+			"shorttitle: Foo Child 2",
+		"/foo/child2/child1/node.yaml": "title: Node a Foo Child 2 Child 1\n" +
+			"shorttitle: a Foo Child 2 Child 1",
+		"/bar/node.yaml":               "title: Node Bar\norder: 2\n" +
+			"shorttitle: Bar",
+		"/hideme/node.yaml":            "title: Node Hide me!\nhide: true\n" +
+			"shorttitle: Hide me!",
+		"/cruz/node.yaml":              "title: Node Cruz\norder: -2\n" +
+			"shorttitle: Cruz",
+		"/cruz/child1/node.yaml":       "title: Node Cruz Child 1\n" +
+			"shorttitle: Cruz Child 1"}, "TestGetNav")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
