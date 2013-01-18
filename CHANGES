@@ -14,6 +14,7 @@
    template.
  - Add redirect for node paths without trailing slash (redirects to same URL
    with trailing slash).
+ - Redesigned form block and default layout.
 
 * 0.3 - 2012/12/30
  - Upgrade to Aloha 0.22.3
