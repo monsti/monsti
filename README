@@ -10,7 +10,7 @@ Monsti does only have simple access control features and no support for
 workflows at all. It's mainly used for hierarchical private and small business
 sites.  While it has a user friendly web frontend to manage the content of the
 site, some features are only accessible through the command line or via
-configuration files. This makes editing content is user friendly, but
+configuration files. This makes editing content user friendly, but
 administration and advanced site building web developer friendly.
 
 Its written in Go, a statically typed compiled language that feels almost like a
