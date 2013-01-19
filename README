@@ -1,8 +1,17 @@
 Monsti CMS
 ==========
 
-Monsti is a simple and resource efficient CMS for low dynamic private and small
-business sites with mostly static pages and simple structure.
+Monsti is a simple CMS designed to efficiently manage multiple small websites.
+
+It has a simple and concurrent design that makes it highly scalable and
+parallelizable.
+
+Monsti does only have simple access control features and no support for
+workflows at all. It's mainly used for hierarchical private and small business
+sites.  While it has a user friendly web frontend to manage the content of the
+site, some features are only accessible through the command line or via
+configuration files. This makes editing content is user friendly, but
+administration and advanced site building web developer friendly.
 
 Its written in Go, a statically typed compiled language that feels almost like a
 dynamic language.
@@ -16,7 +25,7 @@ https://github.com/monsti/monsti-cms/wiki/RoadMap
 Design goals
 ------------
 
- - Simple design.
+ - Simple but concurrent design.
  - Low resource usage, especially memory usage. This goal is more important for
    multi site instances.
  - Simple access control: Objects are private or public, no groups, only
