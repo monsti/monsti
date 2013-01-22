@@ -17,6 +17,7 @@
  - Redesigned form block and default layout.
  - Add Node.ShortTitle attribute and use it for navigation links if defined.
  - Add rudimentary selenium tests.
+ - Hide new image nodes by default.
 
 * 0.3 - 2012/12/30
  - Upgrade to Aloha 0.22.3
