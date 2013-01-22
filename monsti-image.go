@@ -54,6 +54,7 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 			if imgerr == nil {
 				node := req.Node
 				node.Title = data.Title
+				node.Hide = true
 				c.UpdateNode(node)
 				c.WriteNodeData(req.Node.Path, "image.data", string(imageData))
 				res.Redirect = req.Node.Path
