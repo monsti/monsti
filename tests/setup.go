@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -19,9 +20,15 @@ type Browser struct {
 // setup sets up a clean browser session.
 func setup(t *testing.T) *Browser {
 	if wd == nil {
-		caps := selenium.Capabilities{"browserName": "firefox"}
+		caps := selenium.Capabilities{"browserName": "chrome"}
 		var err error
-		wd, err = selenium.NewRemote(caps, "")
+		wd, err = selenium.NewRemote(caps, "http://localhost:9515")
+		if err != nil {
+			t.Fatal("Could not get new remote: ", err)
+		}
+		if err := wd.SetImplicitWaitTimeout(5 * time.Second); err != nil {
+			t.Fatal("Could not set implicit wait timeout: ", err)
+		}
 		if err != nil {
 			t.Fatal("Could not setup selenium remote: ", err)
 		}
@@ -104,7 +111,11 @@ func (b *Browser) FindElement(selector string) (selenium.WebElement, error) {
 // Contains checks if the given text is in the page source. If not, it returns
 // an error.
 func (b *Browser) Contains(text string) error {
-	src, err := b.wd.PageSource()
+	root, err := b.FindElement("html")
+	if err != nil {
+		return fmt.Errorf("browser: Could not get root element: %v", err)
+	}
+	src, err := root.Text()
 	if err != nil {
 		return fmt.Errorf("browser: Could not get page source: %v", err)
 	}

@@ -2,6 +2,7 @@ package browsertests
 
 import (
 	"testing"
+	"log"
 )
 
 func TestEdit(t *testing.T) {
@@ -9,7 +10,9 @@ func TestEdit(t *testing.T) {
 	login(*b, t)
 	Must(b.VisitLink("About"), "Could not visit node", t)
 	Must(b.VisitLink("Edit"), "Could not open edit formular", t)
-	area, err := b.FindElement(".aloha-editable > p");
+	area, err := b.FindElement(".aloha-editable");
+	text, _ := area.Text()
+	log.Println(text)
 	Must(err, "Could not find Aloha editor", t)
 	Must(area.Click(), "Could not enter Aloha editor", t)
 	Must(area.SendKeys("Hey World!"),
