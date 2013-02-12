@@ -1,4 +1,4 @@
-* 0.4 - unreleased
+* 0.4 - 2013/02/12
  - Removed ShowSidebar option.
  - Changed module templates directory conventions.
  - Fix: Allow '-' in node names.
