@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/monsti/form"
-	"github.com/monsti/util/l10n"
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/util/template"
-	"github.com/monsti/util"
 	"flag"
 	"fmt"
+	"github.com/monsti/form"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/util"
+	"github.com/monsti/util/l10n"
+	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"log"
 	"os"
