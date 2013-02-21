@@ -1,2 +1,4 @@
+* 0.5 - unreleased
+  - Fixed memory leak. https://github.com/monsti/monsti-cms/issues/16
 * 0.4 - released 2013/2/12
   - Initial release

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/monsti-daemon/worker"
 	"github.com/monsti/rpc/client"
@@ -84,6 +85,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	site := h.Settings.Sites[site_name]
 	site.Name = site_name
 	session := getSession(r, site)
+	defer context.Clear(r)
 	cSession := getClientSession(session, h.Settings.Directories.Config)
 	cSession.Locale = site.Locale
 	node, err := lookupNode(site.Directories.Data, nodePath)
