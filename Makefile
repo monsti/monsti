@@ -3,11 +3,16 @@ GO=GOPATH=$(GOPATH) go
 
 MODULES=daemon document contactform image
 
-ALOHA_VERSION=0.22.6
-DAEMON_VERSION=0.4
-DOCUMENT_VERSION=0.1
-CONTACTFORM_VERSION=0.1
-IMAGE_VERSION=0.1
+#ALOHA_VERSION=0.22.6
+#DAEMON_VERSION=0.4
+#DOCUMENT_VERSION=0.1
+#CONTACTFORM_VERSION=0.1
+#IMAGE_VERSION=0.1
+
+DAEMON_VERSION=master
+DOCUMENT_VERSION=master
+CONTACTFORM_VERSION=master
+IMAGE_VERSION=master
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 MODULE_SOURCES=$(MODULES:%=go/src/github.com/monsti/monsti-%)
@@ -25,23 +30,25 @@ bcrypt:
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-% locale/monsti-%.pot templates/%
 
-module/daemon.tar.gz: module/
+module/daemon.tar.gz:
+	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-daemon/archive/$(DAEMON_VERSION).tar.gz -O module/daemon.tar.gz
 
-module/image.tar.gz: module/
+module/image.tar.gz:
+	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-image/archive/$(IMAGE_VERSION).tar.gz -O module/image.tar.gz
 
-module/document.tar.gz: module/
+module/document.tar.gz:
+	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-document/archive/$(DOCUMENT_VERSION).tar.gz -O module/document.tar.gz
 
-module/contactform.tar.gz: module/
+module/contactform.tar.gz:
+	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-contactform/archive/$(CONTACTFORM_VERSION).tar.gz -O module/contactform.tar.gz
 
 module/%: module/%.tar.gz
-	cd module; tar xf $*.tar.gz && mv monsti-$*-* $* && rm $*.tar.gz
+	cd module; tar xf $*.tar.gz && mv monsti-$*-* $*
 
-module/:
-	mkdir -p module/
 
 $(MODULE_SOURCES): go/src/github.com/monsti/monsti-%: module/%
 	mkdir -p go/src/github.com/monsti/
