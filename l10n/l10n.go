@@ -32,7 +32,7 @@ var DefaultCatalogs = make(map[string]g5t.CatalogType)
 
 // Settings for catalog retrieval.
 type Settings struct {
-	Domain string
+	Domain    string
 	Directory string
 }
 
@@ -43,14 +43,15 @@ var DefaultSettings Settings
 //
 // If no catalog exists for the given locale, return l10n functions which just
 // return the untouched translation strings.
-func UseCatalog(locale string) (func (string) string) {
+func UseCatalog(locale string) func(string) string {
 	null_func := func(x string) string { return x }
 	if len(locale) == 0 {
 		return null_func
 	}
 	catalog, ok := DefaultCatalogs[locale]
 	if !ok {
-		catalog, err := g5t.LoadLang(DefaultSettings.Domain,
+		var err error
+		catalog, err = g5t.LoadLang(DefaultSettings.Domain,
 			DefaultSettings.Directory, locale, g5t.GettextParser)
 		if err != nil {
 			return null_func
