@@ -10,6 +10,7 @@ import (
 	"github.com/monsti/util"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type settings struct {
@@ -85,6 +86,8 @@ func main() {
 	if err := util.ParseYAML(cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load monsti-image configuration file: ", err)
 	}
+	util.MakeAbsolute(&settings.Directories.Templates, filepath.Dir(cfgPath))
+	util.MakeAbsolute(&settings.Directories.Locales, filepath.Dir(cfgPath))
 	l10n.Setup("monsti-image", settings.Directories.Locales)
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("monsti-image", logger).Serve(handle)
