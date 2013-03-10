@@ -1,0 +1,18 @@
+title: "Monsti CMS Example Site"
+hosts: ["localhost:8080"]
+locale: de
+# Name and email address of site owner.
+#
+# The owner's address is used as recipient of contact form submissions.
+owner:
+  name: The Owner
+  email: owner@example.com
+# Key used for signing session cookie data. Change this!
+sessionauthkey: aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao
+directories:
+  # Path to the site specific static files.
+  statics: ../../../site-static
+  # Path to the data directory.
+  data: ../../../data
+  # Path to site custom template
+  templates: ../../../templates

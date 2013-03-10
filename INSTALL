@@ -22,7 +22,7 @@ $ make clean
 
 3) Run:
 
-$ go/bin/monsti-daemon <configuration file>
+$ go/bin/monsti-daemon <configuration directory>
 
 To run the example site, go to the example site directory (example/)
 and run the start script:
