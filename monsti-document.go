@@ -11,6 +11,7 @@ import (
 	htmlT "html/template"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type settings struct {
@@ -82,6 +83,8 @@ func main() {
 	if err := util.ParseYAML(cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load document configuration file: ", err)
 	}
+	util.MakeAbsolute(&settings.Directories.Templates, filepath.Dir(cfgPath))
+	util.MakeAbsolute(&settings.Directories.Locales, filepath.Dir(cfgPath))
 	l10n.Setup("monsti", settings.Directories.Locales)
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("document", logger).Serve(handle)
