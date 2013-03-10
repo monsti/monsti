@@ -43,6 +43,14 @@ func ParseYAML(path string, out interface{}) error {
 	return nil
 }
 
+// MakeAbsolute converts a possibly relative path to an absolute one using the
+// given root.
+func MakeAbsolute(path *string, root string) {
+	if !filepath.IsAbs(*path) {
+		*path = filepath.Join(root, *path)
+	}
+}
+
 // Get config file path for the component using given command line path
 // argument.
 func GetConfigPath(component, arg string) (cfgPath string) {
