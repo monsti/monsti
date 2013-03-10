@@ -1,4 +1,6 @@
 * 0.5 - unreleased
   - Fixed memory leak. https://github.com/monsti/monsti-cms/issues/16
+  - Expect configuration file relative directory specifications in config files.
+  - Changed configuration directory layout. Allows site-local user databases.
 * 0.4 - released 2013/2/12
   - Initial release

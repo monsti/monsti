@@ -22,7 +22,7 @@ import (
 // See monsti/rpc/client for more documentation on the metods.
 type NodeRPC struct {
 	Worker   *worker.Worker
-	Settings settings
+	Settings *settings
 	Session  *sessions.Session
 	Log      *log.Logger
 }

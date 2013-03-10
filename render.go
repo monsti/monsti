@@ -34,7 +34,7 @@ func splitFirstDir(path string) string {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings settings, site site, locale string) string {
+	settings *settings, site site, locale string) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	prinav, err := getNav("/", path.Join("/", firstDir),
 		site.Directories.Data)

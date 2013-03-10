@@ -34,7 +34,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			user := getUser(data.Login, h.Settings.Directories.Config)
+			user := getUser(data.Login, site.Directories.Config)
 			if user != nil && passwordEqual(user.Password, data.Password) {
 				session.Values["login"] = user.Login
 				session.Save(r, w)
@@ -75,6 +75,8 @@ func getSession(r *http.Request, site site) *sessions.Session {
 }
 
 // getClientSession returns the client session for the given session.
+//
+// configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
 	configDir string) (cSession *client.Session) {
 	cSession = new(client.Session)

@@ -24,7 +24,7 @@ func setupRPC(t *testing.T, testName string) (NodeRPC, string, func()) {
 	ticket := worker.Ticket{Site: site_.Name}
 	worker := worker.Worker{Ticket: &ticket}
 	session := sessions.Session{}
-	return NodeRPC{&worker, settings, &session, nil}, root, cleanup
+	return NodeRPC{&worker, &settings, &session, nil}, root, cleanup
 }
 
 func TestRPCWriteNodeData(t *testing.T) {

@@ -71,7 +71,7 @@ The content.`}}
 		session := client.Session{
 			User: &client.User{Login: "admin", Name: "Administrator"}}
 		env := masterTmplEnv{v.Node, &session, "", "", 0}
-		ret := renderInMaster(renderer, []byte(v.Content), env, settings{},
+		ret := renderInMaster(renderer, []byte(v.Content), env, new(settings),
 			site, "")
 		for strings.Contains(ret, "\n\n") {
 			ret = strings.Replace(ret, "\n\n", "\n", -1)

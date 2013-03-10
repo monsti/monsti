@@ -20,7 +20,7 @@ import (
 // nodeHandler is a net/http handler to process incoming HTTP requests.
 type nodeHandler struct {
 	Renderer template.Renderer
-	Settings settings
+	Settings *settings
 	// Hosts is a map from hosts to site names.
 	Hosts      map[string]string
 	NodeQueues map[string]chan worker.Ticket
@@ -86,7 +86,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	site.Name = site_name
 	session := getSession(r, site)
 	defer context.Clear(r)
-	cSession := getClientSession(session, h.Settings.Directories.Config)
+	cSession := getClientSession(session, site.Directories.Config)
 	cSession.Locale = site.Locale
 	node, err := lookupNode(site.Directories.Data, nodePath)
 	if err != nil {
