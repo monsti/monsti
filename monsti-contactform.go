@@ -1,17 +1,18 @@
 package main
 
 import (
-	"github.com/monsti/form"
-	"github.com/monsti/util/l10n"
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/util/template"
-	"github.com/monsti/util"
 	"flag"
 	"fmt"
 	"github.com/chrneumann/mimemail"
+	"github.com/monsti/form"
+	"github.com/monsti/rpc/client"
+	"github.com/monsti/util"
+	"github.com/monsti/util/l10n"
+	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type cfsettings struct {
@@ -114,6 +115,8 @@ func main() {
 	if err := util.ParseYAML(cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load monsti-contactform configuration file: ", err)
 	}
+	util.MakeAbsolute(&settings.Directories.Templates, filepath.Dir(cfgPath))
+	util.MakeAbsolute(&settings.Directories.Locales, filepath.Dir(cfgPath))
 	l10n.Setup("monsti-contactform", settings.Directories.Locales)
 	renderer.Root = settings.Directories.Templates
 	client.NewConnection("contactform", logger).Serve(handle)
