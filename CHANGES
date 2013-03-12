@@ -2,6 +2,7 @@
  - Fixed memory leak in monsti-daemon (issue #16) 
  - Changed configuration directory layout and handling. Allows site local user
    databases (issue #9).
+ - Fixed bcrypt: Now expects password on stdin (issue #10).
 
 * 0.4 - 2013/02/12
  - Removed ShowSidebar option.
