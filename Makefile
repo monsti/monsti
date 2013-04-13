@@ -88,7 +88,7 @@ clean-templates:
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
-	wget -nv https://github.com/downloads/alohaeditor/Aloha-Editor/alohaeditor-$(ALOHA_VERSION).zip
+	wget -nv http://aloha-editor.org/builds/stable/alohaeditor-$(ALOHA_VERSION).zip
 	unzip -q alohaeditor-$(ALOHA_VERSION).zip
 	mkdir static/aloha
 	mv alohaeditor-$(ALOHA_VERSION)/aloha/lib static/aloha
