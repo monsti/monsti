@@ -1,6 +1,11 @@
 Monsti CMS
 ==========
 
+@@@@
+Monsti's core architecture is currently being rewritten. Stay tuned.
+Next release expected around July 2013.
+@@@@
+
 Monsti is a simple CMS designed to efficiently manage multiple small websites.
 
 It has a simple and concurrent design that makes it highly scalable and
