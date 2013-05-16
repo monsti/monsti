@@ -1,3 +1,6 @@
 monsti-daemon is the master daemon of the Monsti CMS.
+
+It starts and observes modules.
+
 Have a look at the complete CMS:
 https://github.com/monsti/monsti-cms

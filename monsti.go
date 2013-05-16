@@ -1,28 +1,55 @@
-/*
- Monsti is a simple and resource efficient CMS for low dynamic
- private and small business sites with mostly static pages and simple
- structure.
+// This file is part of Monsti, a web content management system.
+// Copyright 2012-2013 Christian Neumann
+// 
+// Monsti is free software: you can redistribute it and/or modify it under the
+// terms of the GNU Affero General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option) any
+// later version.
+//
+// Monsti is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+// A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
- This package implements the main application and http server.
+/*
+ Monsti is a simple and resource efficient CMS.
+
+ This package implements the main daemon which starts and observes modules.
 */
 package main
 
 import (
 	"flag"
-	"github.com/monsti/monsti-daemon/worker"
-	"github.com/monsti/util/l10n"
-	"github.com/monsti/util/template"
+	"github.com/monsti/service"
 	"log"
-	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sync"
 )
 
+// moduleLog is a Writer used to log module messages on stderr.
+type moduleLog struct {
+	Type string
+	Log  *log.Logger
+}
+
+func (s moduleLog) Write(p []byte) (int, error) {
+	s.Log.Println(s.Type, "on stderr:", string(p))
+	return len(p), nil
+}
+
 func main() {
-	logger := log.New(os.Stderr, "monsti", log.LstdFlags)
+	logger := log.New(os.Stderr, "monsti ", log.LstdFlags)
+
+	// Parse command line arguments and settings
 	flag.Parse()
 	if flag.NArg() != 1 {
-		logger.Fatalf("Usage: %v <config_directory>\n", filepath.Base(os.Args[0]))
+		logger.Fatalf("Usage: %v <config_directory>\n",
+			filepath.Base(os.Args[0]))
 	}
 	cfgPath := flag.Arg(0)
 	if !filepath.IsAbs(cfgPath) {
@@ -36,34 +63,36 @@ func main() {
 	if err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
-	l10n.DefaultSettings.Domain = "monsti"
-	l10n.DefaultSettings.Directory = settings.Directories.Locales
-	handler := nodeHandler{
-		Renderer:   template.Renderer{Root: settings.Directories.Templates},
-		Settings:   settings,
-		NodeQueues: make(map[string]chan worker.Ticket),
-		Log:        logger}
-	for _, ntype := range settings.NodeTypes {
-		handler.AddNodeProcess(ntype, logger)
-	}
-	http.Handle("/static/", http.FileServer(http.Dir(
-		filepath.Dir(settings.Directories.Statics))))
-	handler.Hosts = make(map[string]string)
-	for site_title, site := range settings.Sites {
-		for _, host := range site.Hosts {
-			handler.Hosts[host] = site_title
-			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
-				filepath.Dir(site.Directories.Statics))))
-		}
-	}
-	http.Handle("/", &handler)
-	c := make(chan int)
+
+	// Start own INFO service
+	var waitGroup sync.WaitGroup
+	logger.Println("Starting INFO service")
+	waitGroup.Add(1)
+	infoPath := "monsti-info"
 	go func() {
-		if err := http.ListenAndServe(settings.Listen, nil); err != nil {
-			logger.Fatal("HTTP Listener failed: ", err)
+		defer waitGroup.Done()
+		var provider service.Provider
+		info := new(InfoService)
+		provider.Logger = logger
+		if err = provider.Serve(infoPath, "Info", info); err != nil {
+			logger.Fatalf("Could not start INFO service: %v", err)
 		}
-		c <- 1
 	}()
-	logger.Printf("Monsti is up and running. Listening on %q.", settings.Listen)
-	<-c
+
+	// Start modules
+	for _, module := range settings.Modules {
+		logger.Println("Starting module", module)
+		executable := "monsti-" + module
+		cmd := exec.Command(executable, settings.Directories.Config, infoPath)
+		cmd.Stderr = moduleLog{module, logger}
+		go func() {
+			if err := cmd.Run(); err != nil {
+				logger.Fatalf("Module %q failed: %v", module, err)
+			}
+		}()
+	}
+
+	logger.Println("Monsti is up and running!")
+	waitGroup.Wait()
+	logger.Println("Monsti is shutting down.")
 }
