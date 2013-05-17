@@ -1,18 +1,11 @@
-# SMTP settings for outgoing mail
-#mail:
-#  host: localhost
-#  username: user
-#  password: password
+# Main configuration used by all modules.
 
-# Enabled node types
-nodetypes: [Document, Image, ContactForm]
-
-# Listen for HTTP connections on this address and port
-listen: localhost:8080
-
+# Common directories. Specify absolute or configuration directory relative paths.
 directories:
-  # Path to the static files.
-  statics: ../../static
-  # Path to the template directory.
-  templates: ../../templates
-  locales: ../../locale
+  # Files used by all sites like Monsti's default templates, locales, and
+  # static web files.
+  shared: ../shared
+  # Site specific data like node content, stylesheets, and custom templates.
+  data: ../data
+  # Run time data like process ids or socket files.
+  run: ../run

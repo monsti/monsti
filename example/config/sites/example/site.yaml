@@ -9,10 +9,3 @@ owner:
   email: owner@example.com
 # Key used for signing session cookie data. Change this!
 sessionauthkey: aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao
-directories:
-  # Path to the site specific static files.
-  statics: ../../../site-static
-  # Path to the data directory.
-  data: ../../../data
-  # Path to site custom template
-  templates: ../../../templates
