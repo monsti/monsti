@@ -26,4 +26,17 @@ func (m *NodeRPC) GetFormData(arg int, reply *url.Values) error {
 	*reply = m.Worker.Ticket.Request.Form
 	return nil
 }
+func (i *NodeService) GetFileData(key *string, reply *[]byte) error {
+	if err := i.Worker.Ticket.Request.ParseMultipartForm(1024 * 1024); err != nil {
+		return err
+	}
+	file, _, err := i.Worker.Ticket.Request.FormFile(*key)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	*reply, err = ioutil.ReadAll(file)
+	return err
+}
+
 */
