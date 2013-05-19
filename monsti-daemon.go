@@ -24,12 +24,19 @@ package main
 import (
 	"flag"
 	"github.com/monsti/service"
+	"github.com/monsti/util"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
 )
+
+type settings struct {
+	Monsti util.MonstiSettings
+	// List of modules to be activated.
+	Modules []string
+}
 
 // moduleLog is a Writer used to log module messages on stderr.
 type moduleLog struct {
@@ -45,22 +52,15 @@ func (s moduleLog) Write(p []byte) (int, error) {
 func main() {
 	logger := log.New(os.Stderr, "monsti ", log.LstdFlags)
 
-	// Parse command line arguments and settings
+	// Load configuration
 	flag.Parse()
 	if flag.NArg() != 1 {
 		logger.Fatalf("Usage: %v <config_directory>\n",
 			filepath.Base(os.Args[0]))
 	}
-	cfgPath := flag.Arg(0)
-	if !filepath.IsAbs(cfgPath) {
-		wd, err := os.Getwd()
-		if err != nil {
-			panic("Could not get working directory: " + err.Error())
-		}
-		cfgPath = filepath.Join(wd, cfgPath)
-	}
-	settings, err := loadSettings(cfgPath)
-	if err != nil {
+	cfgPath := util.GetConfigPath(flag.Arg(0))
+	var settings settings
+	if err := util.LoadModuleSettings("data", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
@@ -83,7 +83,8 @@ func main() {
 	for _, module := range settings.Modules {
 		logger.Println("Starting module", module)
 		executable := "monsti-" + module
-		cmd := exec.Command(executable, settings.Directories.Config, infoPath)
+		cmd := exec.Command(executable, settings.Monsti.Directories.Config,
+			infoPath)
 		cmd.Stderr = moduleLog{module, logger}
 		go func() {
 			if err := cmd.Run(); err != nil {
