@@ -54,7 +54,7 @@ func main() {
 
 	// Connect to INFO service
 	infoPath := flag.Arg(1)
-	info, err := info.NewConnection(infoPath, logger)
+	info, err := info.NewConnection(infoPath)
 	if err != nil {
 		logger.Fatalf("Could not connect to INFO service: %v", err)
 	}
