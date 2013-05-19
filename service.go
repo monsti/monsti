@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/monsti/service/info"
 	"github.com/monsti/service/node"
+	"sync"
 )
 
 type InfoService struct {
@@ -27,20 +28,19 @@ type InfoService struct {
 	Services map[string][]string
 	// NodeTypes maps node types to service paths
 	NodeTypes map[string][]string
+	// Mutex to syncronize data access
+	mutex sync.RWMutex
 }
 
 func (i *InfoService) PublishService(args info.PublishServiceArgs,
 	reply *int) error {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
 	if i.Services == nil {
 		i.Services = make(map[string][]string)
 	}
 	switch args.Service {
 	case "Node":
-		if i.Services[args.Service] == nil {
-			i.Services[args.Service] = make([]string, 0)
-		}
-		i.Services[args.Service] = append(i.Services[args.Service], args.Path)
-
 		if i.NodeTypes == nil {
 			i.NodeTypes = make(map[string][]string)
 		}
@@ -58,16 +58,35 @@ func (i *InfoService) PublishService(args info.PublishServiceArgs,
 			}
 			i.NodeTypes[nodeType] = append(i.NodeTypes[nodeType], args.Path)
 		}
+	case "Data":
 	default:
 		return fmt.Errorf("Unknown service type %v", args.Service)
 	}
+
+	if i.Services[args.Service] == nil {
+		i.Services[args.Service] = make([]string, 0)
+	}
+	i.Services[args.Service] = append(i.Services[args.Service], args.Path)
+
 	return nil
 }
 
 func (i *InfoService) FindNodeService(nodeType string, path *string) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
 	if len(i.NodeTypes[nodeType]) == 0 {
 		return fmt.Errorf("Unknown node type %v", nodeType)
 	}
 	*path = i.NodeTypes[nodeType][0]
+	return nil
+}
+
+func (i *InfoService) FindDataService(arg int, path *string) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	if len(i.Services["Data"]) == 0 {
+		return fmt.Errorf("Could not find any data services")
+	}
+	*path = i.Services["Data"][0]
 	return nil
 }
