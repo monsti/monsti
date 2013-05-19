@@ -51,9 +51,9 @@ func MakeAbsolute(path *string, root string) {
 	}
 }
 
-// Get config file path for the component using given command line path
+// Get the absolute config directory path using given command line path
 // argument.
-func GetConfigPath(component, arg string) (cfgPath string) {
+func GetConfigPath(arg string) (cfgPath string) {
 	cfgPath = arg
 	if !filepath.IsAbs(cfgPath) {
 		wd, err := os.Getwd()
@@ -62,6 +62,5 @@ func GetConfigPath(component, arg string) (cfgPath string) {
 		}
 		cfgPath = filepath.Join(wd, cfgPath)
 	}
-	cfgPath = filepath.Join(cfgPath, component+".yaml")
 	return
 }
