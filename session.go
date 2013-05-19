@@ -64,7 +64,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Password = ""
-	body := h.Renderer.Render("daemon/actions/loginform", template.Context{
+	body := h.Renderer.Render("httpd/actions/loginform", template.Context{
 		"Form": form.RenderData()}, cSession.Locale, site.Directories.Templates)
 	env := masterTmplEnv{Node: reqnode, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
