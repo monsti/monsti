@@ -268,7 +268,11 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
-			if err := writeNode(newNode, site.Directories.Data); err != nil {
+			data, err := h.Info.FindDataService()
+			if err != nil {
+				panic("Can't find data service: " + err.Error())
+			}
+			if err := data.UpdateNode(site.Name, newNode); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
 			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
