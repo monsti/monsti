@@ -54,7 +54,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site site, locale string) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	prinav, err := getNav("/", path.Join("/", firstDir),
-		site.Directories.Data)
+		settings.Monsti.GetSiteNodesPath(site.Name))
 	prinav.MakeAbsolute(firstDir)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))
@@ -62,14 +62,17 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		secnav, err = getNav(env.Node.Path, env.Node.Path, site.Directories.Data)
+		secnav, err = getNav(env.Node.Path, env.Node.Path,
+			settings.Monsti.GetSiteNodesPath(site.Name))
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	sidebarContent := getSidebar(env.Node.Path, site.Directories.Data)
-	belowHeader := getBelowHeader(env.Node.Path, site.Directories.Data)
+	sidebarContent := getSidebar(env.Node.Path,
+		settings.Monsti.GetSiteNodesPath(site.Name))
+	belowHeader := getBelowHeader(env.Node.Path,
+		settings.Monsti.GetSiteNodesPath(site.Name))
 	title := env.Node.Title
 	if env.Title != "" {
 		title = env.Title
@@ -83,17 +86,19 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Title": site.Title,
 		},
 		"Page": template.Context{
-			"Node":             env.Node,
-			"PrimaryNav":       prinav,
-			"SecondaryNav":     secnav,
-			"EditView":         env.Flags&EDIT_VIEW != 0,
-			"ShowBelowHeader":  len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
-			"BelowHeader":      htmlT.HTML(belowHeader),
-			"Footer":           htmlT.HTML(getFooter(site.Directories.Data)),
+			"Node":            env.Node,
+			"PrimaryNav":      prinav,
+			"SecondaryNav":    secnav,
+			"EditView":        env.Flags&EDIT_VIEW != 0,
+			"ShowBelowHeader": len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
+			"BelowHeader":     htmlT.HTML(belowHeader),
+			"Footer": htmlT.HTML(getFooter(
+				settings.Monsti.GetSiteNodesPath(site.Name))),
 			"Sidebar":          htmlT.HTML(sidebarContent),
 			"Title":            title,
 			"Description":      description,
 			"Content":          htmlT.HTML(content),
 			"ShowSecondaryNav": len(secnav) > 0},
-		"Session": env.Session}, locale, site.Directories.Templates)
+		"Session": env.Session}, locale,
+		settings.Monsti.GetSiteTemplatesPath(site.Name))
 }

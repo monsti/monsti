@@ -26,6 +26,7 @@ package main
 import (
 	"flag"
 	"github.com/monsti/service/info"
+	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"log"
@@ -35,22 +36,21 @@ import (
 )
 
 func main() {
-	logger := log.New(os.Stderr, "monsti-httpd ", log.LstdFlags)
+	logger := log.New(os.Stderr, "httpd ", log.LstdFlags)
+
+	// Load configuration
 	flag.Parse()
-	cfgPath := flag.Arg(0)
-	if !filepath.IsAbs(cfgPath) {
-		wd, err := os.Getwd()
-		if err != nil {
-			panic("Could not get working directory: " + err.Error())
-		}
-		cfgPath = filepath.Join(wd, cfgPath)
-	}
-	settings, err := loadSettings(cfgPath)
-	if err != nil {
+	cfgPath := util.GetConfigPath(flag.Arg(0))
+	var settings settings
+	if err := util.LoadModuleSettings("httpd", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
+	if err := (&settings).LoadSiteSettings(); err != nil {
+		logger.Fatal("Could not load site settings: ", err)
+	}
+
 	l10n.DefaultSettings.Domain = "monsti-httpd"
-	l10n.DefaultSettings.Directory = settings.Directories.Locales
+	l10n.DefaultSettings.Directory = settings.Monsti.GetLocalePath()
 
 	// Connect to INFO service
 	infoPath := flag.Arg(1)
@@ -61,17 +61,17 @@ func main() {
 
 	handler := nodeHandler{
 		Info:     info,
-		Renderer: template.Renderer{Root: settings.Directories.Templates},
-		Settings: settings,
+		Renderer: template.Renderer{Root: settings.Monsti.GetTemplatesPath()},
+		Settings: &settings,
 		Log:      logger}
 	http.Handle("/static/", http.FileServer(http.Dir(
-		filepath.Dir(settings.Directories.Statics))))
+		filepath.Dir(settings.Monsti.GetStaticsPath()))))
 	handler.Hosts = make(map[string]string)
 	for site_title, site := range settings.Sites {
 		for _, host := range site.Hosts {
 			handler.Hosts[host] = site_title
 			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
-				filepath.Dir(site.Directories.Statics))))
+				filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
 		}
 	}
 	http.Handle("/", &handler)

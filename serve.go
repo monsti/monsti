@@ -93,9 +93,11 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	site.Name = site_name
 	session := getSession(r, site)
 	defer context.Clear(r)
-	cSession := getClientSession(session, site.Directories.Config)
+	cSession := getClientSession(session, h.Settings.Monsti.GetSiteConfigPath(
+		site.Name))
 	cSession.Locale = site.Locale
-	node, err := lookupNode(site.Directories.Data, nodePath)
+	node, err := lookupNode(h.Settings.Monsti.GetSiteNodesPath(site.Name),
+		nodePath)
 	if err != nil {
 		h.Log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)

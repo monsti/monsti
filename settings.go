@@ -41,69 +41,26 @@ type site struct {
 	SessionAuthKey string
 	// Locale used to translate monsti's web interface.
 	Locale string
-	// Absolute paths to site specific directories.
-	Directories struct {
-		// Configuration directory
-		Config string
-		// Site content
-		Data string
-		// Site specific static files
-		Statics string
-		// HTML Templates to be used instead of monsti's ones.
-		Templates string
-	}
 }
 
 // Settings for the application and the sites.
 type settings struct {
-	// Settings for sending mail (outgoing SMTP).
-	Mail struct {
-		// Host may be specified as address:port
-		Host, Username, Password string
-	}
+	Monsti util.MonstiSettings
 	// Listen is the host and port to listen for incoming HTTP connections.
 	Listen string
-	// Absolute paths to used directories.
-	Directories struct {
-		// Config files
-		Config string
-		// Monsti's static files
-		Statics string
-		// HTML Templates
-		Templates string
-		// Locales, i.e. the gettext machine objects (.mo)
-		Locales string
-	}
-	// List of modules to be activated.
-	Modules []string
 	// Sites hosted by this monsti instance.
 	Sites map[string]site
 }
 
-// loadSettings loads daemon and site settings from the given configuration
-// directory.
-//
-// The configuration directory path must be absolute or relative to the working
-// directory.
-func loadSettings(cfgPath string) (*settings, error) {
-	// Load main configuration file
-	settings := new(settings)
-	err := util.ParseYAML(filepath.Join(cfgPath, "httpd.yaml"), settings)
-	if err != nil {
-		return nil, fmt.Errorf("Could not load main configuration file: %v", err)
-	}
-	settings.Directories.Config = cfgPath
-	util.MakeAbsolute(&settings.Directories.Statics, cfgPath)
-	util.MakeAbsolute(&settings.Directories.Templates, cfgPath)
-	util.MakeAbsolute(&settings.Directories.Locales, cfgPath)
-
+// LoadSiteSettings loads the configurated sites' settings.
+func (s *settings) LoadSiteSettings() error {
 	// Load site specific configuration files
-	sitesPath := filepath.Join(settings.Directories.Config, "sites")
+	sitesPath := filepath.Join(s.Monsti.Directories.Config, "sites")
 	siteDirs, err := ioutil.ReadDir(sitesPath)
 	if err != nil {
-		return nil, fmt.Errorf("Could not read sites directory: %v", err)
+		return fmt.Errorf("Could not read sites directory: %v", err)
 	}
-	settings.Sites = make(map[string]site)
+	s.Sites = make(map[string]site)
 	for _, siteDir := range siteDirs {
 		if !siteDir.IsDir() {
 			continue
@@ -114,15 +71,10 @@ func loadSettings(cfgPath string) (*settings, error) {
 		err := util.ParseYAML(filepath.Join(sitePath, "site.yaml"),
 			&siteSettings)
 		if err != nil {
-			return nil, fmt.Errorf("Could not load settings for site %q: %v",
+			return fmt.Errorf("Could not load settings for site %q: %v",
 				siteName, err)
 		}
-		siteSettings.Directories.Config = sitePath
-		util.MakeAbsolute(&siteSettings.Directories.Config, sitePath)
-		util.MakeAbsolute(&siteSettings.Directories.Data, sitePath)
-		util.MakeAbsolute(&siteSettings.Directories.Statics, sitePath)
-		util.MakeAbsolute(&siteSettings.Directories.Templates, sitePath)
-		settings.Sites[siteName] = siteSettings
+		s.Sites[siteName] = siteSettings
 	}
-	return settings, nil
+	return nil
 }

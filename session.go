@@ -51,7 +51,8 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			user := getUser(data.Login, site.Directories.Config)
+			user := getUser(data.Login,
+				h.Settings.Monsti.GetSiteConfigPath(site.Name))
 			if user != nil && passwordEqual(user.Password, data.Password) {
 				session.Values["login"] = user.Login
 				session.Save(r, w)
@@ -65,7 +66,8 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	}
 	data.Password = ""
 	body := h.Renderer.Render("httpd/actions/loginform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale, site.Directories.Templates)
+		"Form": form.RenderData()}, cSession.Locale,
+		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
 	env := masterTmplEnv{Node: reqnode, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
