@@ -336,25 +336,6 @@ func lookupNode(root, path string) (node.Node, error) {
 	return reqnode, nil
 }
 
-// writeNode writes the given node to the data directory located at the given
-// root.
-func writeNode(reqnode node.Node, root string) error {
-	path := reqnode.Path
-	reqnode.Path = ""
-	content, err := goyaml.Marshal(&reqnode)
-	if err != nil {
-		return err
-	}
-	node_path := filepath.Join(root, path[1:],
-		"node.yaml")
-	if err := os.Mkdir(filepath.Dir(node_path), 0700); err != nil {
-		if !os.IsExist(err) {
-			panic("Can't create directory for new node: " + err.Error())
-		}
-	}
-	return ioutil.WriteFile(node_path, content, 0600)
-}
-
 // removeNode recursively removes the given node from the data directory located
 // at the given root and from the navigation of the parent node.
 func removeNode(path, root string) {
