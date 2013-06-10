@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -14,34 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
-package data
+package service
+
+/*
 
 import (
+	"github.com/chrneumann/mimemail"
+	"github.com/monsti/rpc/types"
+	"io"
+	"log"
 	"net/rpc"
+	"net/url"
 	"os"
 	"strings"
 )
 
-// GetNodeData requests data from some node.
-//
-// If the data does not exist, return null length []byte.
-func (s *Service) GetNodeData(path, file string) []byte {
-	args := &types.GetNodeDataArgs{path, file}
+// GetFileData retrieves the content of the uploaded file with the given key. It
+// has to be called before any calls to GetFormData.
+func (s *Client) GetFileData(key string) ([]byte, error) {
 	var reply []byte
-	err := s.Call("NodeRPC.GetNodeData", args, &reply)
+	err := s.Call("NodeRPC.GetFileData", &key, &reply)
+	return reply, err
+}
+
+// GetFormData retrieves form data of the request, i.e. query string values and
+// possibly form data of POST and PUT requests.
+func (s *Client) GetFormData() url.Values {
+	var reply url.Values
+	err := s.Call("NodeRPC.GetFormData", 0, &reply)
 	if err != nil {
-		s.Logger.Fatal("master: RPC GetNodeData error:", err)
+		s.Logger.Fatal("Master: RPC GetFormData error:", err)
 	}
 	return reply
 }
-
-// WriteNodeData writes data for some node.
-func (s *Service) WriteNodeData(path, file, content string) error {
-	args := &types.WriteNodeDataArgs{path, file, content}
-	return s.Call("NodeRPC.WriteNodeData", args, new(int))
-}
-
-// UpdateNode saves changes to given node.
-func (s *Service) UpdateNode(node Node) error {
-	return s.Call("NodeRPC.UpdateNode", node, new(int))
-}
+*/

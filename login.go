@@ -14,34 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
-package httpd
+package service
 
-import (
-	"github.com/chrneumann/mimemail"
-	"github.com/monsti/rpc/types"
-	"io"
-	"log"
-	"net/rpc"
-	"net/url"
-	"os"
-	"strings"
-)
-
-// GetFileData retrieves the content of the uploaded file with the given key. It
-// has to be called before any calls to GetFormData.
-func (s *Service) GetFileData(key string) ([]byte, error) {
-	var reply []byte
-	err := s.Call("NodeRPC.GetFileData", &key, &reply)
-	return reply, err
+// User represents a registered user of the site.
+type User struct {
+	Login string
+	Name  string
+	Email string
+	// Hashed password.
+	Password string
 }
 
-// GetFormData retrieves form data of the request, i.e. query string values and
-// possibly form data of POST and PUT requests.
-func (s *Service) GetFormData() url.Values {
-	var reply url.Values
-	err := s.Call("NodeRPC.GetFormData", 0, &reply)
-	if err != nil {
-		s.Logger.Fatal("Master: RPC GetFormData error:", err)
-	}
-	return reply
-
+// Session of an authenticated or anonymous user.
+type Session struct {
+	// Authenticaded user or nil
+	User *User
+	// Locale used for this session.
+	Locale string
+}

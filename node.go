@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -14,29 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
-package node
+package service
 
 import (
 	"fmt"
-	"github.com/monsti/service"
-	"github.com/monsti/service/login"
 	"net/url"
 	"strings"
 )
 
-// Service represents the RPC connection to the Nodes service.
-type Service struct {
-	*service.Service
+// NodeClient represents the RPC connection to the Nodes service.
+type NodeClient struct {
+	*Client
 }
 
-// NewService returns a new Service.
-func NewService() *Service {
-	var service_ Service
-	service_.Service = new(service.Service)
+// NewNodeClient returns a new Node Client.
+func NewNodeClient() *NodeClient {
+	var service_ NodeClient
+	service_.Client = new(Client)
 	return &service_
 }
 
-type Node struct {
+type NodeInfo struct {
 	Path string "path,omitempty"
 	// Content type of the node.
 	Type        string
@@ -57,7 +55,7 @@ type Node struct {
 // PathToID will panic if the path is not set.
 //
 // For example, a node with path "/foo/bar" will get the ID "node-__foo__bar".
-func (n Node) PathToID() string {
+func (n NodeInfo) PathToID() string {
 	if len(n.Path) == 0 {
 		panic("Can't calculate ID of node with unset path.")
 	}
@@ -66,16 +64,20 @@ func (n Node) PathToID() string {
 
 // A request to be processed by a nodes service.
 type Request struct {
+	// Site name
+	Site string
 	// The requested node.
-	Node Node
+	Node NodeInfo
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
 	Method string
 	// User session
-	Session login.Session
+	Session Session
 	// Action to perform (e.g. "edit").
 	Action string
+	// FormData stores the requests form data.
+	FormData url.Values
 }
 
 // Response to a node request.
@@ -91,7 +93,7 @@ type Response struct {
 	// updated (e.g. modified title).
 	//
 	// If nil, the original node data is used.
-	Node *Node
+	Node *NodeInfo
 }
 
 // Write appends the given bytes to the body of the response.
@@ -101,9 +103,9 @@ func (r *Response) Write(p []byte) (n int, err error) {
 }
 
 // Request performs the given request.
-func (s *Service) Request(req *Request) (*Response, error) {
+func (s *NodeClient) Request(req *Request) (*Response, error) {
 	var res Response
-	err := s.Client.Call("Node.Request", req, &res)
+	err := s.RPCClient.Call("Node.Request", req, &res)
 	if err != nil {
 		return nil, fmt.Errorf("node: RPC error for Request:", err)
 	}
@@ -111,9 +113,9 @@ func (s *Service) Request(req *Request) (*Response, error) {
 }
 
 // GetNodeType returns all supported node types.
-func (s *Service) GetNodeTypes() ([]string, error) {
+func (s *NodeClient) GetNodeTypes() ([]string, error) {
 	var res []string
-	err := s.Client.Call("Node.GetNodeTypes", 0, &res)
+	err := s.RPCClient.Call("Node.GetNodeTypes", 0, &res)
 	if err != nil {
 		return nil, fmt.Errorf("node: RPC error for Request:", err)
 	}

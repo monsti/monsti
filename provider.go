@@ -14,43 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
+//	Package provider provides utilities to construct service providers.
 package service
 
 import (
+	"fmt"
+	"log"
 	"net"
 	"net/rpc"
 )
 
-type Type uint
-
-// Monsti service types.
-const (
-	Info Type = iota
-	Data
-	Login
-	Node
-	Mail
-)
-
-func (t Type) String() string {
-	serviceNames := [...]string{
-		"Info", "Data", "Login", "Node", "Mail"}
-	return serviceNames[t]
+type Provider struct {
+	Logger *log.Logger
 }
 
-// Client represents the rpc connection to a service.
-type Client struct {
-	RPCClient *rpc.Client
-}
-
-// Connect establishes a new RPC connection to the given service.
+// Serve listens on the given unix domain socket path for incoming rpc
+// connections.
 //
-// path is the unix domain socket path to the service.
-func (s *Client) Connect(path string) error {
-	conn, err := net.Dial("unix", path)
+// service is the service name
+func (p *Provider) Serve(path string, service string, rcvr interface{}) error {
+	listener, err := net.Listen("unix", path)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not listen on unix domain socket %q: %v",
+			path, err)
 	}
-	s.RPCClient = rpc.NewClient(conn)
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			return fmt.Errorf("Could not accept connection on %q: %v",
+				path, err)
+		}
+		server := rpc.NewServer()
+		if err = server.RegisterName(service, rcvr); err != nil {
+			return fmt.Errorf("Could not register RPC methods: %v",
+				err.Error())
+		}
+		go server.ServeConn(conn)
+	}
 	return nil
 }
