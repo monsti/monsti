@@ -60,7 +60,7 @@ func main() {
 	}
 	cfgPath := util.GetConfigPath(flag.Arg(0))
 	var settings settings
-	if err := util.LoadModuleSettings("data", cfgPath, &settings); err != nil {
+	if err := util.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
