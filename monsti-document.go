@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -26,15 +26,12 @@ import (
 	"fmt"
 	"github.com/monsti/form"
 	"github.com/monsti/service"
-	"github.com/monsti/service/info"
-	"github.com/monsti/service/node"
 	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"log"
 	"os"
-	"sync"
 )
 
 type settings struct {
@@ -43,20 +40,11 @@ type settings struct {
 
 var renderer template.Renderer
 
-func handle(req node.Request, res *node.Response, infoServ *info.Service) {
-	switch req.Action {
-	case "edit":
-		edit(req, res, infoServ)
-	default:
-		view(req, res, infoServ)
-	}
-}
-
 type editFormData struct {
 	Title, Body string
 }
 
-func edit(req node.Request, res *node.Response, infoServ *info.Service) {
+func edit(req service.Request, res *service.Response, infoServ *service.InfoClient) {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	dataServ, err := infoServ.FindDataService()
@@ -98,7 +86,8 @@ func edit(req node.Request, res *node.Response, infoServ *info.Service) {
 		req.Session.Locale, ""))
 }
 
-func view(req node.Request, res *node.Response, infoServ *info.Service) {
+func view(req service.Request, res *service.Response,
+	infoServ *service.InfoClient) {
 	body := "yay!" //c.GetNodeData(req.Node.Path, "body.html")
 	content := renderer.Render("document/view",
 		template.Context{"Body": htmlT.HTML(body)},
@@ -106,26 +95,8 @@ func view(req node.Request, res *node.Response, infoServ *info.Service) {
 	fmt.Fprint(res, content)
 }
 
-type NodeService struct {
-	Info *info.Service
-}
-
-func (i *NodeService) Request(req node.Request,
-	reply *node.Response) error {
-	handle(req, reply, i.Info)
-	return nil
-}
-
-func (i *NodeService) GetNodeTypes(req int,
-	reply *[]string) error {
-	*reply = []string{
-		"Document"}
-	return nil
-}
-
 func main() {
 	logger := log.New(os.Stderr, "document ", log.LstdFlags)
-
 	// Load configuration
 	flag.Parse()
 	cfgPath := util.GetConfigPath(flag.Arg(0))
@@ -134,34 +105,25 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
-	renderer.Root = settings.Monsti.GetTemplatesPath()
-
 	// Connect to Info service
-	info, err := info.NewConnection(settings.Monsti.GetServicePath(
-		service.Info))
+	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
+		service.Info.String()))
 	if err != nil {
 		logger.Fatalf("Could not connect to INFO service: %v", err)
 	}
 
-	// Start own NODE service
-	var waitGroup sync.WaitGroup
-	logger.Println("Starting NODE service")
-	waitGroup.Add(1)
-	nodePath := "monsti-document"
-	go func() {
-		defer waitGroup.Done()
-		var provider service.Provider
-		var node_ NodeService
-		node_.Info = info
-		provider.Logger = logger
-		if err := provider.Serve(nodePath, "Node", &node_); err != nil {
-			logger.Fatalf("Could not start NODE service: %v", err)
-		}
-	}()
+	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
+	renderer.Root = settings.Monsti.GetTemplatesPath()
 
-	if err := info.PublishService("Node", nodePath); err != nil {
-		logger.Fatalf("Could not publish node service: %v", err)
+	var provider service.NodeProvider
+	provider.Logger = logger
+	provider.Info = info
+	document := service.NodeTypeHandler{
+		Name:       "document",
+		ViewAction: view,
+		EditAction: edit,
 	}
-	waitGroup.Wait()
+	provider.AddNodeType(&document)
+	provider.Serve(settings.Monsti.GetServicePath(service.Node.String()) +
+		"_document")
 }
