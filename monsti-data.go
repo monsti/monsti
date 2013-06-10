@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -24,9 +24,6 @@ package main
 import (
 	"flag"
 	"github.com/monsti/service"
-	"github.com/monsti/service/data"
-	"github.com/monsti/service/info"
-	"github.com/monsti/service/node"
 	"github.com/monsti/util"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -36,14 +33,15 @@ import (
 	"sync"
 )
 
+// DataService implements RPC methods for the Data service.
 type DataService struct {
-	Info     *info.Service
+	Info     *service.InfoClient
 	Settings settings
 }
 
-func (i *DataService) GetNodeData(args *data.GetNodeDataArgs,
+func (i *DataService) GetNodeData(args *service.GetNodeDataArgs,
 	reply *[]byte) error {
-	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -57,22 +55,22 @@ func (i *DataService) GetNodeData(args *data.GetNodeDataArgs,
 	return err
 }
 
-func (i *DataService) WriteNodeData(args *data.WriteNodeDataArgs,
+func (i *DataService) WriteNodeData(args *service.WriteNodeDataArgs,
 	reply *int) error {
-	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
 	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
 	return err
 }
 
-func (i *DataService) UpdateNode(args *data.UpdateNodeArgs, reply *int) error {
-	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
+func (i *DataService) UpdateNode(args *service.UpdateNodeArgs, reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	return writeNode(args.Node, site)
 }
 
 // writeNode writes the given node to the data directory located at the given
 // root.
-func writeNode(reqnode node.Node, root string) error {
+func writeNode(reqnode service.NodeInfo, root string) error {
 	path := reqnode.Path
 	reqnode.Path = ""
 	content, err := goyaml.Marshal(&reqnode)
@@ -105,8 +103,8 @@ func main() {
 	}
 
 	// Connect to Info service
-	info, err := info.NewConnection(settings.Monsti.GetServicePath(
-		service.Info))
+	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
+		service.Info.String()))
 	if err != nil {
 		logger.Fatalf("Could not connect to Info service: %v", err)
 	}
@@ -115,7 +113,7 @@ func main() {
 	var waitGroup sync.WaitGroup
 	logger.Println("Starting Data service")
 	waitGroup.Add(1)
-	dataPath := settings.Monsti.GetServicePath(service.Data)
+	dataPath := settings.Monsti.GetServicePath(service.Data.String())
 	go func() {
 		defer waitGroup.Done()
 		var provider service.Provider
