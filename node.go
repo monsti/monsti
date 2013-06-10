@@ -20,8 +20,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
-	"github.com/monsti/service/login"
-	"github.com/monsti/service/node"
+	"github.com/monsti/service"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
@@ -116,7 +115,7 @@ func (n *navigation) Swap(i, j int) {
 
 // getShortTitle returns the given node's ShortTitle attribute, or, if the
 // ShortTitle is of zero length, its Title attribute.
-func getShortTitle(node node.Node) string {
+func getShortTitle(node service.NodeInfo) string {
 	if len(node.ShortTitle) > 0 {
 		return node.ShortTitle
 	}
@@ -233,8 +232,8 @@ type addFormData struct {
 
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	reqnode node.Node, session *sessions.Session, cSession *login.Session,
-	site site) {
+	reqnode service.NodeInfo, session *sessions.Session,
+	cSession *service.Session, site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
@@ -264,7 +263,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 				}
 			*/
 			newPath := filepath.Join(reqnode.Path, data.Name)
-			newNode := node.Node{
+			newNode := service.NodeInfo{
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
@@ -296,7 +295,7 @@ type removeFormData struct {
 
 // Remove handles remove requests.
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
-	node node.Node, session *sessions.Session, cSession *login.Session,
+	node service.NodeInfo, session *sessions.Session, cSession *service.Session,
 	site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := removeFormData{}
@@ -330,15 +329,15 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 
 // lookupNode look ups a node at the given path.
 // If no such node exists, return nil.
-func lookupNode(root, path string) (node.Node, error) {
+func lookupNode(root, path string) (service.NodeInfo, error) {
 	node_path := filepath.Join(root, path[1:], "node.yaml")
 	content, err := ioutil.ReadFile(node_path)
 	if err != nil {
-		return node.Node{}, err
+		return service.NodeInfo{}, err
 	}
-	var reqnode node.Node
+	var reqnode service.NodeInfo
 	if err = goyaml.Unmarshal(content, &reqnode); err != nil {
-		return node.Node{}, err
+		return service.NodeInfo{}, err
 	}
 	reqnode.Path = path
 	return reqnode, nil

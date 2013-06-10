@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -21,8 +21,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
-	"github.com/monsti/service/login"
-	"github.com/monsti/service/node"
+	"github.com/monsti/service"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
@@ -37,8 +36,8 @@ type loginFormData struct {
 
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	reqnode node.Node, session *sessions.Session, cSession *login.Session,
-	site site) {
+	reqnode service.NodeInfo, session *sessions.Session,
+	cSession *service.Session, site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -77,7 +76,7 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 
 // Logout handles logout requests.
 func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
-	reqnode node.Node, session *sessions.Session) {
+	reqnode service.NodeInfo, session *sessions.Session) {
 	delete(session.Values, "login")
 	session.Save(r, w)
 	http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)
@@ -97,8 +96,8 @@ func getSession(r *http.Request, site site) *sessions.Session {
 //
 // configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
-	configDir string) (cSession *login.Session) {
-	cSession = new(login.Session)
+	configDir string) (cSession *service.Session) {
+	cSession = new(service.Session)
 	loginData, ok := session.Values["login"]
 	if !ok {
 		return
@@ -113,18 +112,18 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	*cSession = login.Session{User: user}
+	*cSession = service.Session{User: user}
 	return
 }
 
 // getUser returns the user with the given login.
-func getUser(login_, configDir string) *login.User {
+func getUser(login_, configDir string) *service.User {
 	path := filepath.Join(configDir, "users.yaml")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic("Could not load users.yaml: " + err.Error())
 	}
-	var users []login.User
+	var users []service.User
 	if err = goyaml.Unmarshal(content, &users); err != nil {
 		panic("Could not unmarshal users.yaml: " + err.Error())
 	}
@@ -137,7 +136,7 @@ func getUser(login_, configDir string) *login.User {
 }
 
 // checkPermission checks if the session's user might perform the given action.
-func checkPermission(action string, session *login.Session) bool {
+func checkPermission(action string, session *service.Session) bool {
 	auth := session.User != nil
 	switch action {
 	case "remove", "edit", "add", "logout":

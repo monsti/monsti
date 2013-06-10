@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -25,7 +25,7 @@ package main
 
 import (
 	"flag"
-	"github.com/monsti/service/info"
+	"github.com/monsti/service"
 	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
@@ -54,7 +54,7 @@ func main() {
 
 	// Connect to INFO service
 	infoPath := flag.Arg(1)
-	info, err := info.NewConnection(infoPath)
+	info, err := service.NewInfoConnection(infoPath)
 	if err != nil {
 		logger.Fatalf("Could not connect to INFO service: %v", err)
 	}

@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -18,8 +18,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/monsti/service/login"
-	"github.com/monsti/service/node"
+	"github.com/monsti/service"
 	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"path"
@@ -35,8 +34,8 @@ const (
 
 // Environment/context for the master template.
 type masterTmplEnv struct {
-	Node               node.Node
-	Session            *login.Session
+	Node               service.NodeInfo
+	Session            *service.Session
 	Title, Description string
 	Flags              masterTmplFlags
 }

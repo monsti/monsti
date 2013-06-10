@@ -21,9 +21,7 @@ import (
 	"fmt"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
-	"github.com/monsti/service/info"
-	"github.com/monsti/service/login"
-	"github.com/monsti/service/node"
+	"github.com/monsti/service"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"log"
@@ -42,7 +40,7 @@ type nodeHandler struct {
 	// Log is the logger used by the node handler.
 	Log *log.Logger
 	// Info is a connection to an INFO service.
-	Info *info.Service
+	Info *service.InfoClient
 }
 
 // splitAction splits and returns the path and @@action of the given URL.
@@ -124,8 +122,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
-	reqnode node.Node, action string, session *sessions.Session,
-	cSession *login.Session, site site) {
+	reqnode service.NodeInfo, action string, session *sessions.Session,
+	cSession *service.Session, site site) {
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 
@@ -136,7 +134,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 			http.StatusInternalServerError)
 		return
 	}
-	req := node.Request{
+	req := service.Request{
 		Method:  r.Method,
 		Node:    reqnode,
 		Query:   r.URL.Query(),
