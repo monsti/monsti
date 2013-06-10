@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"github.com/monsti/service"
 	"path/filepath"
 	"reflect"
 )
@@ -23,8 +22,8 @@ type MonstiSettings struct {
 }
 
 // GetServicePath returns the path to the given service's socket.
-func (s MonstiSettings) GetServicePath(service service.Type) string {
-	return filepath.Join(s.Directories.Run, service.String()+".socket")
+func (s MonstiSettings) GetServicePath(service string) string {
+	return filepath.Join(s.Directories.Run, service+".socket")
 }
 
 // GetSiteConfigPath returns the path to the given site's configuration
