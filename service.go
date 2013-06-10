@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -18,8 +18,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/monsti/service/info"
-	"github.com/monsti/service/node"
+	"github.com/monsti/service"
 	"sync"
 )
 
@@ -32,7 +31,7 @@ type InfoService struct {
 	mutex sync.RWMutex
 }
 
-func (i *InfoService) PublishService(args info.PublishServiceArgs,
+func (i *InfoService) PublishService(args service.PublishServiceArgs,
 	reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -44,7 +43,7 @@ func (i *InfoService) PublishService(args info.PublishServiceArgs,
 		if i.NodeTypes == nil {
 			i.NodeTypes = make(map[string][]string)
 		}
-		nodeServ := node.NewService()
+		nodeServ := service.NewNodeClient()
 		if err := nodeServ.Connect(args.Path); err != nil {
 			return fmt.Errorf("Could not connect to your node service: %v", err)
 		}

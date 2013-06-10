@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -74,7 +74,7 @@ func main() {
 		var provider service.Provider
 		info := new(InfoService)
 		provider.Logger = logger
-		if err = provider.Serve(infoPath, "Info", info); err != nil {
+		if err := provider.Serve(infoPath, "Info", info); err != nil {
 			logger.Fatalf("Could not start INFO service: %v", err)
 		}
 	}()
