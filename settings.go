@@ -79,7 +79,7 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 		return fmt.Errorf("util: LoadModuleSettings expects its third " +
 			"argument to be a pointer to a struct")
 	}
-	monstiSettings := value.FieldByName("Monsti")
+	monstiSettings := reflect.Indirect(value).FieldByName("Monsti")
 	if reflect.ValueOf(monstiSettings).Kind() != reflect.Struct {
 		return fmt.Errorf("util: LoadModuleSettings expects its third " +
 			`argument to contain a field named "Monsti" of type ` +
@@ -99,5 +99,10 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 		monstiSettings.Addr().Interface()); err != nil {
 		return fmt.Errorf("util: Could not parse Monsti settings: %v", err)
 	}
+	monstiValue := monstiSettings.Addr().Interface().(*MonstiSettings)
+	monstiValue.Directories.Config = cfgPath
+	MakeAbsolute(&monstiValue.Directories.Data, cfgPath)
+	MakeAbsolute(&monstiValue.Directories.Share, cfgPath)
+	MakeAbsolute(&monstiValue.Directories.Run, cfgPath)
 	return nil
 }
