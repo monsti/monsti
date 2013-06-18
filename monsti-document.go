@@ -120,7 +120,7 @@ func main() {
 
 	provider := service.NewNodeProvider(logger, info)
 	document := service.NodeTypeHandler{
-		Name:       "document",
+		Name:       "Document",
 		ViewAction: view,
 		EditAction: edit,
 	}
