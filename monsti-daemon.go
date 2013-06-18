@@ -68,7 +68,7 @@ func main() {
 	var waitGroup sync.WaitGroup
 	logger.Println("Starting INFO service")
 	waitGroup.Add(1)
-	infoPath := "monsti-info"
+	infoPath := settings.Monsti.GetServicePath(service.Info.String())
 	go func() {
 		defer waitGroup.Done()
 		var provider service.Provider
