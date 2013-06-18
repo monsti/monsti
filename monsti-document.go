@@ -99,6 +99,9 @@ func main() {
 	logger := log.New(os.Stderr, "document ", log.LstdFlags)
 	// Load configuration
 	flag.Parse()
+	if flag.NArg() != 1 {
+		logger.Fatal("Expecting configuration path.")
+	}
 	cfgPath := util.GetConfigPath(flag.Arg(0))
 	var settings settings
 	if err := util.LoadModuleSettings("document", cfgPath, &settings); err != nil {
