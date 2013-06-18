@@ -64,7 +64,7 @@ func (p *NodeProvider) Serve(path string) error {
 	go func() {
 		defer waitGroup.Done()
 		var provider Provider
-		var node_ NodeClient
+		var node_ nodeService
 		provider.Logger = p.Logger
 		if err := provider.Serve(path, "Node", &node_); err != nil {
 			p.Logger.Printf("node: Could not start Node service: %v", err)
