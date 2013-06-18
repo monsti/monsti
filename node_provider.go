@@ -41,6 +41,15 @@ type NodeProvider struct {
 	types map[string]*NodeTypeHandler
 }
 
+func NewNodeProvider(logger *log.Logger, info *InfoClient) *NodeProvider {
+	p := NodeProvider{
+		Logger: logger,
+		Info: info,
+		types: make(map[string]*NodeTypeHandler),
+	}
+	return &p
+}
+
 // AddNodeType adds a handler for a node type to be served.
 func (p *NodeProvider) AddNodeType(h *NodeTypeHandler) {
 	p.types[h.Name] = h
