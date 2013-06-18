@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"strings"
 )
 
 // MonstiSettings holds common Monsti settings.
@@ -23,7 +24,7 @@ type MonstiSettings struct {
 
 // GetServicePath returns the path to the given service's socket.
 func (s MonstiSettings) GetServicePath(service string) string {
-	return filepath.Join(s.Directories.Run, service+".socket")
+	return filepath.Join(s.Directories.Run, strings.ToLower(service)+".socket")
 }
 
 // GetSiteConfigPath returns the path to the given site's configuration
