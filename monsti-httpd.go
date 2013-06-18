@@ -56,8 +56,8 @@ func main() {
 	l10n.DefaultSettings.Directory = settings.Monsti.GetLocalePath()
 
 	// Connect to INFO service
-	infoPath := flag.Arg(1)
-	info, err := service.NewInfoConnection(infoPath)
+	info, err := service.NewInfoConnection(
+		settings.Monsti.GetServicePath(service.Info.String()))
 	if err != nil {
 		logger.Fatalf("Could not connect to INFO service: %v", err)
 	}
