@@ -83,8 +83,7 @@ func main() {
 	for _, module := range settings.Modules {
 		logger.Println("Starting module", module)
 		executable := "monsti-" + module
-		cmd := exec.Command(executable, settings.Monsti.Directories.Config,
-			infoPath)
+		cmd := exec.Command(executable, cfgPath)
 		cmd.Stderr = moduleLog{module, logger}
 		go func() {
 			if err := cmd.Run(); err != nil {
