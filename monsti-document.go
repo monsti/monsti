@@ -118,15 +118,13 @@ func main() {
 	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
 	renderer.Root = settings.Monsti.GetTemplatesPath()
 
-	var provider service.NodeProvider
-	provider.Logger = logger
-	provider.Info = info
+	provider := service.NewNodeProvider(logger, info)
 	document := service.NodeTypeHandler{
 		Name:       "document",
 		ViewAction: view,
 		EditAction: edit,
 	}
 	provider.AddNodeType(&document)
-	provider.Serve(settings.Monsti.GetServicePath(service.Node.String()) +
-		"_document")
+	provider.Serve(settings.Monsti.GetServicePath(service.Node.String() +
+		"_document"))
 }
