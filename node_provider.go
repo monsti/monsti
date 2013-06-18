@@ -44,8 +44,8 @@ type NodeProvider struct {
 func NewNodeProvider(logger *log.Logger, info *InfoClient) *NodeProvider {
 	p := NodeProvider{
 		Logger: logger,
-		Info: info,
-		types: make(map[string]*NodeTypeHandler),
+		Info:   info,
+		types:  make(map[string]*NodeTypeHandler),
 	}
 	return &p
 }
@@ -65,6 +65,8 @@ func (p *NodeProvider) Serve(path string) error {
 		defer waitGroup.Done()
 		var provider Provider
 		var node_ nodeService
+		node_.Provider = p
+		node_.Info = p.Info
 		provider.Logger = p.Logger
 		if err := provider.Serve(path, "Node", &node_); err != nil {
 			p.Logger.Printf("node: Could not start Node service: %v", err)
@@ -79,8 +81,8 @@ func (p *NodeProvider) Serve(path string) error {
 }
 
 type nodeService struct {
-	Info     *InfoClient
 	Provider *NodeProvider
+	Info     *InfoClient
 }
 
 func (i nodeService) Request(req Request,
