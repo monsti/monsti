@@ -38,6 +38,7 @@ var settings struct {
 	Monsti util.MonstiSettings
 }
 
+var logger *log.Logger
 var renderer template.Renderer
 
 type editFormData struct {
@@ -88,7 +89,14 @@ func edit(req service.Request, res *service.Response, infoServ *service.InfoClie
 
 func view(req service.Request, res *service.Response,
 	infoServ *service.InfoClient) {
-	body := "yay!" //c.GetNodeData(req.Node.Path, "body.html")
+	dataServ, err := infoServ.FindDataService()
+	if err != nil {
+		logger.Fatalf("Could not connect to data service: %v", err)
+	}
+	body, err := dataServ.GetNodeData(req.Site, req.Node.Path, "body.html")
+	if err != nil {
+		logger.Fatalf("Could not fetch node data: %v", err)
+	}
 	content := renderer.Render("document/view",
 		template.Context{"Body": htmlT.HTML(body)},
 		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site))
@@ -96,7 +104,7 @@ func view(req service.Request, res *service.Response,
 }
 
 func main() {
-	logger := log.New(os.Stderr, "document ", log.LstdFlags)
+	logger = log.New(os.Stderr, "document ", log.LstdFlags)
 	// Load configuration
 	flag.Parse()
 	if flag.NArg() != 1 {
