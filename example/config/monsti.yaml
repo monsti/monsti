@@ -4,7 +4,7 @@
 directories:
   # Files used by all sites like Monsti's default templates, locales, and
   # static web files.
-  shared: ../shared
+  share: ../share
   # Site specific data like node content, stylesheets, and custom templates.
   data: ../data
   # Run time data like process ids or socket files.
