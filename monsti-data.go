@@ -44,14 +44,7 @@ func (i *DataService) GetNodeData(args *service.GetNodeDataArgs,
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
 	ret, err := ioutil.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			*reply = make([]byte, 0)
-			return nil
-		}
-	} else {
-		*reply = ret
-	}
+	*reply = ret
 	return err
 }
 
