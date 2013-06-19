@@ -57,7 +57,7 @@ func (s MonstiSettings) GetSiteTemplatesPath(site string) string {
 
 // GetStaticsPath returns the path to the global site-static directory.
 func (s MonstiSettings) GetStaticsPath() string {
-	return filepath.Join(s.Directories.Share, "site-static")
+	return filepath.Join(s.Directories.Share, "static")
 }
 
 // GetTemplatesPath returns the path to the global templates directory.
