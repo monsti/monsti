@@ -34,7 +34,7 @@ import (
 	"os"
 )
 
-type settings struct {
+var settings struct {
 	Monsti util.MonstiSettings
 }
 
@@ -83,7 +83,7 @@ func edit(req service.Request, res *service.Response, infoServ *service.InfoClie
 	}
 	fmt.Fprint(res, renderer.Render("document/edit",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale, ""))
+		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site)))
 }
 
 func view(req service.Request, res *service.Response,
@@ -91,7 +91,7 @@ func view(req service.Request, res *service.Response,
 	body := "yay!" //c.GetNodeData(req.Node.Path, "body.html")
 	content := renderer.Render("document/view",
 		template.Context{"Body": htmlT.HTML(body)},
-		req.Session.Locale, "")
+		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site))
 	fmt.Fprint(res, content)
 }
 
@@ -103,7 +103,6 @@ func main() {
 		logger.Fatal("Expecting configuration path.")
 	}
 	cfgPath := util.GetConfigPath(flag.Arg(0))
-	var settings settings
 	if err := util.LoadModuleSettings("document", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
