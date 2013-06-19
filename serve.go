@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -135,6 +135,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	req := service.Request{
+		Site:    site.Name,
 		Method:  r.Method,
 		Node:    reqnode,
 		Query:   r.URL.Query(),
