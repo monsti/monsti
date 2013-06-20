@@ -129,31 +129,28 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 
 	nodeServ, err := h.Info.FindNodeService(reqnode.Type)
 	if err != nil {
-		panic(err)
-		http.Error(w, "Application error.",
-			http.StatusInternalServerError)
-		return
+		panic(fmt.Sprintf("Could not find node service: %v", err))
+	}
+	if err = r.ParseForm(); err != nil {
+		panic(fmt.Sprintf("Could not parse form: %v", err))
 	}
 	req := service.Request{
-		Site:    site.Name,
-		Method:  r.Method,
-		Node:    reqnode,
-		Query:   r.URL.Query(),
-		Session: *cSession,
-		Action:  action}
+		Site:     site.Name,
+		Method:   r.Method,
+		Node:     reqnode,
+		Query:    r.URL.Query(),
+		Session:  *cSession,
+		Action:   action,
+		FormData: r.Form,
+	}
 	res, err := nodeServ.Request(&req)
 	if err != nil {
-		panic(err)
-		http.Error(w, "Application error.",
-			http.StatusInternalServerError)
-		return
+		panic(fmt.Sprintf("Could not request node: %v", err))
 	}
 
 	G := l10n.UseCatalog(cSession.Locale)
 	if len(res.Body) == 0 && len(res.Redirect) == 0 {
-		http.Error(w, "Application error.",
-			http.StatusInternalServerError)
-		return
+		panic("Got empty response.")
 	}
 	if res.Node != nil {
 		oldPath := reqnode.Path
