@@ -44,7 +44,7 @@ func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
 	var reply []byte
 	err := s.RPCClient.Call("Data.GetNodeData", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("data: GetNodeData error:", err)
+		return nil, fmt.Errorf("info: GetNodeData error:", err)
 	}
 	return reply, nil
 }
@@ -57,7 +57,7 @@ type WriteNodeDataArgs struct {
 func (s *DataClient) WriteNodeData(site, path, file, content string) error {
 	args := &WriteNodeDataArgs{site, path, file, content}
 	if err := s.RPCClient.Call("Data.WriteNodeData", args, new(int)); err != nil {
-		return fmt.Errorf("data: WriteNodeData error:", err)
+		return fmt.Errorf("info: WriteNodeData error:", err)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ type UpdateNodeArgs struct {
 func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	args := &UpdateNodeArgs{site, node_}
 	if err := s.RPCClient.Call("Data.UpdateNode", args, new(int)); err != nil {
-		return fmt.Errorf("data: WriteNodeData error:", err)
+		return fmt.Errorf("info: WriteNodeData error:", err)
 	}
 	return nil
 }
