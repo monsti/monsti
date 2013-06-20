@@ -121,28 +121,3 @@ func (s *NodeClient) GetNodeTypes() ([]string, error) {
 	}
 	return res, nil
 }
-
-/*
-
-func (m *NodeRPC) GetRequest(arg int, reply *client.Request) error {
-	if m.Worker.Ticket != nil {
-		return errors.New("monsti: Still waiting for response to last request.")
-	}
-	ticket := <-m.Worker.Tickets
-	m.Worker.Ticket = &ticket
-	request := client.Request{
-		Method:  m.Worker.Ticket.Request.Method,
-		Node:    m.Worker.Ticket.Node,
-		Query:   m.Worker.Ticket.Request.URL.Query(),
-		Session: m.Worker.Ticket.Session,
-		Action:  m.Worker.Ticket.Action}
-	*reply = request
-	return nil
-}
-
-func (m *NodeRPC) SendResponse(res client.Response, reply *int) error {
-	m.Worker.Ticket.ResponseChan <- res
-	m.Worker.Ticket = nil
-	return nil
-}
-*/
