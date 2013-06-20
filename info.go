@@ -79,6 +79,18 @@ func (s *InfoClient) FindNodeService(nodeType string) (*NodeClient,
 	return service_, nil
 }
 
+// GetAddableNodeTypes returns the node types that may be added as child nodes
+// to the given node type at the given website.
+func (s *InfoClient) GetAddableNodeTypes(site, nodeType string) (types []string,
+	err error) {
+	args := struct{ Site, NodeType string }{site, nodeType}
+	err = s.RPCClient.Call("Info.GetAddableNodeTypes", args, &types)
+	if err != nil {
+		err = fmt.Errorf("info: Error calling GetAddableNodeTypes: %v", err)
+	}
+	return
+}
+
 // NewInfoConnection establishes a new RPC connection to an INFO service.
 //
 // path is the unix domain socket path to the service.
