@@ -80,6 +80,19 @@ func (i *InfoService) FindNodeService(nodeType string, path *string) error {
 	return nil
 }
 
+type GetAddableNodeTypesArgs struct{ Site, NodeType string }
+
+func (i *InfoService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
+	types *[]string) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	*types = make([]string, 0)
+	for nodeType, _ := range i.NodeTypes {
+		*types = append(*types, nodeType)
+	}
+	return nil
+}
+
 func (i *InfoService) FindDataService(arg int, path *string) error {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
