@@ -280,7 +280,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
-	body := h.Renderer.Render("daemon/actions/addform", template.Context{
+	body := h.Renderer.Render("httpd/actions/addform", template.Context{
 		"Form": form.RenderData()}, cSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
 	env := masterTmplEnv{Node: reqnode, Session: cSession,
@@ -318,7 +318,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Confirm = 1489
-	body := h.Renderer.Render("daemon/actions/removeform", template.Context{
+	body := h.Renderer.Render("httpd/actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": node},
 		cSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
 	env := masterTmplEnv{Node: node, Session: cSession,
