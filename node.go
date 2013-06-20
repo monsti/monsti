@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -123,7 +123,7 @@ func getShortTitle(node service.NodeInfo) string {
 }
 
 // getNav returns the navigation for the given node.
-// 
+//
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
 // root is the path of the data directory.
@@ -237,12 +237,14 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	G := l10n.UseCatalog(cSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
-	/*
-		for _, nodeType := range h.Settings.NodeTypes {
-			nodeTypeOptions = append(nodeTypeOptions,
-				form.Option{nodeType, nodeType})
-		}
-	*/
+	nodeTypes, err := h.Info.GetAddableNodeTypes(site.Name, reqnode.Type)
+	if err != nil {
+		panic("Could not get addable node types: " + err.Error())
+	}
+	for _, nodeType := range nodeTypes {
+		nodeTypeOptions = append(nodeTypeOptions,
+			form.Option{nodeType, nodeType})
+	}
 	selectWidget := form.SelectWidget{nodeTypeOptions}
 	form := form.NewForm(&data, form.Fields{
 		"Type": form.Field{G("Content type"), "", form.Required(G("Required.")), selectWidget},
@@ -257,11 +259,9 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 		r.ParseForm()
 		if form.Fill(r.Form) {
 			data.Name = strings.ToLower(data.Name)
-			/*
-				if !inStringSlice(data.Type, h.Settings.NodeTypes) {
-					panic("Can't add this content type.")
-				}
-			*/
+			if !inStringSlice(data.Type, nodeTypes) {
+				panic("Can't add this node type.")
+			}
 			newPath := filepath.Join(reqnode.Path, data.Name)
 			newNode := service.NodeInfo{
 				Path:  newPath,
@@ -309,7 +309,7 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		if form.Fill(r.Form) {
 			panic("Not implemented")
 			/*
-			removeNode(node.Path, site.Directories.Data)
+				removeNode(node.Path, site.Directories.Data)
 			*/
 			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
 			return
