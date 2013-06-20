@@ -38,7 +38,7 @@ type GetNodeDataArgs struct {
 
 // GetNodeData requests data from some node.
 //
-// Returns an error if the data does not exist.
+// Returns a nil slice and nil error if the data does not exist.
 func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
 	args := &GetNodeDataArgs{site, path, file}
 	var reply []byte
