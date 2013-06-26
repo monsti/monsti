@@ -23,8 +23,7 @@ import (
 )
 
 // ActionHandler processes incoming requests for some node action.
-type ActionHandler func(req Request, res *Response,
-	infoServ *InfoClient)
+type ActionHandler func(req Request, res *Response, s *Session)
 
 // NodeTypeHandler handles requests for some node type.
 type NodeTypeHandler struct {
@@ -36,16 +35,14 @@ type NodeTypeHandler struct {
 type NodeProvider struct {
 	// Logger to be used
 	Logger *log.Logger
-	// Info service to be used
-	Info  *InfoClient
-	types map[string]*NodeTypeHandler
+	pool   *SessionPool
+	types  map[string]*NodeTypeHandler
 }
 
-func NewNodeProvider(logger *log.Logger, info *InfoClient) *NodeProvider {
+func NewNodeProvider(logger *log.Logger, infoPath string) *NodeProvider {
 	p := NodeProvider{
-		Logger: logger,
-		Info:   info,
-		types:  make(map[string]*NodeTypeHandler),
+		logger, NewSessionPool(1, infoPath),
+		make(map[string]*NodeTypeHandler),
 	}
 	return &p
 }
@@ -66,14 +63,18 @@ func (p *NodeProvider) Serve(path string) error {
 		var provider Provider
 		var node_ nodeService
 		node_.Provider = p
-		node_.Info = p.Info
+		node_.Pool = p.pool
 		provider.Logger = p.Logger
 		if err := provider.Serve(path, "Node", &node_); err != nil {
 			p.Logger.Printf("service: Could not start Node service: %v", err)
 		}
 	}()
-
-	if err := p.Info.PublishService("Node", path); err != nil {
+	s, err := p.pool.New()
+	if err != nil {
+		return fmt.Errorf("service: Could not get session: %v", err)
+	}
+	defer p.pool.Free(s)
+	if err := s.Info().PublishService("Node", path); err != nil {
 		return fmt.Errorf("service: Could not publish node service: %v", err)
 	}
 	waitGroup.Wait()
@@ -82,20 +83,25 @@ func (p *NodeProvider) Serve(path string) error {
 
 type nodeService struct {
 	Provider *NodeProvider
-	Info     *InfoClient
+	Pool     *SessionPool
 }
 
 func (i nodeService) Request(req Request,
 	reply *Response) error {
 	nodeType := req.Node.Type
 	var f ActionHandler
+	session, err := i.Pool.New()
+	if err != nil {
+		return fmt.Errorf("service: Could not get session: %v", err)
+	}
+	defer i.Pool.Free(session)
 	switch req.Action {
 	case "edit":
 		f = i.Provider.types[nodeType].EditAction
 	default:
 		f = i.Provider.types[nodeType].ViewAction
 	}
-	f(req, reply, i.Info)
+	f(req, reply, session)
 	return nil
 }
 

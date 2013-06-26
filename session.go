@@ -32,7 +32,7 @@ type SessionPool struct {
 
 // NewSessionPool returns a new session pool.
 func NewSessionPool(size int, infoPath string) *SessionPool {
-	pool := &SessionPool{Size: size}
+	pool := &SessionPool{Size: size, InfoPath: infoPath}
 	pool.data = make(chan *DataClient, size)
 	pool.info = make(chan *InfoClient, size)
 	return pool
@@ -40,7 +40,7 @@ func NewSessionPool(size int, infoPath string) *SessionPool {
 
 // New returns a session from the pool.
 func (s *SessionPool) New() (*Session, error) {
-	session := new(Session)
+	session := &Session{pool: s}
 	select {
 	case session.info = <-s.info:
 	default:
