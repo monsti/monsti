@@ -73,7 +73,7 @@ type Request struct {
 	// Method of the request (GET,POST,...).
 	Method string
 	// User session
-	Session Session
+	Session UserSession
 	// Action to perform (e.g. "edit").
 	Action string
 	// FormData stores the requests form data.

@@ -25,8 +25,8 @@ type User struct {
 	Password string
 }
 
-// Session of an authenticated or anonymous user.
-type Session struct {
+// UserSession is a session of an authenticated or anonymous user.
+type UserSession struct {
 	// Authenticaded user or nil
 	User *User
 	// Locale used for this session.

@@ -41,6 +41,8 @@ func (t Type) String() string {
 // Client represents the rpc connection to a service.
 type Client struct {
 	RPCClient *rpc.Client
+	// Error holds the last error if any.
+	Error error
 }
 
 // Connect establishes a new RPC connection to the given service.
