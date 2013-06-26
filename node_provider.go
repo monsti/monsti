@@ -69,12 +69,12 @@ func (p *NodeProvider) Serve(path string) error {
 		node_.Info = p.Info
 		provider.Logger = p.Logger
 		if err := provider.Serve(path, "Node", &node_); err != nil {
-			p.Logger.Printf("node: Could not start Node service: %v", err)
+			p.Logger.Printf("service: Could not start Node service: %v", err)
 		}
 	}()
 
 	if err := p.Info.PublishService("Node", path); err != nil {
-		return fmt.Errorf("node: Could not publish node service: %v", err)
+		return fmt.Errorf("service: Could not publish node service: %v", err)
 	}
 	waitGroup.Wait()
 	return nil
