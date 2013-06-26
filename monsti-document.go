@@ -45,13 +45,10 @@ type editFormData struct {
 	Title, Body string
 }
 
-func edit(req service.Request, res *service.Response, infoServ *service.InfoClient) {
+func edit(req service.Request, res *service.Response, s *service.Session) {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
-	dataServ, err := infoServ.FindDataService()
-	if err != nil {
-		panic("document: Could not connect to data service.")
-	}
+	dataServ := s.Data()
 	form := form.NewForm(&data, form.Fields{
 		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil},
 		"Body": form.Field{G("Body"), "", form.Required(G("Required.")),
@@ -87,12 +84,8 @@ func edit(req service.Request, res *service.Response, infoServ *service.InfoClie
 		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site)))
 }
 
-func view(req service.Request, res *service.Response,
-	infoServ *service.InfoClient) {
-	dataServ, err := infoServ.FindDataService()
-	if err != nil {
-		logger.Fatalf("Could not connect to data service: %v", err)
-	}
+func view(req service.Request, res *service.Response, s *service.Session) {
+	dataServ := s.Data()
 	body, err := dataServ.GetNodeData(req.Site, req.Node.Path, "body.html")
 	if err != nil {
 		logger.Fatalf("Could not fetch node data: %v", err)
@@ -115,23 +108,20 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	// Connect to Info service
-	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
-		service.Info.String()))
-	if err != nil {
-		logger.Fatalf("Could not connect to INFO service: %v", err)
-	}
+	infoPath := settings.Monsti.GetServicePath(service.Info.String())
 
 	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
 	renderer.Root = settings.Monsti.GetTemplatesPath()
 
-	provider := service.NewNodeProvider(logger, info)
+	provider := service.NewNodeProvider(logger, infoPath)
 	document := service.NodeTypeHandler{
 		Name:       "Document",
 		ViewAction: view,
 		EditAction: edit,
 	}
 	provider.AddNodeType(&document)
-	provider.Serve(settings.Monsti.GetServicePath(service.Node.String() +
-		"_document"))
+	if err := provider.Serve(settings.Monsti.GetServicePath(
+		service.Node.String() + "_document")); err != nil {
+		panic("Could not setup node provider: " + err.Error())
+	}
 }
