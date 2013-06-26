@@ -75,3 +75,14 @@ func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	}
 	return nil
 }
+
+// RemoveNode recursively removes the given site's node.
+func (s *DataClient) RemoveNode(site string, node string) error {
+	args := struct {
+		Site, Node string
+	}{site, node}
+	if err := s.RPCClient.Call("Data.RemoveNode", args, new(int)); err != nil {
+		return fmt.Errorf("info: RemoveNode error:", err)
+	}
+	return nil
+}
