@@ -26,7 +26,6 @@ import (
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -307,10 +306,14 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	case "POST":
 		r.ParseForm()
 		if form.Fill(r.Form) {
-			panic("Not implemented")
-			/*
-				removeNode(node.Path, site.Directories.Data)
-			*/
+			dataServ, err := h.Info.FindDataService()
+			if err != nil {
+				panic("httpd: Could not connect to data service: " +
+					err.Error())
+			}
+			if err := dataServ.RemoveNode(site.Name, node.Path); err != nil {
+				panic("Could not remove node: " + err.Error())
+			}
 			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
 			return
 		}
@@ -341,13 +344,4 @@ func lookupNode(root, path string) (service.NodeInfo, error) {
 	}
 	reqnode.Path = path
 	return reqnode, nil
-}
-
-// removeNode recursively removes the given node from the data directory located
-// at the given root and from the navigation of the parent node.
-func removeNode(path, root string) {
-	nodePath := filepath.Join(root, path[1:])
-	if err := os.RemoveAll(nodePath); err != nil {
-		panic("Can't remove node: " + err.Error())
-	}
 }
