@@ -123,7 +123,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, action string, session *sessions.Session,
-	cSession *service.Session, site site) {
+	cSession *service.UserSession, site site) {
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 

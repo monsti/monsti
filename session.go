@@ -37,7 +37,7 @@ type loginFormData struct {
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, session *sessions.Session,
-	cSession *service.Session, site site) {
+	cSession *service.UserSession, site site) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -96,8 +96,8 @@ func getSession(r *http.Request, site site) *sessions.Session {
 //
 // configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
-	configDir string) (cSession *service.Session) {
-	cSession = new(service.Session)
+	configDir string) (cSession *service.UserSession) {
+	cSession = new(service.UserSession)
 	loginData, ok := session.Values["login"]
 	if !ok {
 		return
@@ -112,7 +112,7 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	*cSession = service.Session{User: user}
+	*cSession = service.UserSession{User: user}
 	return
 }
 
@@ -136,7 +136,7 @@ func getUser(login_, configDir string) *service.User {
 }
 
 // checkPermission checks if the session's user might perform the given action.
-func checkPermission(action string, session *service.Session) bool {
+func checkPermission(action string, session *service.UserSession) bool {
 	auth := session.User != nil
 	switch action {
 	case "remove", "edit", "add", "logout":

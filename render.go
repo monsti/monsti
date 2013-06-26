@@ -35,7 +35,7 @@ const (
 // Environment/context for the master template.
 type masterTmplEnv struct {
 	Node               service.NodeInfo
-	Session            *service.Session
+	Session            *service.UserSession
 	Title, Description string
 	Flags              masterTmplFlags
 }
