@@ -71,7 +71,7 @@ type UpdateNodeArgs struct {
 func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	args := &UpdateNodeArgs{site, node_}
 	if err := s.RPCClient.Call("Data.UpdateNode", args, new(int)); err != nil {
-		return fmt.Errorf("info: WriteNodeData error:", err)
+		return fmt.Errorf("info: UpdateNode error:", err)
 	}
 	return nil
 }
