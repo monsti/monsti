@@ -23,6 +23,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
 	"io/ioutil"
@@ -63,6 +64,19 @@ func (i *DataService) WriteNodeData(args *service.WriteNodeDataArgs,
 func (i *DataService) UpdateNode(args *service.UpdateNodeArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	return writeNode(args.Node, site)
+}
+
+type RemoveNodeArgs struct {
+	Site, Node string
+}
+
+func (i *DataService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
+	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	nodePath := filepath.Join(root, args.Node[1:])
+	if err := os.RemoveAll(nodePath); err != nil {
+		return fmt.Errorf("Can't remove node: %v", err)
+	}
+	return nil
 }
 
 // writeNode writes the given node to the data directory located at the given
