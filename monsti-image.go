@@ -4,43 +4,27 @@ import (
 	"flag"
 	"fmt"
 	"github.com/monsti/form"
-	"github.com/monsti/util/l10n"
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/util/template"
+	"github.com/monsti/service"
 	"github.com/monsti/util"
+	"github.com/monsti/util/l10n"
+	"github.com/monsti/util/template"
 	"log"
 	"os"
-	"path/filepath"
 )
 
-type settings struct {
-	// Absolute paths to used directories.
-	Directories struct {
-		// HTML Templates
-		Templates string
-		// Locales, i.e. the gettext machine objects (.mo)
-		Locales string
-	}
+var settings struct {
+	Monsti util.MonstiSettings
 }
 
-var renderer template.Renderer
 var logger *log.Logger
-
-func handle(req client.Request, res *client.Response, c client.Connection) {
-	switch req.Action {
-	case "edit":
-		edit(req, res, c)
-	default:
-		view(req, res, c)
-	}
-}
+var renderer template.Renderer
 
 type editFormData struct {
 	Title string
 	Image string
 }
 
-func edit(req client.Request, res *client.Response, c client.Connection) {
+func edit(req service.Request, res *service.Response, s *service.Session) {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -50,18 +34,30 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 	case "GET":
 		data.Title = req.Node.Title
 	case "POST":
-		imageData, imgerr := c.GetFileData("Image")
-		if form.Fill(c.GetFormData()) {
-			if imgerr == nil {
+		var imageData []byte
+		var err error
+		if len(req.Files["Image"]) == 1 {
+			imageData, err = req.Files["Image"][0].ReadFile()
+			if err != nil {
+				panic("Could not read image data: " + err.Error())
+			}
+		}
+		if form.Fill(req.FormData) {
+			if len(imageData) > 0 {
+				dataC := s.Data()
 				node := req.Node
 				node.Title = data.Title
 				node.Hide = true
-				c.UpdateNode(node)
-				c.WriteNodeData(req.Node.Path, "image.data", string(imageData))
+				if err := dataC.UpdateNode(req.Site, node); err != nil {
+					panic("Could not update node: " + err.Error())
+				}
+				if err := dataC.WriteNodeData(req.Site, req.Node.Path,
+					"image.data", string(imageData)); err != nil {
+					panic("Could not write image data: " + err.Error())
+				}
 				res.Redirect = req.Node.Path
 				return
 			}
-			logger.Println("Image upload failed: ", imgerr)
 			form.AddError("Image", G("There was a problem with your image upload."))
 		}
 	default:
@@ -72,23 +68,43 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 		req.Session.Locale, ""))
 }
 
-func view(req client.Request, res *client.Response, c client.Connection) {
-	body := c.GetNodeData(req.Node.Path, "image.data")
+func view(req service.Request, res *service.Response, s *service.Session) {
+	body, err := s.Data().GetNodeData(req.Site, req.Node.Path,
+		"image.data")
+	if err != nil {
+		panic("Could not get image data: " + err.Error())
+	}
 	res.Raw = true
 	res.Write(body)
 }
 
 func main() {
-	logger = log.New(os.Stderr, "monsti-image", log.LstdFlags)
+	logger = log.New(os.Stderr, "image ", log.LstdFlags)
+	// Load configuration
 	flag.Parse()
-	cfgPath := util.GetConfigPath("image", flag.Arg(0))
-	var settings settings
-	if err := util.ParseYAML(cfgPath, &settings); err != nil {
-		logger.Fatal("Could not load monsti-image configuration file: ", err)
+	if flag.NArg() != 1 {
+		logger.Fatal("Expecting configuration path.")
 	}
-	util.MakeAbsolute(&settings.Directories.Templates, filepath.Dir(cfgPath))
-	util.MakeAbsolute(&settings.Directories.Locales, filepath.Dir(cfgPath))
-	l10n.Setup("monsti-image", settings.Directories.Locales)
-	renderer.Root = settings.Directories.Templates
-	client.NewConnection("monsti-image", logger).Serve(handle)
+	cfgPath := util.GetConfigPath(flag.Arg(0))
+	if err := util.LoadModuleSettings("image", cfgPath, &settings); err != nil {
+		logger.Fatal("Could not load settings: ", err)
+	}
+
+	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+
+	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
+	renderer.Root = settings.Monsti.GetTemplatesPath()
+
+	provider := service.NewNodeProvider(logger, infoPath)
+	image := service.NodeTypeHandler{
+		Name:       "Image",
+		ViewAction: view,
+		EditAction: edit,
+	}
+	provider.AddNodeType(&image)
+	if err := provider.Serve(settings.Monsti.GetServicePath(
+		service.Node.String() + "_image")); err != nil {
+		panic("Could not setup node provider: " + err.Error())
+	}
+
 }
