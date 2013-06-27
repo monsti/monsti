@@ -18,6 +18,7 @@ package service
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"strings"
 )
@@ -62,6 +63,23 @@ func (n NodeInfo) PathToID() string {
 	return "node-" + strings.Replace(n.Path, "/", "__", -1)
 }
 
+// RequestFile stores the path or content of a multipart request's file.
+type RequestFile struct {
+	// TmpFile stores the path to a temporary file with the contents.
+	TmpFile string
+	// Content stores the file content if TmpFile is not set.
+	Content []byte
+}
+
+// ReadFile returns the file's content. Uses io/ioutil ReadFile if the request
+// file's content is in a temporary file.
+func (r RequestFile) ReadFile() ([]byte, error) {
+	if len(r.TmpFile) > 0 {
+		return ioutil.ReadFile(r.TmpFile)
+	}
+	return r.Content, nil
+}
+
 // A request to be processed by a nodes service.
 type Request struct {
 	// Site name
@@ -78,6 +96,8 @@ type Request struct {
 	Action string
 	// FormData stores the requests form data.
 	FormData url.Values
+	// Files stores files of multipart requests.
+	Files map[string][]RequestFile
 }
 
 // Response to a node request.
