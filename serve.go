@@ -24,9 +24,11 @@ import (
 	"github.com/monsti/service"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"runtime/debug"
 	"strings"
 )
@@ -131,7 +133,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		panic(fmt.Sprintf("Could not find node service: %v", err))
 	}
-	if err = r.ParseForm(); err != nil {
+	if err = r.ParseMultipartForm(1024 * 1024); err != nil {
 		panic(fmt.Sprintf("Could not parse form: %v", err))
 	}
 	req := service.Request{
@@ -143,6 +145,37 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		Action:   action,
 		FormData: r.Form,
 	}
+
+	// Attach request files
+	if r.MultipartForm != nil {
+		if len(r.MultipartForm.File) > 0 {
+			req.Files = make(map[string][]service.RequestFile)
+		}
+		for name, fileHeaders := range r.MultipartForm.File {
+			h.Log.Println(name)
+			if _, ok := req.Files[name]; !ok {
+				req.Files[name] = make([]service.RequestFile, 0)
+			}
+			for _, fileHeader := range fileHeaders {
+				file, err := fileHeader.Open()
+				if err != nil {
+					panic("Could not open multipart file header: " + err.Error())
+				}
+				if osFile, ok := file.(*os.File); ok {
+					req.Files[name] = append(req.Files[name], service.RequestFile{
+						TmpFile: osFile.Name()})
+				} else {
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						panic("Could not read multipart file: " + err.Error())
+					}
+					req.Files[name] = append(req.Files[name], service.RequestFile{
+						Content: content})
+				}
+			}
+		}
+	}
+
 	res, err := nodeServ.Request(&req)
 	if err != nil {
 		panic(fmt.Sprintf("Could not request node: %v", err))
