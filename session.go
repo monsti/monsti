@@ -18,6 +18,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 )
 
 // SessionPool holds sessions to be used to access services.
@@ -28,6 +29,7 @@ type SessionPool struct {
 	InfoPath string
 	data     chan *DataClient
 	info     chan *InfoClient
+	mail     chan *MailClient
 }
 
 // NewSessionPool returns a new session pool.
@@ -35,6 +37,7 @@ func NewSessionPool(size int, infoPath string) *SessionPool {
 	pool := &SessionPool{Size: size, InfoPath: infoPath}
 	pool.data = make(chan *DataClient, size)
 	pool.info = make(chan *InfoClient, size)
+	pool.mail = make(chan *MailClient, size)
 	return pool
 }
 
@@ -55,13 +58,23 @@ func (s *SessionPool) New() (*Session, error) {
 
 // Free puts a session back to the pool.
 func (s *SessionPool) Free(session *Session) {
-	select {
-	case s.data <- session.data:
-	default:
+	if session.data != nil {
+		select {
+		case s.data <- session.data:
+		default:
+		}
 	}
-	select {
-	case s.info <- session.info:
-	default:
+	if session.info != nil {
+		select {
+		case s.info <- session.info:
+		default:
+		}
+	}
+	if session.mail != nil {
+		select {
+		case s.mail <- session.mail:
+		default:
+		}
 	}
 }
 
@@ -69,6 +82,7 @@ func (s *SessionPool) Free(session *Session) {
 type Session struct {
 	info *InfoClient
 	data *DataClient
+	mail *MailClient
 	pool *SessionPool
 }
 
@@ -88,9 +102,32 @@ func (s *Session) Data() *DataClient {
 		data, err := s.info.FindDataService()
 		s.data = data
 		if err != nil {
-			s.data = new(DataClient)
+			s.data = NewDataClient()
 			s.data.Error = err
 		}
 	}
 	return s.data
+}
+
+// Mail returns a MailClient.
+func (s *Session) Mail() *MailClient {
+	log.Printf("Get Mail Service")
+	if s.mail != nil {
+		return s.mail
+	}
+	select {
+	case s.mail = <-s.pool.mail:
+		log.Printf("Get OLD Mail Service")
+	default:
+		log.Printf("Get NEW Mail Service")
+		mail, err := s.info.FindMailService()
+		log.Printf("Got mail Service: %v %v", mail, err)
+		s.mail = mail
+		if err != nil {
+			s.mail = NewMailClient()
+			s.mail.Error = err
+		}
+	}
+	log.Printf("Return mail Service: %v", s.mail)
+	return s.mail
 }

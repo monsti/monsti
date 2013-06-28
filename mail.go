@@ -16,28 +16,31 @@
 
 package service
 
-/*
-
 import (
+	"fmt"
 	"github.com/chrneumann/mimemail"
-	"github.com/monsti/rpc/types"
-	"io"
-	"log"
-	"net/rpc"
-	"net/url"
-	"os"
-	"strings"
 )
 
-// Send given Mail.
-//
-// An empty From or To field will be filled with the site owner's name and
-// address.
-func (s *Client) SendMail(m mimemail.Mail) {
-	var reply int
-	err := s.Call("NodeRPC.SendMail", m, &reply)
-	if err != nil {
-		s.Logger.Fatal("master: RPC SendMail error:", err) //
-	}
+// MailClient represents a RPC connection to the Mail service.
+type MailClient struct {
+	*Client
 }
-*/
+
+// NewMailClient returns a new Mail Client.
+func NewMailClient() *MailClient {
+	var service_ MailClient
+	service_.Client = new(Client)
+	return &service_
+}
+
+// Send given Mail.
+func (s *MailClient) SendMail(m *mimemail.Mail) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	var reply int
+	if err := s.RPCClient.Call("Mail.SendMail", m, &reply); err != nil {
+		return fmt.Errorf("service: Mail.SendMail error: %v", err)
+	}
+	return nil
+}
