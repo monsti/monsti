@@ -62,6 +62,22 @@ func (s *InfoClient) FindDataService() (*DataClient, error) {
 	return service_, nil
 }
 
+// FindMailService requests a mail client.
+func (s *InfoClient) FindMailService() (*MailClient, error) {
+	var path string
+	err := s.RPCClient.Call("Info.FindMailService", 0, &path)
+	if err != nil {
+		return nil, fmt.Errorf("info: Error calling FindMailService: %v", err)
+	}
+	service_ := NewMailClient()
+	if err := service_.Connect(path); err != nil {
+		return nil,
+			fmt.Errorf("Could not establish connection to mail service: %v",
+				err)
+	}
+	return service_, nil
+}
+
 // FindNodeService requests a node client for the given node type.
 func (s *InfoClient) FindNodeService(nodeType string) (*NodeClient,
 	error) {
