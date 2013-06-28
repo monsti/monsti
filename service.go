@@ -58,6 +58,7 @@ func (i *InfoService) PublishService(args service.PublishServiceArgs,
 			i.NodeTypes[nodeType] = append(i.NodeTypes[nodeType], args.Path)
 		}
 	case "Data":
+	case "Mail":
 	default:
 		return fmt.Errorf("Unknown service type %v", args.Service)
 	}
@@ -100,5 +101,15 @@ func (i *InfoService) FindDataService(arg int, path *string) error {
 		return fmt.Errorf("Could not find any data services")
 	}
 	*path = i.Services["Data"][0]
+	return nil
+}
+
+func (i *InfoService) FindMailService(arg int, path *string) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	if len(i.Services["Mail"]) == 0 {
+		return fmt.Errorf("Could not find any mail services")
+	}
+	*path = i.Services["Mail"][0]
 	return nil
 }
