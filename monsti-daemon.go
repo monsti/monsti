@@ -22,6 +22,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
@@ -45,7 +46,10 @@ type moduleLog struct {
 }
 
 func (s moduleLog) Write(p []byte) (int, error) {
-	s.Log.Println(s.Type, "on stderr:", string(p))
+	parts := bytes.SplitAfter(p, []byte("\n"))
+	for _, part := range parts {
+		s.Log.Print(s.Type, ": ", string(part))
+	}
 	return len(p), nil
 }
 
