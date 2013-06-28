@@ -127,5 +127,4 @@ func main() {
 		service.Node.String() + "_image")); err != nil {
 		panic("Could not setup node provider: " + err.Error())
 	}
-
 }
