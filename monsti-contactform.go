@@ -1,3 +1,24 @@
+// This file is part of Monsti, a web content management system.
+// Copyright 2012-2013 Christian Neumann
+//
+// Monsti is free software: you can redistribute it and/or modify it under the
+// terms of the GNU Affero General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option) any
+// later version.
+//
+// Monsti is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+// A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
+
+/*
+ Monsti is a simple and resource efficient CMS.
+
+ This package implements the contactform node type.
+*/
 package main
 
 import (
@@ -5,43 +26,27 @@ import (
 	"fmt"
 	"github.com/chrneumann/mimemail"
 	"github.com/monsti/form"
-	"github.com/monsti/rpc/client"
+	"github.com/monsti/service"
 	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"log"
 	"os"
-	"path/filepath"
 )
 
-type cfsettings struct {
-	// Absolute paths to used directories.
-	Directories struct {
-		// HTML Templates
-		Templates string
-		// Locales, i.e. the gettext machine objects (.mo)
-		Locales string
-	}
+var settings struct {
+	Monsti util.MonstiSettings
 }
 
+var logger *log.Logger
 var renderer template.Renderer
-var settings cfsettings
 
 type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func handle(req client.Request, res *client.Response, c client.Connection) {
-	switch req.Action {
-	case "edit":
-		edit(req, res, c)
-	default:
-		view(req, res, c)
-	}
-}
-
-func view(req client.Request, res *client.Response, c client.Connection) {
+func view(req service.Request, res *service.Response, s *service.Session) {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := contactFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -57,11 +62,19 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 			context["Submitted"] = 1
 		}
 	case "POST":
-		if form.Fill(c.GetFormData()) {
-			c.SendMail(mimemail.Mail{
+		if form.Fill(req.FormData) {
+			mail := mimemail.Mail{
 				From:    mimemail.Address{data.Name, data.Email},
 				Subject: data.Subject,
-				Body:    []byte(data.Message)})
+				Body:    []byte(data.Message)}
+			site := settings.Monsti.Sites[req.Site]
+			owner := mimemail.Address{site.Owner.Name, site.Owner.Email}
+			mail.To = []mimemail.Address{owner}
+			mail = mimemail.Mail{}
+			err := s.Mail().SendMail(&mail)
+			if err != nil {
+				panic("Could not send mail: " + err.Error())
+			}
 			res.Redirect = req.Node.Path + "/?submitted"
 			return
 		}
@@ -69,7 +82,10 @@ func view(req client.Request, res *client.Response, c client.Connection) {
 		panic("Request method not supported: " + req.Method)
 	}
 	res.Node = &req.Node
-	body := c.GetNodeData(req.Node.Path, "body.html")
+	body, err := s.Data().GetNodeData(req.Site, req.Node.Path, "body.html")
+	if err != nil {
+		panic("Could not get node data: " + err.Error())
+	}
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
 	fmt.Fprint(res, renderer.Render("contactform/view", context,
@@ -80,23 +96,33 @@ type editFormData struct {
 	Title, Body string
 }
 
-func edit(req client.Request, res *client.Response, c client.Connection) {
+func edit(req service.Request, res *service.Response, s *service.Session) {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil},
 		"Body": form.Field{G("Body"), "", form.Required(G("Required.")),
 			new(form.AlohaEditor)}})
+	dataCli := s.Data()
 	switch req.Method {
 	case "GET":
 		data.Title = req.Node.Title
-		data.Body = string(c.GetNodeData(req.Node.Path, "body.html"))
+		nodeData, err := dataCli.GetNodeData(req.Site, req.Node.Path, "body.html")
+		if err != nil {
+			panic("Could not get node data: " + err.Error())
+		}
+		data.Body = string(nodeData)
 	case "POST":
-		if form.Fill(c.GetFormData()) {
+		if form.Fill(req.FormData) {
 			node := req.Node
 			node.Title = data.Title
-			c.UpdateNode(node)
-			c.WriteNodeData(req.Node.Path, "body.html", data.Body)
+			if err := dataCli.UpdateNode(req.Site, node); err != nil {
+				panic("Could not update node: " + err.Error())
+			}
+			if err := dataCli.WriteNodeData(req.Site, req.Node.Path, "body.html",
+				data.Body); err != nil {
+				panic("Could not update node data: " + err.Error())
+			}
 			res.Redirect = req.Node.Path
 			return
 		}
@@ -109,15 +135,34 @@ func edit(req client.Request, res *client.Response, c client.Connection) {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "contactform", log.LstdFlags)
+	logger = log.New(os.Stderr, "contactform ", log.LstdFlags)
+	// Load configuration
 	flag.Parse()
-	cfgPath := util.GetConfigPath("contactform", flag.Arg(0))
-	if err := util.ParseYAML(cfgPath, &settings); err != nil {
-		logger.Fatal("Could not load monsti-contactform configuration file: ", err)
+	if flag.NArg() != 1 {
+		logger.Fatal("Expecting configuration path.")
 	}
-	util.MakeAbsolute(&settings.Directories.Templates, filepath.Dir(cfgPath))
-	util.MakeAbsolute(&settings.Directories.Locales, filepath.Dir(cfgPath))
-	l10n.Setup("monsti-contactform", settings.Directories.Locales)
-	renderer.Root = settings.Directories.Templates
-	client.NewConnection("contactform", logger).Serve(handle)
+	cfgPath := util.GetConfigPath(flag.Arg(0))
+	if err := util.LoadModuleSettings("contactform", cfgPath, &settings); err != nil {
+		logger.Fatal("Could not load settings: ", err)
+	}
+	if err := settings.Monsti.LoadSiteSettings(); err != nil {
+		logger.Fatal("Could not load site settings: ", err)
+	}
+
+	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+
+	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
+	renderer.Root = settings.Monsti.GetTemplatesPath()
+
+	provider := service.NewNodeProvider(logger, infoPath)
+	contactform := service.NodeTypeHandler{
+		Name:       "ContactForm",
+		ViewAction: view,
+		EditAction: edit,
+	}
+	provider.AddNodeType(&contactform)
+	if err := provider.Serve(settings.Monsti.GetServicePath(
+		service.Node.String() + "_contactform")); err != nil {
+		panic("Could not setup node provider: " + err.Error())
+	}
 }
