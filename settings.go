@@ -2,10 +2,31 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"strings"
 )
+
+// Site configuration.
+type SiteSettings struct {
+	// Name of the site for internal use.
+	Name string
+	// Title as used in HTML head.
+	Title string
+	// The hosts which should deliver this site.
+	Hosts []string
+	// Name and email address of site owner.
+	//
+	// The owner's address is used as recipient of contact form submissions.
+	Owner struct {
+		Name, Email string
+	}
+	// Key to authenticate session cookies.
+	SessionAuthKey string
+	// Locale used to translate monsti's web interface.
+	Locale string
+}
 
 // MonstiSettings holds common Monsti settings.
 type MonstiSettings struct {
@@ -20,6 +41,10 @@ type MonstiSettings struct {
 		// Runtime data directory
 		Run string
 	}
+	// Sites hosted by this monsti instance.
+	//
+	// Load settings with *MonstiSettings.LoadSiteSettings()
+	Sites map[string]SiteSettings
 }
 
 // GetServicePath returns the path to the given service's socket.
@@ -63,6 +88,33 @@ func (s MonstiSettings) GetStaticsPath() string {
 // GetTemplatesPath returns the path to the global templates directory.
 func (s MonstiSettings) GetTemplatesPath() string {
 	return filepath.Join(s.Directories.Share, "templates")
+}
+
+// LoadSiteSettings loads the configurated sites' settings.
+func (s *MonstiSettings) LoadSiteSettings() error {
+	// Load site specific configuration files
+	sitesPath := filepath.Join(s.Directories.Config, "sites")
+	siteDirs, err := ioutil.ReadDir(sitesPath)
+	if err != nil {
+		return fmt.Errorf("Could not read sites directory: %v", err)
+	}
+	s.Sites = make(map[string]SiteSettings)
+	for _, siteDir := range siteDirs {
+		if !siteDir.IsDir() {
+			continue
+		}
+		siteName := siteDir.Name()
+		sitePath := filepath.Join(sitesPath, siteName)
+		var siteSettings SiteSettings
+		err := ParseYAML(filepath.Join(sitePath, "site.yaml"),
+			&siteSettings)
+		if err != nil {
+			return fmt.Errorf("Could not load settings for site %q: %v",
+				siteName, err)
+		}
+		s.Sites[siteName] = siteSettings
+	}
+	return nil
 }
 
 // LoadModuleSettings loads the given module's configuration.
