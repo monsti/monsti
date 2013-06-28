@@ -40,6 +40,9 @@ type GetNodeDataArgs struct {
 //
 // Returns a nil slice and nil error if the data does not exist.
 func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
 	args := &GetNodeDataArgs{site, path, file}
 	var reply []byte
 	err := s.RPCClient.Call("Data.GetNodeData", args, &reply)
@@ -55,6 +58,9 @@ type WriteNodeDataArgs struct {
 
 // WriteNodeData writes data for some node.
 func (s *DataClient) WriteNodeData(site, path, file, content string) error {
+	if s.Error != nil {
+		return nil
+	}
 	args := &WriteNodeDataArgs{site, path, file, content}
 	if err := s.RPCClient.Call("Data.WriteNodeData", args, new(int)); err != nil {
 		return fmt.Errorf("info: WriteNodeData error:", err)
@@ -69,6 +75,9 @@ type UpdateNodeArgs struct {
 
 // UpdateNode saves changes to given node.
 func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
+	if s.Error != nil {
+		return nil
+	}
 	args := &UpdateNodeArgs{site, node_}
 	if err := s.RPCClient.Call("Data.UpdateNode", args, new(int)); err != nil {
 		return fmt.Errorf("info: UpdateNode error:", err)
@@ -78,6 +87,9 @@ func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 
 // RemoveNode recursively removes the given site's node.
 func (s *DataClient) RemoveNode(site string, node string) error {
+	if s.Error != nil {
+		return nil
+	}
 	args := struct {
 		Site, Node string
 	}{site, node}
