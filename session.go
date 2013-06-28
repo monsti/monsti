@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
 	"github.com/monsti/service"
+	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
@@ -37,7 +38,7 @@ type loginFormData struct {
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site site) {
+	cSession *service.UserSession, site util.SiteSettings) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -83,7 +84,7 @@ func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
 }
 
 // getSession returns a currently active or new session.
-func getSession(r *http.Request, site site) *sessions.Session {
+func getSession(r *http.Request, site util.SiteSettings) *sessions.Session {
 	if len(site.SessionAuthKey) == 0 {
 		panic(`Missing "SessionAuthKey" setting.`)
 	}

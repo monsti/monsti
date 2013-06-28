@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"github.com/monsti/service"
+	"github.com/monsti/util"
 	"github.com/monsti/util/template"
 	htmlT "html/template"
 	"path"
@@ -50,7 +51,7 @@ func splitFirstDir(path string) string {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings *settings, site site, locale string) string {
+	settings *settings, site util.SiteSettings, locale string) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	prinav, err := getNav("/", path.Join("/", firstDir),
 		settings.Monsti.GetSiteNodesPath(site.Name))

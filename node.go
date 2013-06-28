@@ -21,6 +21,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/monsti/form"
 	"github.com/monsti/service"
+	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
@@ -232,7 +233,7 @@ type addFormData struct {
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site site) {
+	cSession *service.UserSession, site util.SiteSettings) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
@@ -295,7 +296,7 @@ type removeFormData struct {
 // Remove handles remove requests.
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	node service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site site) {
+	cSession *service.UserSession, site util.SiteSettings) {
 	G := l10n.UseCatalog(cSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{

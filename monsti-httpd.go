@@ -35,6 +35,13 @@ import (
 	"path/filepath"
 )
 
+// Settings for the application and the sites.
+type settings struct {
+	Monsti util.MonstiSettings
+	// Listen is the host and port to listen for incoming HTTP connections.
+	Listen string
+}
+
 func main() {
 	logger := log.New(os.Stderr, "httpd ", log.LstdFlags)
 
@@ -48,7 +55,7 @@ func main() {
 	if err := util.LoadModuleSettings("httpd", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
-	if err := (&settings).LoadSiteSettings(); err != nil {
+	if err := (&settings).Monsti.LoadSiteSettings(); err != nil {
 		logger.Fatal("Could not load site settings: ", err)
 	}
 
@@ -70,7 +77,7 @@ func main() {
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
 	handler.Hosts = make(map[string]string)
-	for site_title, site := range settings.Sites {
+	for site_title, site := range settings.Monsti.Sites {
 		for _, host := range site.Hosts {
 			handler.Hosts[host] = site_title
 			http.Handle(host+"/site-static/", http.FileServer(http.Dir(

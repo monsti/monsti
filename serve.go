@@ -22,6 +22,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"github.com/monsti/service"
+	"github.com/monsti/util"
 	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
 	"io/ioutil"
@@ -89,7 +90,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		panic("No site found for host " + r.Host)
 	}
-	site := h.Settings.Sites[site_name]
+	site := h.Settings.Monsti.Sites[site_name]
 	site.Name = site_name
 	session := getSession(r, site)
 	defer context.Clear(r)
@@ -125,7 +126,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, action string, session *sessions.Session,
-	cSession *service.UserSession, site site) {
+	cSession *service.UserSession, site util.SiteSettings) {
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 
