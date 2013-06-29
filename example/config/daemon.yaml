@@ -3,4 +3,4 @@
 # Modules to be started.
 # monsti-daemon expects the module binaries to be in $PATH and named
 # monsti-<modulename>, e.g. $PATH/monsti-document
-modules: [document, httpd]
+modules: [document, httpd, data, image, contactform, mail]
