@@ -1,7 +1,7 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 
-MODULES=daemon httpd data document contactform mail
+MODULES=daemon httpd data document contactform mail image
 
 ALOHA_VERSION=0.23.2
 
