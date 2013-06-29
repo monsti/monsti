@@ -1,18 +1,22 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 
-MODULES=daemon document contactform image
+MODULES=daemon httpd data document contactform mail
 
-ALOHA_VERSION=0.23.2
-DAEMON_VERSION=0.5
-DOCUMENT_VERSION=0.2
-CONTACTFORM_VERSION=0.2
-IMAGE_VERSION=0.2
+#ALOHA_VERSION=0.23.2
+#DAEMON_VERSION=0.5
+#DOCUMENT_VERSION=0.2
+#CONTACTFORM_VERSION=0.2
+#IMAGE_VERSION=0.2
+#MAIL_VERSION=0.2
 
-#DAEMON_VERSION=master
-#DOCUMENT_VERSION=master
-#CONTACTFORM_VERSION=master
-#IMAGE_VERSION=master
+DAEMON_VERSION=master
+DOCUMENT_VERSION=master
+CONTACTFORM_VERSION=master
+IMAGE_VERSION=master
+MAIL_VERSION=master
+DATA_VERSION=master
+HTTPD_VERSION=master
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 MODULE_SOURCES=$(MODULES:%=go/src/github.com/monsti/monsti-%)
@@ -25,7 +29,7 @@ monsti: dep-aloha-editor dep-jquery modules
 
 .PHONY: bcrypt
 bcrypt: 
-	$(GO) get github.com/monsti/monsti-daemon/tools/bcrypt
+	$(GO) get github.com/monsti/monsti-login/bcrypt
 
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-% locale/monsti-%.pot templates/%
@@ -34,9 +38,21 @@ module/daemon.tar.gz:
 	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-daemon/archive/$(DAEMON_VERSION).tar.gz -O module/daemon.tar.gz
 
+module/data.tar.gz:
+	mkdir -p module/
+	wget -nv https://github.com/monsti/monsti-data/archive/$(DATA_VERSION).tar.gz -O module/data.tar.gz
+
+module/httpd.tar.gz:
+	mkdir -p module/
+	wget -nv https://github.com/monsti/monsti-httpd/archive/$(HTTPD_VERSION).tar.gz -O module/httpd.tar.gz
+
 module/image.tar.gz:
 	mkdir -p module/
 	wget -nv https://github.com/monsti/monsti-image/archive/$(IMAGE_VERSION).tar.gz -O module/image.tar.gz
+
+module/mail.tar.gz:
+	mkdir -p module/
+	wget -nv https://github.com/monsti/monsti-mail/archive/$(IMAGE_VERSION).tar.gz -O module/mail.tar.gz
 
 module/document.tar.gz:
 	mkdir -p module/
