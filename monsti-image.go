@@ -113,7 +113,7 @@ func main() {
 
 	infoPath := settings.Monsti.GetServicePath(service.Info.String())
 
-	l10n.Setup("monsti", settings.Monsti.GetLocalePath())
+	l10n.Setup("monsti-image", settings.Monsti.GetLocalePath())
 	renderer.Root = settings.Monsti.GetTemplatesPath()
 
 	provider := service.NewNodeProvider(logger, infoPath)
