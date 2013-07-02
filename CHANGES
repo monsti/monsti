@@ -1,4 +1,6 @@
-* 0.2 - released 2013/3/21
+* 0.3.0 - released 2013/07/02
+  - Use new module architecture.
+* 0.2 - released 2013/03/21
   - Expect configuration file relative directory specifications in config files. 
-* 0.1 - released 2013/2/12
+* 0.1 - released 2013/02/12
   - Initial release
