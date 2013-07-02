@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-12-14 14:27+0100\n"
+"POT-Creation-Date: 2013-07-02 15:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,14 +17,14 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Standardeingabe:47
+#: Standardeingabe:55
 msgid "Title"
 msgstr ""
 
-#: Standardeingabe:47 Standardeingabe:48
+#: Standardeingabe:55 Standardeingabe:56
 msgid "Required."
 msgstr ""
 
-#: Standardeingabe:48
+#: Standardeingabe:56
 msgid "Body"
 msgstr ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-12-14 14:22+0100\n"
+"POT-Creation-Date: 2013-07-02 15:03+0200\n"
 "PO-Revision-Date: 2012-12-14 14:07+0100\n"
 "Last-Translator: Christian Neumann <cneumann@datenkarussell.de>\n"
 "Language-Team: German\n"
@@ -17,14 +17,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: Standardeingabe:48
+#: Standardeingabe:56
 msgid "Body"
 msgstr "Inhalt"
 
-#: Standardeingabe:47 Standardeingabe:48
+#: Standardeingabe:55 Standardeingabe:56
 msgid "Required."
 msgstr "Benötigte Angabe."
 
-#: Standardeingabe:47
+#: Standardeingabe:55
 msgid "Title"
 msgstr "Titel"
