@@ -1,0 +1,95 @@
+# German translation for monsti-httpd.
+# Copyright (C) 2013 Christian Neumann <cneumann@datenkarussell.de>
+# This file is distributed under the same license as the monsti-httpd package.
+# Christian Neumann <cneumann@datenkarussell.de>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-02 13:29+0200\n"
+"PO-Revision-Date: 2013-07-02 13:29+0200\n"
+"Last-Translator: Christian Neumann <cneumann@datenkarussell.de>\n"
+"Language-Team: DE <cneumann@datenkarussell.de>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: Standardeingabe:14
+msgid "Abort"
+msgstr "Abbrechen"
+
+#: Standardeingabe:403
+msgid "Add content"
+msgstr "Inhalt hinzufügen"
+
+#: Standardeingabe:419
+msgid "Confirm"
+msgstr "Bestätigen"
+
+#: Standardeingabe:370
+msgid "Contains\tinvalid characters."
+msgstr "Enthält ungültige Zeichen"
+
+#: Standardeingabe:366
+msgid "Content type"
+msgstr "Inhaltstyp"
+
+#: Standardeingabe:999
+#, c-format
+msgid "Edit \"%s\""
+msgstr "Bearbeite \"%s\""
+
+#: Standardeingabe:1191 Standardeingabe:1217
+msgid "Login"
+msgstr "Anmelden"
+
+#: Standardeingabe:1218
+msgid "Login with your site account."
+msgstr "Melden Sie sich mit Ihrem Benutzerkonto an."
+
+#: Standardeingabe:367
+msgid "Name"
+msgstr "Name"
+
+#: Standardeingabe:1193
+msgid "Password"
+msgstr "Passwort"
+
+#: Standardeingabe:13
+msgid "Proceed"
+msgstr "Fortfahren"
+
+#: Standardeingabe:445
+msgid "Remove \"%v\""
+msgstr "Entferne \"%v\""
+
+#: Standardeingabe:366 Standardeingabe:369 Standardeingabe:371
+#: Standardeingabe:419 Standardeingabe:1191 Standardeingabe:1193
+msgid "Required."
+msgstr "Benötigt."
+
+#: Standardeingabe:368
+msgid "The name as it should appear in the URL."
+msgstr "Der Name wie er in der URL erscheinen soll."
+
+#: Standardeingabe:9
+msgid "The removed content will be lost, so be careful!"
+msgstr ""
+"Die gel̈́öschten Inhalte werden nicht mehr verfügbar sein, also seien Sie "
+"vorsichtig!"
+
+#: Standardeingabe:371
+msgid "Title"
+msgstr "Titel"
+
+#: Standardeingabe:8
+msgid "WARNING: You are about to remove this content and all content below."
+msgstr ""
+"ACHTUNG: Sie stehen kurz davor dieses Inhalt und alle untergeordneten "
+"Inhalte zu löschen."
+
+#: Standardeingabe:1208
+msgid "Wrong login or password."
+msgstr "Falscher Benutzername oder Passwort."
