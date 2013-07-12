@@ -1,7 +1,0 @@
-{{if .Page.ShowSecondaryNav}}
-<div id="secondary-nav">
-  <ul>
-    {{range .Page.SecondaryNav}}<li class="{{if .Child}}child{{end}} {{if .Active}}active{{end}}"><a href="{{.Target}}"><span>{{.Name}}</span></a></li>{{end}}
-  </ul>
-</div>
-{{end}}
