@@ -1,5 +1,8 @@
 GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
+#GO_COMMON_OPTS=-race
+GO_GET=$(GO) get $(GO_COMMON_OPTS)
+GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
 
@@ -32,7 +35,7 @@ monsti: dep-aloha-editor dep-jquery modules
 
 .PHONY: bcrypt
 bcrypt: 
-	$(GO) get github.com/monsti/monsti-login/bcrypt
+	$(GO_GET) github.com/monsti/monsti-login/bcrypt
 
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-% locale/monsti-%.pot templates/%
@@ -89,17 +92,17 @@ $(MODULE_LOCALES): locale/monsti-%.pot: module/%
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
 $(MODULE_PROGRAMS): go/bin/monsti-%: go/src/github.com/monsti/monsti-%
-	$(GO) get github.com/monsti/monsti-$*
+	$(GO_GET) github.com/monsti/monsti-$*
 
 .PHONY: tests
 tests: $(MODULES:%=test-module-%) monsti-daemon/test-worker util/test-template util/test-testing\
 	util/test-l10n rpc/test-client
 
 test-module-%:
-	$(GO) test github.com/monsti/monsti-$*
+	$(GO_TEST) github.com/monsti/monsti-$*
 
 test-%:
-	$(GO) test github.com/monsti/$*
+	$(GO_TEST) github.com/monsti/$*
 
 .PHONY: clean
 clean: clean-templates
