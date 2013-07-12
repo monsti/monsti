@@ -73,8 +73,14 @@ $(MODULE_SOURCES): go/src/github.com/monsti/monsti-%: module/%
 	mkdir -p go/src/github.com/monsti/
 	ln -sf ../../../../module/$* go/src/github.com/monsti/monsti-$*
 
-$(MODULE_TEMPLATES): templates/%: module/%
+$(MODULE_TEMPLATES):: templates/%: module/%
 	ln -sf ../module/$*/templates templates/$*
+
+templates/httpd:: module/httpd
+	for i in $(wildcard templates/httpd/*); \
+	do \
+		ln -sf httpd/`basename $${i}` templates/`basename $${i}`; \
+	done; \
 
 $(MODULE_LOCALES): locale/monsti-%.pot: module/%
 	mkdir -p locale/
