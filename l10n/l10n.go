@@ -17,6 +17,8 @@
 /*
  * This package provides localization services for monsti and monsti
  * content type workers.
+ *
+ * This package is deprecated. Use monsti/gettext instead.
  */
 package l10n
 
