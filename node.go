@@ -22,7 +22,7 @@ import (
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
-	"gitorious.org/monsti/gettext"
+	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/util/template"
 	"io/ioutil"
 	"launchpad.net/goyaml"

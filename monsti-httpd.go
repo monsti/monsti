@@ -28,7 +28,7 @@ import (
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	"gitorious.org/monsti/gettext"
+	"pkg.monsti.org/gettext"
 	"log"
 	"net/http"
 	"os"
