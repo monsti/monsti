@@ -1,6 +1,11 @@
 Installation instructions
 =========================
 
+Get the latest release of the main package (monsti-cms):
+https://gitorious.org/monsti/monsti-cms/trees/0.5
+
+Unpackage it and follow the instructions:
+
 1) Install dependencies:
 
 - make
@@ -12,13 +17,9 @@ Installation instructions
 
 $ make
 
-To run tests:
+(Optional) To run tests:
 
 $ make tests
-
-To clean up:
-
-$ make clean
 
 3) Run:
 
