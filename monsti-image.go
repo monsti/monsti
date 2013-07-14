@@ -24,11 +24,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/monsti/form"
-	"github.com/monsti/service"
-	"github.com/monsti/util"
-	"github.com/monsti/util/l10n"
-	"github.com/monsti/util/template"
+	"pkg.monsti.org/form"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
+	"pkg.monsti.org/util/l10n"
+	"pkg.monsti.org/util/template"
 	"log"
 	"os"
 )
