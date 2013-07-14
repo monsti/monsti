@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/monsti/service"
+	"pkg.monsti.org/service"
 	"sync"
 )
 
