@@ -17,9 +17,9 @@
 package main
 
 import (
-	"github.com/monsti/rpc/client"
-	"github.com/monsti/util/template"
-	utesting "github.com/monsti/util/testing"
+	"pkg.monsti.org/rpc/client"
+	"pkg.monsti.org/util/template"
+	utesting "pkg.monsti.org/util/testing"
 	"path/filepath"
 	"strings"
 	"testing"

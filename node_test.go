@@ -17,7 +17,7 @@
 package main
 
 import (
-	utesting "github.com/monsti/util/testing"
+	utesting "pkg.monsti.org/util/testing"
 	"os"
 	"path/filepath"
 	"reflect"

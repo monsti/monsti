@@ -18,7 +18,7 @@ package main
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
-	"github.com/monsti/rpc/client"
+	"pkg.monsti.org/rpc/client"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"

@@ -18,9 +18,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/monsti/service"
-	"github.com/monsti/util"
-	"github.com/monsti/util/template"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
+	"pkg.monsti.org/util/template"
 	htmlT "html/template"
 	"path"
 	"strings"

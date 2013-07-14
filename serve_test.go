@@ -18,7 +18,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/monsti/rpc/client"
+	"pkg.monsti.org/rpc/client"
 	"net/http"
 	"testing"
 )
