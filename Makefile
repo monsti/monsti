@@ -29,7 +29,7 @@ MODULE_SOURCES=$(MODULES:%=go/src/pkg.monsti.org/monsti-%)
 
 all: monsti bcrypt
 
-monsti: dep-aloha-editor dep-jquery modules
+monsti: dep-aloha-editor dep-jquery modules templates/master.html
 
 .PHONY: bcrypt
 bcrypt: 
@@ -75,16 +75,15 @@ module/%: module/%.tar.gz
 	mkdir -p module/$*/templates/
 	ln -sf ../module/$*/templates templates/$*
 
-
-$(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: module/%
-	mkdir -p go/src/pkg.monsti.org
-	ln -sf ../../../module/$* go/src/pkg.monsti.org/monsti-$*
-
-templates/httpd:: module/httpd
+templates/master.html: templates/httpd/master.html
 	for i in $(wildcard templates/httpd/*); \
 	do \
 		ln -sf httpd/`basename $${i}` templates/`basename $${i}`; \
 	done; \
+
+$(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: module/%
+	mkdir -p go/src/pkg.monsti.org
+	ln -sf ../../../module/$* go/src/pkg.monsti.org/monsti-$*
 
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
