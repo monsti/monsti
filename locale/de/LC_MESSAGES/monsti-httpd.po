@@ -42,7 +42,7 @@ msgstr "Inhaltstyp"
 
 #: standard input:90
 msgid "Edit"
-msgstr "Bearbeite \"%s\""
+msgstr "Bearbeiten"
 
 #: standard input:1146
 #, c-format
@@ -75,7 +75,7 @@ msgstr "Fortfahren"
 
 #: standard input:96
 msgid "Remove"
-msgstr "Entferne \"%v\""
+msgstr "Entfernen"
 
 #: standard input:592
 msgid "Remove \"%v\""
