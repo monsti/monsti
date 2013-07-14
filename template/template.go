@@ -22,7 +22,7 @@ package template
 
 import (
 	"bytes"
-	"github.com/monsti/util/l10n"
+	"github.com/monsti/gettext"
 	"html/template"
 	"io/ioutil"
 	"path"
@@ -94,10 +94,14 @@ func getIncludes(roots []string, name string) (includes []string) {
 func (r Renderer) Render(name string, context interface{},
 	locale string, siteTemplates string) string {
 	tmpl := template.New(name)
-	G := l10n.UseCatalog(locale)
+	G, GN, GD, GDN := gettext.DefaultLocales.Use("", locale)
 	funcs := template.FuncMap{
 		"pathJoin": path.Join,
-		"G":        G}
+		"G":        G,
+		"GN":        GN,
+		"GD":        GD,
+		"GDN":        GDN,
+	}
 	tmpl.Funcs(funcs)
 	parse(name, tmpl, r.Root, siteTemplates)
 	for _, v := range getIncludes([]string{r.Root, siteTemplates}, name) {
