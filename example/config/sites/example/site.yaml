@@ -1,6 +1,6 @@
 title: "Monsti CMS Example Site"
 hosts: ["localhost:8080"]
-locale: de
+#locale: de
 # Name and email address of site owner.
 #
 # The owner's address is used as recipient of contact form submissions.
