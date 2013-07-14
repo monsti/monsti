@@ -20,7 +20,7 @@ package service
 
 import (
 	"github.com/chrneumann/mimemail"
-	"github.com/monsti/rpc/types"
+	"pkg.monsti.org/rpc/types"
 	"io"
 	"log"
 	"net/rpc"
