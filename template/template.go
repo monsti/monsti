@@ -22,7 +22,7 @@ package template
 
 import (
 	"bytes"
-	"github.com/monsti/gettext"
+	"pkg.monsti.org/gettext"
 	"html/template"
 	"io/ioutil"
 	"path"

@@ -17,7 +17,7 @@
 package util
 
 import (
-	mtest "github.com/monsti/util/testing"
+	mtest "pkg.monsti.org/util/testing"
 	"path/filepath"
 	"testing"
 )
