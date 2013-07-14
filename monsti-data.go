@@ -24,8 +24,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/monsti/service"
-	"github.com/monsti/util"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"log"
