@@ -23,8 +23,8 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
-	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
+	"gitorious.org/monsti/gettext"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -182,7 +182,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		panic(fmt.Sprintf("Could not request node: %v", err))
 	}
 
-	G := l10n.UseCatalog(cSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	if len(res.Body) == 0 && len(res.Redirect) == 0 {
 		panic("Got empty response.")
 	}

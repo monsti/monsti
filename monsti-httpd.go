@@ -27,8 +27,8 @@ import (
 	"flag"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
-	"github.com/monsti/util/l10n"
 	"github.com/monsti/util/template"
+	"gitorious.org/monsti/gettext"
 	"log"
 	"net/http"
 	"os"
@@ -59,8 +59,8 @@ func main() {
 		logger.Fatal("Could not load site settings: ", err)
 	}
 
-	l10n.DefaultSettings.Domain = "monsti-httpd"
-	l10n.DefaultSettings.Directory = settings.Monsti.GetLocalePath()
+	gettext.DefaultLocales.Domain = "monsti-httpd"
+	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
 
 	// Connect to INFO service
 	info, err := service.NewInfoConnection(

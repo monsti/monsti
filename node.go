@@ -22,7 +22,7 @@ import (
 	"github.com/monsti/form"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
-	"github.com/monsti/util/l10n"
+	"gitorious.org/monsti/gettext"
 	"github.com/monsti/util/template"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -234,7 +234,7 @@ type addFormData struct {
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, session *sessions.Session,
 	cSession *service.UserSession, site util.SiteSettings) {
-	G := l10n.UseCatalog(cSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
 	nodeTypes, err := h.Info.GetAddableNodeTypes(site.Name, reqnode.Type)
@@ -297,7 +297,7 @@ type removeFormData struct {
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	node service.NodeInfo, session *sessions.Session,
 	cSession *service.UserSession, site util.SiteSettings) {
-	G := l10n.UseCatalog(cSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),

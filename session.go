@@ -23,7 +23,7 @@ import (
 	"github.com/monsti/form"
 	"github.com/monsti/service"
 	"github.com/monsti/util"
-	"github.com/monsti/util/l10n"
+	"gitorious.org/monsti/gettext"
 	"github.com/monsti/util/template"
 	"io/ioutil"
 	"launchpad.net/goyaml"
@@ -39,7 +39,7 @@ type loginFormData struct {
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 	reqnode service.NodeInfo, session *sessions.Session,
 	cSession *service.UserSession, site util.SiteSettings) {
-	G := l10n.UseCatalog(cSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
