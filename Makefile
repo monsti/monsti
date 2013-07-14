@@ -26,8 +26,6 @@ HTTPD_VERSION=master
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 MODULE_SOURCES=$(MODULES:%=go/src/github.com/monsti/monsti-%)
-MODULE_TEMPLATES=$(MODULES:%=templates/%)
-MODULE_LOCALES=$(MODULES:%=locale/monsti-%.pot)
 
 all: monsti bcrypt
 
@@ -38,7 +36,7 @@ bcrypt:
 	$(GO_GET) github.com/monsti/monsti-login/bcrypt
 
 modules: $(MODULES)
-$(MODULES): %: go/bin/monsti-% locale/monsti-%.pot templates/%
+$(MODULES): %: go/bin/monsti-%
 
 module/daemon.tar.gz:
 	mkdir -p module/
@@ -70,24 +68,22 @@ module/contactform.tar.gz:
 
 module/%: module/%.tar.gz
 	cd module; tar xf $*.tar.gz && mv monsti-$*-* $*
+	mkdir -p locale/
+	mkdir -p module/$*/locale/
+	cp -Rn module/$*/locale .
+	mkdir -p module/$*/templates/
+	ln -sf ../module/$*/templates templates/$*
 
 
 $(MODULE_SOURCES): go/src/github.com/monsti/monsti-%: module/%
 	mkdir -p go/src/github.com/monsti/
 	ln -sf ../../../../module/$* go/src/github.com/monsti/monsti-$*
 
-$(MODULE_TEMPLATES):: templates/%: module/%
-	ln -sf ../module/$*/templates templates/$*
-
 templates/httpd:: module/httpd
 	for i in $(wildcard templates/httpd/*); \
 	do \
 		ln -sf httpd/`basename $${i}` templates/`basename $${i}`; \
 	done; \
-
-$(MODULE_LOCALES): locale/monsti-%.pot: module/%
-	mkdir -p locale/
-	cp -Rn module/$*/locale .
 
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
