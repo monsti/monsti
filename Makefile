@@ -56,7 +56,7 @@ module/image.tar.gz:
 
 module/mail.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-mail/archive-tarball/$(IMAGE_VERSION) -O module/mail.tar.gz
+	wget -nv https://gitorious.org/monsti/monsti-mail/archive-tarball/$(MAIL_VERSION) -O module/mail.tar.gz
 
 module/document.tar.gz:
 	mkdir -p module/
