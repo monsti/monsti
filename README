@@ -57,10 +57,7 @@ look like this ('/' is the root of the site's data directory):
 Project
 -------
 
-http://www.monsti.org
-
-Development happens at
-https://github.com/monsti
-
-Contact the author at
-cneumann@datenkarussell.de
+Website: http://www.monsti.org
+Code: http://www.gitorious.org/monsti
+Bugs: http://bugs.monsti.org
+Mailing lists: http://lists.monsti.org
