@@ -8,28 +8,20 @@ MODULES=daemon httpd data document contactform mail image
 
 ALOHA_VERSION=0.23.2
 
-#DAEMON_VERSION=0.6.1
-#DOCUMENT_VERSION=0.3.1
-#CONTACTFORM_VERSION=0.3.1
-#IMAGE_VERSION=0.3.1
-#MAIL_VERSION=0.1.1
-#DATA_VERSION=0.1.1
-#HTTPD_VERSION=0.1.2
-
-DAEMON_VERSION=master
-DOCUMENT_VERSION=master
-CONTACTFORM_VERSION=master
-IMAGE_VERSION=master
-MAIL_VERSION=master
-DATA_VERSION=master
-HTTPD_VERSION=master
+DAEMON_VERSION=0.6.1
+DOCUMENT_VERSION=0.3.1
+CONTACTFORM_VERSION=0.3.1
+IMAGE_VERSION=0.3.1
+MAIL_VERSION=0.1.1
+DATA_VERSION=0.1.1
+HTTPD_VERSION=0.1.2
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 MODULE_SOURCES=$(MODULES:%=go/src/pkg.monsti.org/monsti-%)
 
 all: monsti bcrypt
 
-monsti: dep-aloha-editor dep-jquery modules templates/master.html
+monsti: modules templates/master.html dep-aloha-editor dep-jquery
 
 .PHONY: bcrypt
 bcrypt: 
@@ -40,31 +32,31 @@ $(MODULES): %: go/bin/monsti-%
 
 module/daemon.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-daemon/archive-tarball/$(DAEMON_VERSION) -O module/daemon.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-daemon/monsti-daemon-$(DAEMON_VERSION).tar.gz -O module/daemon.tar.gz
 
 module/data.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-data/archive-tarball/$(DATA_VERSION) -O module/data.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-data/monsti-data-$(DATA_VERSION).tar.gz -O module/data.tar.gz
 
 module/httpd.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-httpd/archive-tarball/$(HTTPD_VERSION) -O module/httpd.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-httpd/monsti-httpd-$(HTTPD_VERSION).tar.gz -O module/httpd.tar.gz
 
 module/image.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-image/archive-tarball/$(IMAGE_VERSION) -O module/image.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-image/monsti-image-$(IMAGE_VERSION).tar.gz -O module/image.tar.gz
 
 module/mail.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-mail/archive-tarball/$(MAIL_VERSION) -O module/mail.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-mail/monsti-mail-$(MAIL_VERSION).tar.gz -O module/mail.tar.gz
 
 module/document.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-document/archive-tarball/$(DOCUMENT_VERSION) -O module/document.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-document/monsti-document-$(DOCUMENT_VERSION).tar.gz -O module/document.tar.gz
 
 module/contactform.tar.gz:
 	mkdir -p module/
-	wget -nv https://gitorious.org/monsti/monsti-contactform/archive-tarball/$(CONTACTFORM_VERSION) -O module/contactform.tar.gz
+	wget -nv http://pkg.monsti.org/monsti-contactform/monsti-contactform-$(CONTACTFORM_VERSION).tar.gz -O module/contactform.tar.gz
 
 module/%: module/%.tar.gz
 	cd module; tar xf $*.tar.gz && mv monsti-monsti-$* $*
