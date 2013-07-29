@@ -24,13 +24,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
 	"io/ioutil"
 	"launchpad.net/goyaml"
 	"log"
 	"os"
 	"path/filepath"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
 	"sync"
 )
 
@@ -38,6 +38,52 @@ import (
 type DataService struct {
 	Info     *service.InfoClient
 	Settings settings
+}
+
+// getNode looks up the given node.
+// If no such node exists, return nil.
+func getNode(root, path string) (node *service.NodeInfo, err error) {
+	node_path := filepath.Join(root, path[1:], "node.yaml")
+	content, err := ioutil.ReadFile(node_path)
+	if err != nil {
+		return
+	}
+	if err = goyaml.Unmarshal(content, &node); err != nil {
+		node = nil
+		return
+	}
+	node.Path = path
+	return
+}
+
+// getChildren looks up child nodes of the given node.
+func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
+	files, err := ioutil.ReadDir(filepath.Join(root, path))
+	if err != nil {
+		return
+	}
+	for _, file := range files {
+		if !file.IsDir() {
+			continue
+		}
+		node, _ := getNode(root, filepath.Join(path, file.Name()))
+		if node != nil {
+			nodes = append(nodes, *node)
+		}
+	}
+	return
+}
+
+type GetChildrenArgs struct {
+	Site, Node string
+}
+
+func (i *DataService) GetChildren(args GetChildrenArgs,
+	reply *[]service.NodeInfo) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	ret, err := getChildren(site, args.Node[1:])
+	*reply = ret
+	return err
 }
 
 func (i *DataService) GetNodeData(args *service.GetNodeDataArgs,
