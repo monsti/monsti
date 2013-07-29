@@ -32,6 +32,35 @@ func NewDataClient() *DataClient {
 	return &service_
 }
 
+// GetNode returns the given node or nil if it does not exist.
+func (s *DataClient) GetNode(site, path string) (NodeInfo, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	args := struct{ Site, Path string }{site, path}
+	var reply []NodeInfo
+	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("data: GetChildren error:", err)
+	}
+	return reply, nil
+}
+
+
+// GetChildren returns the children of the given node.
+func (s *DataClient) GetChildren(site, path string) ([]NodeInfo, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	args := struct{ Site, Path string }{site, path}
+	var reply []NodeInfo
+	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("data: GetChildren error:", err)
+	}
+	return reply, nil
+}
+
 type GetNodeDataArgs struct {
 	Site, Path, File string
 }
