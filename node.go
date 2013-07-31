@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"path/filepath"
 	"strings"
 )
 
@@ -61,6 +62,15 @@ func (n NodeInfo) PathToID() string {
 		panic("Can't calculate ID of node with unset path.")
 	}
 	return "node-" + strings.Replace(n.Path, "/", "__", -1)
+}
+
+// Name returns the name of the node.
+func (n NodeInfo) Name() string {
+	base := filepath.Base(n.Path)
+	if base == "." || base == "/" {
+		return ""
+	}
+	return base
 }
 
 // RequestFile stores the path or content of a multipart request's file.
