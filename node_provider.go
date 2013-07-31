@@ -28,7 +28,7 @@ type ActionHandler func(req Request, res *Response, s *Session)
 // NodeTypeHandler handles requests for some node type.
 type NodeTypeHandler struct {
 	Name                   string
-	EditAction, ViewAction ActionHandler
+	EditAction, ViewAction, EmbedAction ActionHandler
 }
 
 // NodeProvider provides Node services for one ore more content types.
@@ -98,7 +98,10 @@ func (i nodeService) Request(req Request,
 	switch req.Action {
 	case "edit":
 		f = i.Provider.types[nodeType].EditAction
-	default:
+	case "embed":
+		f = i.Provider.types[nodeType].EmbedAction
+	}
+	if f == nil {
 		f = i.Provider.types[nodeType].ViewAction
 	}
 	f(req, reply, session)
