@@ -41,7 +41,7 @@ func (s *InfoClient) PublishService(service, path string) error {
 	var reply int
 	err := s.RPCClient.Call("Info.PublishService", args, &reply)
 	if err != nil {
-		return fmt.Errorf("info: Error calling PublishService: %v", err)
+		return fmt.Errorf("service: Error calling PublishService: %v", err)
 	}
 	return nil
 }
@@ -51,12 +51,12 @@ func (s *InfoClient) FindDataService() (*DataClient, error) {
 	var path string
 	err := s.RPCClient.Call("Info.FindDataService", 0, &path)
 	if err != nil {
-		return nil, fmt.Errorf("info: Error calling FindDataService: %v", err)
+		return nil, fmt.Errorf("service: Error calling FindDataService: %v", err)
 	}
 	service_ := NewDataClient()
 	if err := service_.Connect(path); err != nil {
 		return nil,
-			fmt.Errorf("Could not establish connection to data service: %v",
+			fmt.Errorf("service: Could not establish connection to data service: %v",
 				err)
 	}
 	return service_, nil
@@ -67,12 +67,12 @@ func (s *InfoClient) FindMailService() (*MailClient, error) {
 	var path string
 	err := s.RPCClient.Call("Info.FindMailService", 0, &path)
 	if err != nil {
-		return nil, fmt.Errorf("info: Error calling FindMailService: %v", err)
+		return nil, fmt.Errorf("service: Error calling FindMailService: %v", err)
 	}
 	service_ := NewMailClient()
 	if err := service_.Connect(path); err != nil {
 		return nil,
-			fmt.Errorf("Could not establish connection to mail service: %v",
+			fmt.Errorf("service: Could not establish connection to mail service: %v",
 				err)
 	}
 	return service_, nil
@@ -84,12 +84,12 @@ func (s *InfoClient) FindNodeService(nodeType string) (*NodeClient,
 	var path string
 	err := s.RPCClient.Call("Info.FindNodeService", nodeType, &path)
 	if err != nil {
-		return nil, fmt.Errorf("info: Error calling FindNodeService: %v", err)
+		return nil, fmt.Errorf("service: Error calling FindNodeService: %v", err)
 	}
 	service_ := NewNodeClient()
 	if err := service_.Connect(path); err != nil {
 		return nil,
-			fmt.Errorf("Could not establish connection to node service: %v",
+			fmt.Errorf("service: Could not establish connection to node service: %v",
 				err)
 	}
 	return service_, nil
@@ -102,7 +102,7 @@ func (s *InfoClient) GetAddableNodeTypes(site, nodeType string) (types []string,
 	args := struct{ Site, NodeType string }{site, nodeType}
 	err = s.RPCClient.Call("Info.GetAddableNodeTypes", args, &types)
 	if err != nil {
-		err = fmt.Errorf("info: Error calling GetAddableNodeTypes: %v", err)
+		err = fmt.Errorf("service: Error calling GetAddableNodeTypes: %v", err)
 	}
 	return
 }
@@ -114,7 +114,7 @@ func NewInfoConnection(path string) (*InfoClient, error) {
 	var service InfoClient
 	if err := service.Connect(path); err != nil {
 		return nil,
-			fmt.Errorf("Could not establish connection to info service: %v",
+			fmt.Errorf("service: Could not establish connection to info service: %v",
 				err)
 	}
 	return &service, nil

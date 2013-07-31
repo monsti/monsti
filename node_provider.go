@@ -27,7 +27,7 @@ type ActionHandler func(req Request, res *Response, s *Session)
 
 // NodeTypeHandler handles requests for some node type.
 type NodeTypeHandler struct {
-	Name                   string
+	Name                                string
 	EditAction, ViewAction, EmbedAction ActionHandler
 }
 

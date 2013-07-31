@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
-
-/* 
+/*
  The service library allows to access other modules' services over RCP using a
  UNIX domain socket connection.
 
  The session pool allows to conveniently reuse RCP connections. A connection is
  represented by a session object. After creating a session pool, you can retrieve
  a session object with the New method. Don't forget to return the session with
- the Free method. 
+ the Free method.
 */
 package service

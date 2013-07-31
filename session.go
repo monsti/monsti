@@ -49,7 +49,7 @@ func (s *SessionPool) New() (*Session, error) {
 	default:
 		info, err := NewInfoConnection(s.InfoPath)
 		if err != nil {
-			return nil, fmt.Errorf("Could not create Info client: %v", err)
+			return nil, fmt.Errorf("service: Could not create Info client: %v", err)
 		}
 		session.info = info
 	}

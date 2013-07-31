@@ -34,18 +34,18 @@ type Provider struct {
 func (p *Provider) Serve(path string, service string, rcvr interface{}) error {
 	listener, err := net.Listen("unix", path)
 	if err != nil {
-		return fmt.Errorf("Could not listen on unix domain socket %q: %v",
+		return fmt.Errorf("service: Could not listen on unix domain socket %q: %v",
 			path, err)
 	}
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			return fmt.Errorf("Could not accept connection on %q: %v",
+			return fmt.Errorf("service: Could not accept connection on %q: %v",
 				path, err)
 		}
 		server := rpc.NewServer()
 		if err = server.RegisterName(service, rcvr); err != nil {
-			return fmt.Errorf("Could not register RPC methods: %v",
+			return fmt.Errorf("service: Could not register RPC methods: %v",
 				err.Error())
 		}
 		go server.ServeConn(conn)

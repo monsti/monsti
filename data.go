@@ -41,7 +41,7 @@ func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
 	var reply *NodeInfo
 	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("data: GetChildren error:", err)
+		return nil, fmt.Errorf("service: GetChildren error:", err)
 	}
 	return reply, nil
 }
@@ -55,7 +55,7 @@ func (s *DataClient) GetChildren(site, path string) ([]NodeInfo, error) {
 	var reply []NodeInfo
 	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("data: GetChildren error:", err)
+		return nil, fmt.Errorf("service: GetChildren error:", err)
 	}
 	return reply, nil
 }
@@ -75,7 +75,7 @@ func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
 	var reply []byte
 	err := s.RPCClient.Call("Data.GetNodeData", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("info: GetNodeData error:", err)
+		return nil, fmt.Errorf("service: GetNodeData error:", err)
 	}
 	return reply, nil
 }
@@ -91,7 +91,7 @@ func (s *DataClient) WriteNodeData(site, path, file, content string) error {
 	}
 	args := &WriteNodeDataArgs{site, path, file, content}
 	if err := s.RPCClient.Call("Data.WriteNodeData", args, new(int)); err != nil {
-		return fmt.Errorf("info: WriteNodeData error:", err)
+		return fmt.Errorf("service: WriteNodeData error:", err)
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	}
 	args := &UpdateNodeArgs{site, node_}
 	if err := s.RPCClient.Call("Data.UpdateNode", args, new(int)); err != nil {
-		return fmt.Errorf("info: UpdateNode error:", err)
+		return fmt.Errorf("service: UpdateNode error:", err)
 	}
 	return nil
 }
@@ -122,7 +122,7 @@ func (s *DataClient) RemoveNode(site string, node string) error {
 		Site, Node string
 	}{site, node}
 	if err := s.RPCClient.Call("Data.RemoveNode", args, new(int)); err != nil {
-		return fmt.Errorf("info: RemoveNode error:", err)
+		return fmt.Errorf("service: RemoveNode error:", err)
 	}
 	return nil
 }
