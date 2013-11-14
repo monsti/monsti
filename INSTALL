@@ -10,7 +10,7 @@ Unpackage it and follow the instructions:
 
 - make
 - C compiler
-- Git (to fetch Go packages)
+- Git, Bazaar, Mercurial (to fetch Go packages)
 - Go 1.1 compiler and tools
 
 2) Build:
