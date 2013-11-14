@@ -11,7 +11,7 @@ Unpackage it and follow the instructions:
 - make
 - C compiler
 - Git (to fetch Go packages)
-- Go compiler and tools
+- Go 1.1 compiler and tools
 
 2) Build:
 
