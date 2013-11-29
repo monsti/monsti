@@ -6,6 +6,9 @@ GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
 
+MONSTI_VERSION=0.6.1
+DIST_PATH=dist/monsti-$(MONSTI_VERSION)
+
 ALOHA_VERSION=0.23.2
 
 DAEMON_VERSION=0.6.1
@@ -77,6 +80,19 @@ $(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: module/%
 	mkdir -p go/src/pkg.monsti.org
 	ln -sf ../../../module/$* go/src/pkg.monsti.org/monsti-$*
 
+dist: monsti bcrypt
+	mkdir -p $(DIST_PATH)/bin
+	cp go/bin/* $(DIST_PATH)/bin
+	mkdir -p $(DIST_PATH)/share
+	cp -R locale static templates $(DIST_PATH)/share
+	mkdir -p $(DIST_PATH)/doc/examples
+	cp CHANGES COPYING LICENSE README $(DIST_PATH)/doc
+	cp -R example/config/* example/data example/start.sh $(DIST_PATH)/doc/examples
+	mkdir -p $(DIST_PATH)/etc
+	mkdir -p $(DIST_PATH)/run
+	mkdir -p $(DIST_PATH)/data
+	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
+
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
 $(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti-%
@@ -98,6 +114,7 @@ clean: clean-templates
 	rm static/aloha/ -R
 	rm module/ -Rf
 	rm locale/ -Rf
+	rm dist/ -Rf
 
 clean-templates:
 	# FIXME rm templates/ -Rf
