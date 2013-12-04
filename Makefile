@@ -68,13 +68,14 @@ module/%: module/%.tar.gz
 	cp -Rn module/$*/locale .
 	mkdir -p templates/
 	mkdir -p module/$*/templates/
-	ln -sf ../module/$*/templates templates/$*
+	ln -nsf ../module/$*/templates templates/$*
 
 templates/master.html: templates/httpd/master.html
 	for i in $(wildcard templates/httpd/*); \
 	do \
-		ln -sf httpd/`basename $${i}` templates/`basename $${i}`; \
+		ln -nsf httpd/`basename $${i}` templates/`basename $${i}`; \
 	done; \
+  rm templates/httpd/templates
 
 $(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: module/%
 	mkdir -p go/src/pkg.monsti.org
@@ -84,7 +85,7 @@ dist: monsti bcrypt
 	mkdir -p $(DIST_PATH)/bin
 	cp go/bin/* $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/share
-	cp -R locale static templates $(DIST_PATH)/share
+	cp -RL locale static templates $(DIST_PATH)/share
 	mkdir -p $(DIST_PATH)/doc/examples
 	cp CHANGES COPYING LICENSE README $(DIST_PATH)/doc
 	cp -R example/config/* example/data example/start.sh $(DIST_PATH)/doc/examples
@@ -109,15 +110,13 @@ test-%:
 	$(GO_TEST) pkg.monsti.org/$*
 
 .PHONY: clean
-clean: clean-templates
+clean:
 	rm go/* -Rf
-	rm static/aloha/ -R
+	rm static/aloha/ -Rf
 	rm module/ -Rf
 	rm locale/ -Rf
 	rm dist/ -Rf
-
-clean-templates:
-	# FIXME rm templates/ -Rf
+	rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
