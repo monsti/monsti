@@ -19,73 +19,17 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/sessions"
-	"pkg.monsti.org/form"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/util/template"
-	"io/ioutil"
-	"launchpad.net/goyaml"
 	"net/http"
 	"path"
 	"path/filepath"
+	"pkg.monsti.org/form"
+	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
+	"pkg.monsti.org/util/template"
 	"sort"
 	"strings"
 )
-
-// getFooter retrieves the footer.
-//
-// root is the path to the data directory
-//
-// Returns an empty string if there is no footer.
-func getFooter(root string) string {
-	path := filepath.Join(root, "footer.html")
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// getBelowHeader retrieves the below header content for the given node.
-//
-// path is the node's path.
-// root is the path to the data directory.
-//
-// Returns an empty string if there is no below header content.
-func getBelowHeader(path, root string) string {
-	file := filepath.Join(root, path, "below_header.html")
-	content, err := ioutil.ReadFile(file)
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-// getSidebar retrieves the sidebar content for the given node.
-//
-// path is the node's path.
-// root is the path to the data directory.
-//
-// It traverses up to the root until it finds a node with defined sidebar
-// content.
-//
-// Returns an empty string if there is no sidebar content.
-func getSidebar(path, root string) string {
-	for {
-		file := filepath.Join(root, path, "sidebar.html")
-		content, err := ioutil.ReadFile(file)
-		if err != nil {
-			if path == filepath.Dir(path) {
-				break
-			}
-			path = filepath.Dir(path)
-			continue
-		}
-		return string(content)
-	}
-	return ""
-}
 
 // navLink represents a link in the navigation.
 type navLink struct {
@@ -115,7 +59,7 @@ func (n *navigation) Swap(i, j int) {
 
 // getShortTitle returns the given node's ShortTitle attribute, or, if the
 // ShortTitle is of zero length, its Title attribute.
-func getShortTitle(node service.NodeInfo) string {
+func getShortTitle(node *service.NodeInfo) string {
 	if len(node.ShortTitle) > 0 {
 		return node.ShortTitle
 	}
@@ -126,65 +70,54 @@ func getShortTitle(node service.NodeInfo) string {
 //
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
-// root is the path of the data directory.
-func getNav(nodePath, active string, root string) (navLinks navigation,
-	err error) {
+func getNav(nodePath, active, site string,
+	s *service.Session) (navLinks navigation, err error) {
 	// Search children
-	children, err := ioutil.ReadDir(filepath.Join(root, nodePath))
+	children, err := s.Data().GetChildren(nodePath, site)
 	if err != nil {
-		return nil, fmt.Errorf("Could not read node directory: %v", err)
+		return nil, fmt.Errorf("Could not get children: %v", err)
 	}
-	anyChild := false
 	childrenNavLinks := navLinks[:]
+	anyChild := false
 	for _, child := range children {
-		if !child.IsDir() {
-			continue
-		}
-		node, err := lookupNode(root, path.Join(nodePath,
-			child.Name()))
-		if err != nil || node.Hide {
+		if child.Hide {
 			continue
 		}
 		anyChild = true
 		childrenNavLinks = append(childrenNavLinks, navLink{
-			Name:   getShortTitle(node),
-			Target: child.Name(), Child: true, Order: node.Order})
+			Name:   getShortTitle(child),
+			Target: child.Name(), Child: true, Order: child.Order})
 	}
 	if !anyChild {
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
 			return nil, nil
 		}
-		return getNav(path.Dir(nodePath), active, root)
+		return getNav(path.Dir(nodePath), active, site, s)
 	}
 	sort.Sort(&childrenNavLinks)
 	siblingsNavLinks := navLinks[:]
 	// Search siblings
 	if nodePath != "/" && path.Dir(nodePath) == "/" {
-		node, err := lookupNode(root, nodePath)
+		node, err := s.Data().GetNode(nodePath, site)
 		if err != nil {
-			return nil, fmt.Errorf("Could not find node: %v", err)
+			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
 			Name:   getShortTitle(node),
 			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
-		siblings, err := ioutil.ReadDir(filepath.Join(root, parent))
+		siblings, err := s.Data().GetChildren(parent, site)
 		if err != nil {
-			return nil, fmt.Errorf("Could not read node directory: %v", err)
+			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
 		for _, sibling := range siblings {
-			if !sibling.IsDir() {
-				continue
-			}
-			node, err := lookupNode(root, path.Join(parent,
-				sibling.Name()))
-			if err != nil || node.Hide {
+			if sibling.Hide {
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
-				Name:   getShortTitle(node),
-				Target: path.Join("..", sibling.Name()), Order: node.Order})
+				Name:   getShortTitle(sibling),
+				Target: path.Join("..", sibling.Name()), Order: sibling.Order})
 		}
 	}
 	sort.Sort(&siblingsNavLinks)
@@ -329,20 +262,4 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		site, cSession.Locale))
-}
-
-// lookupNode look ups a node at the given path.
-// If no such node exists, return nil.
-func lookupNode(root, path string) (service.NodeInfo, error) {
-	node_path := filepath.Join(root, path[1:], "node.yaml")
-	content, err := ioutil.ReadFile(node_path)
-	if err != nil {
-		return service.NodeInfo{}, err
-	}
-	var reqnode service.NodeInfo
-	if err = goyaml.Unmarshal(content, &reqnode); err != nil {
-		return service.NodeInfo{}, err
-	}
-	reqnode.Path = path
-	return reqnode, nil
 }

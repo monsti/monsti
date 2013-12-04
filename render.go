@@ -18,11 +18,11 @@ package main
 
 import (
 	"fmt"
+	htmlT "html/template"
+	"path"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	htmlT "html/template"
-	"path"
 	"strings"
 )
 
@@ -51,10 +51,11 @@ func splitFirstDir(path string) string {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings *settings, site util.SiteSettings, locale string) string {
+	settings *settings, site util.SiteSettings, locale string,
+	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	prinav, err := getNav("/", path.Join("/", firstDir),
-		settings.Monsti.GetSiteNodesPath(site.Name))
+		s, site.Name)
 	prinav.MakeAbsolute(firstDir)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))

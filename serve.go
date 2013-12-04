@@ -21,15 +21,14 @@ import (
 	"fmt"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/util/template"
-	"pkg.monsti.org/gettext"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
+	"pkg.monsti.org/util/template"
 	"runtime/debug"
 	"strings"
 )
@@ -43,7 +42,8 @@ type nodeHandler struct {
 	// Log is the logger used by the node handler.
 	Log *log.Logger
 	// Info is a connection to an INFO service.
-	Info *service.InfoClient
+	Info     *service.InfoClient
+	Sessions *service.SessionPool
 }
 
 // splitAction splits and returns the path and @@action of the given URL.
@@ -76,6 +76,11 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.StatusInternalServerError)
 		}
 	}()
+	s, err := h.Sessions.New()
+	if err != nil {
+		panic(fmt.Errorf("Could not get session: %v", err))
+	}
+	defer h.Sessions.Free(s)
 	nodePath, action := splitAction(r.URL.Path)
 	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
 		newPath, err := url.Parse(nodePath + "/")
@@ -97,8 +102,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cSession := getClientSession(session, h.Settings.Monsti.GetSiteConfigPath(
 		site.Name))
 	cSession.Locale = site.Locale
-	node, err := lookupNode(h.Settings.Monsti.GetSiteNodesPath(site.Name),
-		nodePath)
+	node, err := s.Data().GetNode(nodePath, site.Name)
 	if err != nil {
 		h.Log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)

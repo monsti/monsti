@@ -25,7 +25,6 @@ import (
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/util/template"
-	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
 	"path/filepath"
