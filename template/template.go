@@ -1,5 +1,5 @@
 // This file is part of monsti/util.
-// Copyright 2012 Christian Neumann
+// Copyright 2012-2013 Christian Neumann
 
 // monsti/util is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"fmt"
 )
 
 // Context can be used to define a context for Render.
@@ -45,9 +46,10 @@ type Renderer struct {
 // name is the name of the template (e.g. "blocks/sidebar").
 //
 // Returns a list of templates to be included.
-func getIncludes(roots []string, name string) (includes []string) {
+func getIncludes(roots []string, name string) ([]string, error) {
+	includes := make([]string, 0)
 	if len(name) == 0 || name[0] == filepath.Separator {
-		panic("Invalid template name: " + name)
+		return nil, fmt.Errorf("Invalid template name: %q", name)
 	}
 	duplicateCheck := make(map[string]bool)
 	paths := []string{
@@ -74,7 +76,7 @@ func getIncludes(roots []string, name string) (includes []string) {
 			}
 		}
 	}
-	return
+	return includes, nil
 }
 
 // Render the named template with given context. 
@@ -92,7 +94,7 @@ func getIncludes(roots []string, name string) (includes []string) {
 //
 // Returns the rendered template.
 func (r Renderer) Render(name string, context interface{},
-	locale string, siteTemplates string) string {
+	locale string, siteTemplates string) (string, error) {
 	tmpl := template.New(name)
 	G, GN, GD, GDN := gettext.DefaultLocales.Use("", locale)
 	funcs := template.FuncMap{
@@ -103,15 +105,25 @@ func (r Renderer) Render(name string, context interface{},
 		"GDN":        GDN,
 	}
 	tmpl.Funcs(funcs)
-	parse(name, tmpl, r.Root, siteTemplates)
-	for _, v := range getIncludes([]string{r.Root, siteTemplates}, name) {
-		parse(v, tmpl.New(v), r.Root, siteTemplates)
+	err := parse(name, tmpl, r.Root, siteTemplates)
+	if err != nil {
+		return "", err
+	}
+	includes, err := getIncludes([]string{r.Root, siteTemplates}, name) 
+	if err != nil {
+		return "", err
+	}
+	for _, v := range includes {
+		err := parse(v, tmpl.New(v), r.Root, siteTemplates)
+		if err != nil {
+			return "", err
+		}
 	}
 	out := bytes.Buffer{}
 	if err := tmpl.Execute(&out, context); err != nil {
-		panic("Could not execute template: " + err.Error())
+		return "", fmt.Errorf("Could not execute template: %v", err)
 	}
-	return out.String()
+	return out.String(), nil
 }
 
 // Parse the named template and add to the existing template structure.
@@ -121,25 +133,26 @@ func (r Renderer) Render(name string, context interface{},
 // root is the path to monsti's template
 // siteRoot is the path to the sites' overriden templates.
 func parse(name string, t *template.Template, root string,
-	siteRoot string) {
+	siteRoot string) error {
 	if len(siteRoot) > 0 {
 		path := filepath.Join(siteRoot, name+".html")
 		content, err := ioutil.ReadFile(path)
 		if err == nil {
 			_, err = t.Parse(string(content))
 			if err != nil {
-				panic("Could not parse template: " + err.Error())
+				return fmt.Errorf("Could not parse template: %v", err)
 			}
-			return
+			return nil
 		}
 	}
 	path := filepath.Join(root, name+".html")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("Could not load template: " + err.Error())
+		return fmt.Errorf("Could not load template: %v", err)
 	}
 	_, err = t.Parse(string(content))
 	if err != nil {
-		panic("Could not parse template: " + err.Error())
+		return fmt.Errorf("Could not parse template: %v", err)
 	}
+	return nil
 }
