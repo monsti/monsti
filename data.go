@@ -39,9 +39,9 @@ func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
 	}
 	args := struct{ Site, Path string }{site, path}
 	var reply *NodeInfo
-	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
+	err := s.RPCClient.Call("Data.GetNode", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: GetChildren error:", err)
+		return nil, fmt.Errorf("service: GetNode error: %v", err)
 	}
 	return reply, nil
 }
@@ -55,13 +55,9 @@ func (s *DataClient) GetChildren(site, path string) ([]*NodeInfo, error) {
 	var reply []*NodeInfo
 	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: GetChildren error:", err)
+		return nil, fmt.Errorf("service: GetChildren error: %v", err)
 	}
 	return reply, nil
-}
-
-type GetNodeDataArgs struct {
-	Site, Path, File string
 }
 
 // GetNodeData requests data from some node.
@@ -71,17 +67,16 @@ func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
-	args := &GetNodeDataArgs{site, path, file}
+	type GetNodeDataArgs struct {
+	}
+	args := struct{ Site, Path, File string }{
+		site, path, file}
 	var reply []byte
-	err := s.RPCClient.Call("Data.GetNodeData", args, &reply)
+	err := s.RPCClient.Call("Data.GetNodeData", &args, &reply)
 	if err != nil {
 		return nil, fmt.Errorf("service: GetNodeData error:", err)
 	}
 	return reply, nil
-}
-
-type WriteNodeDataArgs struct {
-	Site, Path, File, Content string
 }
 
 // WriteNodeData writes data for some node.
@@ -89,16 +84,14 @@ func (s *DataClient) WriteNodeData(site, path, file, content string) error {
 	if s.Error != nil {
 		return nil
 	}
-	args := &WriteNodeDataArgs{site, path, file, content}
-	if err := s.RPCClient.Call("Data.WriteNodeData", args, new(int)); err != nil {
-		return fmt.Errorf("service: WriteNodeData error:", err)
+	args := struct {
+		Site, Path, File, Content string
+	}{
+		site, path, file, content}
+	if err := s.RPCClient.Call("Data.WriteNodeData", &args, new(int)); err != nil {
+		return fmt.Errorf("service: WriteNodeData error: %v", err)
 	}
 	return nil
-}
-
-type UpdateNodeArgs struct {
-	Site string
-	Node NodeInfo
 }
 
 // UpdateNode saves changes to given node.
@@ -106,9 +99,13 @@ func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	if s.Error != nil {
 		return nil
 	}
-	args := &UpdateNodeArgs{site, node_}
-	if err := s.RPCClient.Call("Data.UpdateNode", args, new(int)); err != nil {
-		return fmt.Errorf("service: UpdateNode error:", err)
+	args := struct {
+		Site string
+		Node NodeInfo
+	}{
+		site, node_}
+	if err := s.RPCClient.Call("Data.UpdateNode", &args, new(int)); err != nil {
+		return fmt.Errorf("service: UpdateNode error: %v", err)
 	}
 	return nil
 }
@@ -122,7 +119,7 @@ func (s *DataClient) RemoveNode(site string, node string) error {
 		Site, Node string
 	}{site, node}
 	if err := s.RPCClient.Call("Data.RemoveNode", args, new(int)); err != nil {
-		return fmt.Errorf("service: RemoveNode error:", err)
+		return fmt.Errorf("service: RemoveNode error: %v", err)
 	}
 	return nil
 }
