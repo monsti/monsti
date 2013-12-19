@@ -73,7 +73,7 @@ func getShortTitle(node *service.NodeInfo) string {
 func getNav(nodePath, active, site string,
 	s *service.Session) (navLinks navigation, err error) {
 	// Search children
-	children, err := s.Data().GetChildren(nodePath, site)
+	children, err := s.Data().GetChildren(site, nodePath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get children: %v", err)
 	}
@@ -107,7 +107,7 @@ func getNav(nodePath, active, site string,
 			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
-		siblings, err := s.Data().GetChildren(parent, site)
+		siblings, err := s.Data().GetChildren(site, parent)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
@@ -165,8 +165,9 @@ type addFormData struct {
 
 // Add handles add requests.
 func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	reqnode service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings) {
+	reqnode *service.NodeInfo, session *sessions.Session,
+	cSession *service.UserSession, site util.SiteSettings,
+	s *service.Session) {
 	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
@@ -219,7 +220,7 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	env := masterTmplEnv{Node: reqnode, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale))
+		site, cSession.Locale, s))
 }
 
 type removeFormData struct {
@@ -228,8 +229,9 @@ type removeFormData struct {
 
 // Remove handles remove requests.
 func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
-	node service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings) {
+	node *service.NodeInfo, session *sessions.Session,
+	cSession *service.UserSession, site util.SiteSettings,
+	s *service.Session) {
 	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -261,5 +263,5 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale))
+		site, cSession.Locale, s))
 }

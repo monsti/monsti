@@ -24,6 +24,7 @@ import (
 	"testing"
 )
 
+/*
 func TestGetNav(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
 		"/foo/node.yaml": "title: Node Foo\nshorttitle: Foo",
@@ -85,6 +86,7 @@ func TestGetNav(t *testing.T) {
 		}
 	}
 }
+*/
 
 func TestNavigationMakeAbsolute(t *testing.T) {
 	nav := navigation{

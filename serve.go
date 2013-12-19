@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -102,7 +103,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cSession := getClientSession(session, h.Settings.Monsti.GetSiteConfigPath(
 		site.Name))
 	cSession.Locale = site.Locale
-	node, err := s.Data().GetNode(nodePath, site.Name)
+	node, err := s.Data().GetNode(site.Name, nodePath)
 	if err != nil {
 		h.Log.Println("Node not found.")
 		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
@@ -115,28 +116,29 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	switch action {
 	case "login":
-		h.Login(w, r, node, session, cSession, site)
+		h.Login(w, r, node, session, cSession, site, s)
 	case "logout":
 		h.Logout(w, r, node, session)
 	case "add":
-		h.Add(w, r, node, session, cSession, site)
+		h.Add(w, r, node, session, cSession, site, s)
 	case "remove":
-		h.Remove(w, r, node, session, cSession, site)
+		h.Remove(w, r, node, session, cSession, site, s)
 	default:
-		h.RequestNode(w, r, node, action, session, cSession, site)
+		h.RequestNode(w, r, node, action, session, cSession, site,s )
 	}
 }
 
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
-	reqnode service.NodeInfo, action string, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings) {
+	reqnode *service.NodeInfo, action string, session *sessions.Session,
+	cSession *service.UserSession, site util.SiteSettings,
+  s *service.Session) {
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 
 	nodeServ, err := h.Info.FindNodeService(reqnode.Type)
 	if err != nil {
-		panic(fmt.Sprintf("Could not find node service: %v", err))
+		panic(fmt.Sprintf("Could not find node service for %q at %q: %v", reqnode.Type, err))
 	}
 	if err = r.ParseMultipartForm(1024 * 1024); err != nil {
 		panic(fmt.Sprintf("Could not parse form: %v", err))
@@ -144,7 +146,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	req := service.Request{
 		Site:     site.Name,
 		Method:   r.Method,
-		Node:     reqnode,
+		Node:     *reqnode,
 		Query:    r.URL.Query(),
 		Session:  *cSession,
 		Action:   action,
@@ -192,7 +194,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	}
 	if res.Node != nil {
 		oldPath := reqnode.Path
-		reqnode = *res.Node
+		reqnode = res.Node
 		reqnode.Path = oldPath
 	}
 	if len(res.Redirect) > 0 {
@@ -209,7 +211,7 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		content = res.Body
 	} else {
 		content = []byte(renderInMaster(h.Renderer, res.Body, env, h.Settings,
-			site, cSession.Locale))
+			site, cSession.Locale, s))
 	}
 	err = session.Save(r, w)
 	if err != nil {

@@ -35,7 +35,7 @@ const (
 
 // Environment/context for the master template.
 type masterTmplEnv struct {
-	Node               service.NodeInfo
+	Node               *service.NodeInfo
 	Session            *service.UserSession
 	Title, Description string
 	Flags              masterTmplFlags
@@ -54,8 +54,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
-	prinav, err := getNav("/", path.Join("/", firstDir),
-		s, site.Name)
+	prinav, err := getNav("/", path.Join("/", firstDir), site.Name, s)
 	prinav.MakeAbsolute(firstDir)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))
@@ -64,16 +63,12 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
 		secnav, err = getNav(env.Node.Path, env.Node.Path,
-			settings.Monsti.GetSiteNodesPath(site.Name))
+			settings.Monsti.GetSiteNodesPath(site.Name), s)
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	sidebarContent := getSidebar(env.Node.Path,
-		settings.Monsti.GetSiteNodesPath(site.Name))
-	belowHeader := getBelowHeader(env.Node.Path,
-		settings.Monsti.GetSiteNodesPath(site.Name))
 	title := env.Node.Title
 	if env.Title != "" {
 		title = env.Title
@@ -91,11 +86,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"PrimaryNav":      prinav,
 			"SecondaryNav":    secnav,
 			"EditView":        env.Flags&EDIT_VIEW != 0,
-			"ShowBelowHeader": len(belowHeader) > 0 && (env.Flags&EDIT_VIEW == 0),
-			"BelowHeader":     htmlT.HTML(belowHeader),
-			"Footer": htmlT.HTML(getFooter(
-				settings.Monsti.GetSiteNodesPath(site.Name))),
-			"Sidebar":          htmlT.HTML(sidebarContent),
 			"Title":            title,
 			"Description":      description,
 			"Content":          htmlT.HTML(content),

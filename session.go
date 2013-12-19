@@ -20,14 +20,15 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"fmt"
 	"github.com/gorilla/sessions"
-	"pkg.monsti.org/form"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/util/template"
+	"io/ioutil"
 	"launchpad.net/goyaml"
 	"net/http"
 	"path/filepath"
+	"pkg.monsti.org/form"
+	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
+	"pkg.monsti.org/util/template"
 )
 
 type loginFormData struct {
@@ -36,8 +37,9 @@ type loginFormData struct {
 
 // Login handles login requests.
 func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	reqnode service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings) {
+	reqnode *service.NodeInfo, session *sessions.Session,
+	cSession *service.UserSession, site util.SiteSettings,
+	s *service.Session) {
 	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -71,12 +73,12 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale))
+		site, cSession.Locale, s))
 }
 
 // Logout handles logout requests.
 func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
-	reqnode service.NodeInfo, session *sessions.Session) {
+	reqnode *service.NodeInfo, session *sessions.Session) {
 	delete(session.Values, "login")
 	session.Save(r, w)
 	http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)

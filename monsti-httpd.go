@@ -63,8 +63,9 @@ func main() {
 	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
 
 	// Connect to INFO service
-	info, err := service.NewInfoConnection(
-		settings.Monsti.GetServicePath(service.Info.String()))
+	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+	info, err := service.NewInfoConnection(infoPath)
+
 	if err != nil {
 		logger.Fatalf("Could not connect to INFO service: %v", err)
 	}
@@ -73,7 +74,9 @@ func main() {
 		Info:     info,
 		Renderer: template.Renderer{Root: settings.Monsti.GetTemplatesPath()},
 		Settings: &settings,
-		Log:      logger}
+		Log:      logger,
+		Sessions: service.NewSessionPool(1, infoPath),
+	}
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
 	handler.Hosts = make(map[string]string)
