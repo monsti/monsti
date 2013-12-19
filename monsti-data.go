@@ -90,18 +90,20 @@ func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
 }
 
 type GetChildrenArgs struct {
-	Site, Node string
+	Site, Path string
 }
 
 func (i *DataService) GetChildren(args GetChildrenArgs,
 	reply *[]service.NodeInfo) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	ret, err := getChildren(site, args.Node[1:])
+	ret, err := getChildren(site, args.Path[1:])
 	*reply = ret
 	return err
 }
 
-func (i *DataService) GetNodeData(args *service.GetNodeDataArgs,
+type GetNodeDataArgs struct{Site, Path, File string}
+
+func (i *DataService) GetNodeData(args *GetNodeDataArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
@@ -114,7 +116,11 @@ func (i *DataService) GetNodeData(args *service.GetNodeDataArgs,
 	return err
 }
 
-func (i *DataService) WriteNodeData(args *service.WriteNodeDataArgs,
+type WriteNodeDataArgs struct {
+	Site, Path, File, Content string
+}
+
+func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
@@ -122,7 +128,12 @@ func (i *DataService) WriteNodeData(args *service.WriteNodeDataArgs,
 	return err
 }
 
-func (i *DataService) UpdateNode(args *service.UpdateNodeArgs, reply *int) error {
+type UpdateNodeArgs struct {
+	Site string
+	Node service.NodeInfo
+}
+
+func (i *DataService) UpdateNode(args *UpdateNodeArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	return writeNode(args.Node, site)
 }
