@@ -79,9 +79,6 @@ func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
 		return
 	}
 	for _, file := range files {
-		if !file.IsDir() {
-			continue
-		}
 		node, _ := getNode(root, filepath.Join(path, file.Name()))
 		if node != nil {
 			nodes = append(nodes, *node)

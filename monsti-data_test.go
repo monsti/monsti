@@ -16,8 +16,10 @@
 package main
 
 import (
+	"os"
 	"testing"
 
+	"path/filepath"
 	"pkg.monsti.org/service"
 	utesting "pkg.monsti.org/util/testing"
 )
@@ -60,11 +62,15 @@ func TestGetChildren(t *testing.T) {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
+	err = os.Symlink("child2", filepath.Join(root, "/foo/child3"))
+	if err != nil {
+		t.Fatalf("Could not create symlink: %v", err)
+	}
 	tests := []struct {
 		Path     string
 		Children []string
 	}{
-		{"/foo", []string{"/foo/child1", "/foo/child2"}},
+		{"/foo", []string{"/foo/child1", "/foo/child2", "/foo/child3"}},
 		{"/bar", []string{}}}
 	for _, test := range tests {
 		ret, err := getChildren(root, test.Path)
