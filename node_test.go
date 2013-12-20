@@ -17,9 +17,6 @@
 package main
 
 import (
-	utesting "pkg.monsti.org/util/testing"
-	"os"
-	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -101,25 +98,5 @@ func TestNavigationMakeAbsolute(t *testing.T) {
 	if !(reflect.DeepEqual(nav, expected)) {
 		t.Errorf(`navigation.MakeAbsolute("/root") = %q, should be %q`,
 			nav, expected)
-	}
-}
-
-func TestRemoveNode(t *testing.T) {
-	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/navigation.yaml": `
-- name: foo Page
-  target: foo
-- name: bar Page
-  target: bar`,
-		"/foo/__empty__":       "",
-		"/bar/navigation.yaml": ""}, "TestRemoveNode")
-	if err != nil {
-		t.Fatalf("Could not create directory tree: ", err)
-	}
-	defer cleanup()
-	removeNode("/foo", root)
-	if f, err := os.Open(filepath.Join(root, "foo")); !os.IsNotExist(err) {
-		f.Close()
-		t.Errorf(`/foo does still exist, should be removed`)
 	}
 }
