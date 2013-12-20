@@ -56,7 +56,7 @@ func getNode(root, path string) (node *service.NodeInfo, err error) {
 	return
 }
 
-type GetNodeArgs struct{Site, Path string}
+type GetNodeArgs struct{ Site, Path string }
 
 func (i *DataService) GetNode(args *GetNodeArgs,
 	reply *service.NodeInfo) error {
@@ -101,7 +101,7 @@ func (i *DataService) GetChildren(args GetChildrenArgs,
 	return err
 }
 
-type GetNodeDataArgs struct{Site, Path, File string}
+type GetNodeDataArgs struct{ Site, Path, File string }
 
 func (i *DataService) GetNodeData(args *GetNodeDataArgs,
 	reply *[]byte) error {
