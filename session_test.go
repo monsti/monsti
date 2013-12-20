@@ -18,7 +18,7 @@ package main
 
 import (
 	"code.google.com/p/go.crypto/bcrypt"
-	"pkg.monsti.org/rpc/client"
+	"pkg.monsti.org/service"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -45,11 +45,11 @@ func TestCheckPermission(t *testing.T) {
 		{"unknown_action", true, false},
 		{"unknown_action", false, false}}
 	for _, v := range tests {
-		var user *client.User
+		var user *service.User
 		if v.Auth {
-			user = &client.User{}
+			user = &service.User{}
 		}
-		ret := checkPermission(v.Action, &client.Session{User: user})
+		ret := checkPermission(v.Action, &service.UserSession{User: user})
 		if ret != v.Grant {
 			t.Errorf("checkPermission(%v, %v) = %v, expected %v", v.Action,
 				user, ret, v.Grant)
@@ -77,12 +77,12 @@ func TestGetUser(t *testing.T) {
 	}
 	tests := []struct {
 		Login string
-		User  *client.User
+		User  *service.User
 	}{
 		{Login: "unknown", User: nil},
-		{Login: "foo", User: &client.User{Login: "foo", Password: "the pass",
+		{Login: "foo", User: &service.User{Login: "foo", Password: "the pass",
 			Name: "Mr. Foo", Email: "foo@example.com"}},
-		{Login: "bar", User: &client.User{Login: "bar", Password: "other pass",
+		{Login: "bar", User: &service.User{Login: "bar", Password: "other pass",
 			Name: "Mrs. Bar", Email: "bar@example.com"}}}
 	for _, v := range tests {
 		user := getUser(v.Login, root)
