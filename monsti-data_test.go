@@ -16,9 +16,10 @@
 package main
 
 import (
+	"testing"
+
 	"pkg.monsti.org/service"
 	utesting "pkg.monsti.org/util/testing"
-	"testing"
 )
 
 func TestGetNode(t *testing.T) {
