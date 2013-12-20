@@ -96,7 +96,7 @@ type GetChildrenArgs struct {
 func (i *DataService) GetChildren(args GetChildrenArgs,
 	reply *[]service.NodeInfo) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	ret, err := getChildren(site, args.Path[1:])
+	ret, err := getChildren(site, args.Path)
 	*reply = ret
 	return err
 }
