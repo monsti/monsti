@@ -66,9 +66,12 @@ func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Password = ""
-	body := h.Renderer.Render("httpd/actions/loginform", template.Context{
+	body, err := h.Renderer.Render("httpd/actions/loginform", template.Context{
 		"Form": form.RenderData()}, cSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+	if err != nil {
+		panic("Can't render login form: " + err.Error())
+	}
 	env := masterTmplEnv{Node: reqnode, Session: cSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}

@@ -55,15 +55,13 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	prinav, err := getNav("/", path.Join("/", firstDir), site.Name, s)
-	prinav.MakeAbsolute(firstDir)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))
 	}
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		secnav, err = getNav(env.Node.Path, env.Node.Path,
-			settings.Monsti.GetSiteNodesPath(site.Name), s)
+		secnav, err = getNav(env.Node.Path, env.Node.Path, site.Name, s)
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))
 		}
@@ -77,7 +75,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	if env.Title != "" {
 		description = env.Description
 	}
-	return r.Render("master", template.Context{
+	ret, err := r.Render("master", template.Context{
 		"Site": template.Context{
 			"Title": site.Title,
 		},
@@ -92,4 +90,8 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"ShowSecondaryNav": len(secnav) > 0},
 		"Session": env.Session}, locale,
 		settings.Monsti.GetSiteTemplatesPath(site.Name))
+	if err != nil {
+		panic("Can't render: " + err.Error())
+	}
+	return ret
 }

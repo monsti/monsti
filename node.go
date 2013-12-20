@@ -214,9 +214,12 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 	default:
 		panic("Request method not supported: " + r.Method)
 	}
-	body := h.Renderer.Render("httpd/actions/addform", template.Context{
+	body, err := h.Renderer.Render("httpd/actions/addform", template.Context{
 		"Form": form.RenderData()}, cSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+	if err != nil {
+		panic("Can't render node add formular: " + err.Error())
+	}
 	env := masterTmplEnv{Node: reqnode, Session: cSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
@@ -257,9 +260,12 @@ func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
 		panic("Request method not supported: " + r.Method)
 	}
 	data.Confirm = 1489
-	body := h.Renderer.Render("httpd/actions/removeform", template.Context{
+	body, err := h.Renderer.Render("httpd/actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": node},
 		cSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+	if err != nil {
+		panic("Can't render node remove formular: " + err.Error())
+	}
 	env := masterTmplEnv{Node: node, Session: cSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
 	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
