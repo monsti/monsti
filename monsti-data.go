@@ -25,13 +25,14 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
+
+	"launchpad.net/goyaml"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
-	"sync"
 )
 
 // DataService implements RPC methods for the Data service.
