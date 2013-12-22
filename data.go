@@ -19,6 +19,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 // DataClient represents the RPC connection to the Data service.
@@ -50,6 +51,57 @@ func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
 		return nil, fmt.Errorf("service: Could not decode node: %v", err)
 	}
 	return node, nil
+}
+
+// FillFields loads the fields of the given nodes into target.
+//
+// If only one node is given, target must be a pointer to a struct.
+// If more than one node is given, the target must be an initialized
+// slice of structs.
+//
+// After loading the fields into the target, the node will be assigned
+// to the target's (possibly embedded) NodeInfo field.
+func (s *DataClient) FillFields(target interface{}, site string, nodes ...*NodeInfo) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	targetType := reflect.TypeOf(target)
+	targetValue := reflect.ValueOf(target)
+	switch len(nodes) {
+	case 0:
+		return nil
+	case 1:
+		if targetType.Kind() != reflect.Ptr ||
+			targetType.Elem().Kind() != reflect.Struct {
+			return fmt.Errorf("service: Target must be a pointer to a struct")
+		}
+		fields, err := s.GetNodeData(site, nodes[0].Path, "fields.json")
+		if err != nil {
+			return fmt.Errorf("Could not get node fields: %v", err)
+		}
+		err = json.Unmarshal(fields, target)
+		if err != nil {
+			return fmt.Errorf("Could not decode fields for %q: %v", nodes[0].Path, err)
+		}
+		info := targetValue.Elem().FieldByName("NodeInfo")
+		info.Set(reflect.ValueOf(nodes[0]))
+		return nil
+	default:
+		if targetType.Kind() != reflect.Ptr ||
+			targetType.Elem().Kind() != reflect.Slice ||
+			targetValue.Elem().IsNil() {
+			return fmt.Errorf("service: Target must be a pointer to a non-nil slice")
+		}
+		for _, node := range nodes {
+			singleTarget := reflect.New(targetType.Elem().Elem())
+			if err := s.FillFields(singleTarget.Interface(), site, node); err != nil {
+				return err
+			}
+			targetValue.Elem().Set(
+				reflect.Append(targetValue.Elem(), singleTarget.Elem()))
+		}
+		return nil
+	}
 }
 
 // GetChildren returns the children of the given node.
