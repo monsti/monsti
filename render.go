@@ -19,7 +19,6 @@ package main
 import (
 	"fmt"
 	htmlT "html/template"
-	"log"
 	"path"
 	"strings"
 
@@ -69,7 +68,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		log.Print("getSecondary")
 		secnav, err = getNav(env.Node.Path, env.Node.Path, getNodeFn, getChildrenFn)
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))

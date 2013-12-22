@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -78,7 +77,6 @@ type getChildrenFunc func(path string) ([]*service.NodeInfo, error)
 func getNav(nodePath, active string,
 	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
 	navLinks navigation, err error) {
-	log.Printf("getNav %q %q", nodePath, active)
 	// Search children
 	children, err := getChildrenFn(nodePath)
 	if err != nil {
@@ -93,7 +91,6 @@ func getNav(nodePath, active string,
 			Name:   getShortTitle(child),
 			Target: path.Join(nodePath, child.Name()),
 			Child:  true, Order: child.Order})
-		log.Println("Added target", path.Join(nodePath, child.Name()))
 	}
 	if len(childrenNavLinks) == 0 {
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
