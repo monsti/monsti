@@ -19,11 +19,13 @@ package main
 import (
 	"fmt"
 	htmlT "html/template"
+	"log"
 	"path"
+	"strings"
+
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	"strings"
 )
 
 // Master template render flags.
@@ -54,14 +56,21 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
-	prinav, err := getNav("/", path.Join("/", firstDir), site.Name, s)
+	getNodeFn := func(path string) (*service.NodeInfo, error) {
+		return s.Data().GetNode(site.Name, path)
+	}
+	getChildrenFn := func(path string) ([]*service.NodeInfo, error) {
+		return s.Data().GetChildren(site.Name, path)
+	}
+	prinav, err := getNav("/", path.Join("/", firstDir), getNodeFn, getChildrenFn)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))
 	}
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		secnav, err = getNav(env.Node.Path, env.Node.Path, site.Name, s)
+		log.Print("getSecondary")
+		secnav, err = getNav(env.Node.Path, env.Node.Path, getNodeFn, getChildrenFn)
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))
 		}
@@ -80,10 +89,10 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Title": site.Title,
 		},
 		"Page": template.Context{
-			"Node":            env.Node,
-			"PrimaryNav":      prinav,
-			"SecondaryNav":    secnav,
-			"EditView":        env.Flags&EDIT_VIEW != 0,
+			"Node":             env.Node,
+			"PrimaryNav":       prinav,
+			"SecondaryNav":     secnav,
+			"EditView":         env.Flags&EDIT_VIEW != 0,
 			"Title":            title,
 			"Description":      description,
 			"Content":          htmlT.HTML(content),

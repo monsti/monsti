@@ -18,17 +18,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/sessions"
+	"log"
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
+	"strings"
+
+	"github.com/gorilla/sessions"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	"sort"
-	"strings"
 )
 
 // navLink represents a link in the navigation.
@@ -66,48 +68,53 @@ func getShortTitle(node *service.NodeInfo) string {
 	return node.Title
 }
 
+type getNodeFunc func(path string) (*service.NodeInfo, error)
+type getChildrenFunc func(path string) ([]*service.NodeInfo, error)
+
 // getNav returns the navigation for the given node.
 //
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
-func getNav(nodePath, active, site string,
-	s *service.Session) (navLinks navigation, err error) {
+func getNav(nodePath, active string,
+	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
+	navLinks navigation, err error) {
+	log.Printf("getNav %q %q", nodePath, active)
 	// Search children
-	children, err := s.Data().GetChildren(site, nodePath)
+	children, err := getChildrenFn(nodePath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get children: %v", err)
 	}
 	childrenNavLinks := navLinks[:]
-	anyChild := false
 	for _, child := range children {
 		if child.Hide {
 			continue
 		}
-		anyChild = true
 		childrenNavLinks = append(childrenNavLinks, navLink{
 			Name:   getShortTitle(child),
-			Target: child.Name(), Child: true, Order: child.Order})
+			Target: path.Join(nodePath, child.Name()),
+			Child:  true, Order: child.Order})
+		log.Println("Added target", path.Join(nodePath, child.Name()))
 	}
-	if !anyChild {
+	if len(childrenNavLinks) == 0 {
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
 			return nil, nil
 		}
-		return getNav(path.Dir(nodePath), active, site, s)
+		return getNav(path.Dir(nodePath), active, getNodeFn, getChildrenFn)
 	}
 	sort.Sort(&childrenNavLinks)
 	siblingsNavLinks := navLinks[:]
 	// Search siblings
 	if nodePath != "/" && path.Dir(nodePath) == "/" {
-		node, err := s.Data().GetNode(nodePath, site)
+		node, err := getNodeFn(nodePath)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
 			Name:   getShortTitle(node),
-			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
+			Target: nodePath, Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
-		siblings, err := s.Data().GetChildren(site, parent)
+		siblings, err := getChildrenFn(parent)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
@@ -117,13 +124,13 @@ func getNav(nodePath, active, site string,
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
 				Name:   getShortTitle(sibling),
-				Target: path.Join("..", sibling.Name()), Order: sibling.Order})
+				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
 		}
 	}
 	sort.Sort(&siblingsNavLinks)
 	// Insert children at their parent
 	for i, link := range siblingsNavLinks {
-		if link.Target == path.Join("..", path.Base(nodePath)) {
+		if link.Target == nodePath {
 			navLinks = append(navLinks, siblingsNavLinks[:i+1]...)
 			navLinks = append(navLinks, childrenNavLinks...)
 			navLinks = append(navLinks, siblingsNavLinks[i+1:]...)
@@ -136,12 +143,7 @@ func getNav(nodePath, active, site string,
 	// Compute node paths relative to active node and search and set the Active
 	// link
 	for i, link := range navLinks {
-		rel, err := filepath.Rel(active, path.Join(nodePath, link.Target))
-		if err != nil {
-			panic(fmt.Sprint("Could not comute relative path:", err))
-		}
-		navLinks[i].Target = rel
-		if rel == "." || (len(rel) >= 5 && rel[:2] == ".." && rel[len(rel)-2:] == "..") {
+		if strings.Contains(active, link.Target) && path.Dir(active) != link.Target {
 			navLinks[i].Active = true
 		}
 	}
