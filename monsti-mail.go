@@ -24,14 +24,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/chrneumann/mimemail"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
 	"log"
 	"net/smtp"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/chrneumann/mimemail"
+	"pkg.monsti.org/service"
+	"pkg.monsti.org/util"
 )
 
 type settings struct {
@@ -48,16 +49,12 @@ type MailService struct {
 }
 
 func (m *MailService) SendMail(mail mimemail.Mail, reply *int) error {
-	log.Println("Send the mail: %v", mail)
 	auth := smtp.PlainAuth("", m.Settings.Username,
 		m.Settings.Password, strings.Split(m.Settings.Host, ":")[0])
-	log.Println("Auth done")
 	if err := smtp.SendMail(m.Settings.Host, auth,
 		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
-		log.Println("Mail error: %v", err)
 		return fmt.Errorf("monsti: Could not send email: %v", err)
 	}
-	log.Println("Mail sent")
 	return nil
 }
 
