@@ -17,47 +17,43 @@ package main
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"path/filepath"
-	"pkg.monsti.org/service"
 	utesting "pkg.monsti.org/util/testing"
 )
 
 func TestGetNode(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/foo/node.yaml": "title: Node Foo\nshorttitle: Foo"},
+		"/foo/node.json": `{"title":"Node Foo","shorttitle":"Foo"}`},
 		"TestGetNode")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
 	ret, err := getNode(root, "/foo")
-	expected := service.NodeInfo{
-		Path:       "/foo",
-		Title:      "Node Foo",
-		ShortTitle: "Foo"}
+	expected := `{"path":"/foo","title":"Node Foo","shorttitle":"Foo"}`
 	if err != nil {
 		t.Fatalf("Got error: %v", err)
 	}
-	if *ret != expected {
+	if string(ret) != expected {
 		t.Fatalf(`getNode(%q, "/foo") = %v, nil, should be %v, nil`,
-			root, ret, expected)
+			root, string(ret), expected)
 	}
-
 }
 
 func TestGetChildren(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/foo/node.yaml": "title: Node Foo\nshorttitle: Foo",
-		"/foo/child1/node.yaml": "title: Node a Foo Child 1\n" +
-			"shorttitle: a Foo Child 1",
-		"/foo/child2/node.yaml": "title: Node Foo Child 2\n" +
-			"shorttitle: Foo Child 2",
-		"/foo/child2/child1/node.yaml": "title: Node a Foo Child 2 Child 1\n" +
-			"shorttitle: a Foo Child 2 Child 1",
-		"/bar/node.yaml": "title: Node Bar\norder: 2\n" +
-			"shorttitle: Bar"}, "TestGetChildren")
+		"/foo/node.json": `{"title":"Node Foo","shorttitle":"Foo"}`,
+		"/foo/child1/node.json": `{"title":"Node a Foo Child 1",` +
+			`"shorttitle":"a Foo Child 1"}`,
+		"/foo/child2/node.json": `{"title":"Node Foo Child 2",` +
+			`"shorttitle":"Foo Child 2"}`,
+		"/foo/child2/child1/node.json": `{"title":"Node a Foo Child 2 Child 1",` +
+			`"shorttitle":"a Foo Child 2 Child 1"}`,
+		"/bar/node.json": `{"title":"Node Bar","order":"2",` +
+			`"shorttitle":"Bar"}`}, "TestGetChildren")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
@@ -83,9 +79,9 @@ func TestGetChildren(t *testing.T) {
 				test.Path, len(ret), ret, len(test.Children))
 		}
 		for i := range ret {
-			if ret[i].Path != test.Children[i] {
+			if strings.Contains(test.Children[i], string(ret[i])) {
 				t.Errorf(`Item %v of getChildren(%q) is %v, should be %v`,
-					i, test.Path, ret[i].Path, test.Children[i])
+					i, test.Path, ret[i], test.Children[i])
 			}
 		}
 	}

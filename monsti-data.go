@@ -22,6 +22,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -29,8 +30,8 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-
 	"launchpad.net/goyaml"
+
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 )
@@ -43,24 +44,22 @@ type DataService struct {
 
 // getNode looks up the given node.
 // If no such node exists, return nil.
-func getNode(root, path string) (node *service.NodeInfo, err error) {
-	node_path := filepath.Join(root, path[1:], "node.yaml")
-	content, err := ioutil.ReadFile(node_path)
+// It adds a path attribute with the given path.
+func getNode(root, path string) (node []byte, err error) {
+	node_path := filepath.Join(root, path[1:], "node.json")
+	node, err = ioutil.ReadFile(node_path)
 	if err != nil {
 		return
 	}
-	if err = goyaml.Unmarshal(content, &node); err != nil {
-		node = nil
-		return
-	}
-	node.Path = path
+	pathJSON := fmt.Sprintf(`{"path":%q,`, path)
+	node = bytes.Replace(node, []byte("{"), []byte(pathJSON), 1)
 	return
 }
 
 type GetNodeArgs struct{ Site, Path string }
 
 func (i *DataService) GetNode(args *GetNodeArgs,
-	reply *service.NodeInfo) error {
+	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	fmt.Println(site, args.Path)
 	node, err := getNode(site, args.Path)
@@ -68,12 +67,12 @@ func (i *DataService) GetNode(args *GetNodeArgs,
 		reply = nil
 		return err
 	}
-	*reply = *node
+	*reply = node
 	return nil
 }
 
 // getChildren looks up child nodes of the given node.
-func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
+func getChildren(root, path string) (nodes [][]byte, err error) {
 	files, err := ioutil.ReadDir(filepath.Join(root, path))
 	if err != nil {
 		return
@@ -81,7 +80,7 @@ func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
 	for _, file := range files {
 		node, _ := getNode(root, filepath.Join(path, file.Name()))
 		if node != nil {
-			nodes = append(nodes, *node)
+			nodes = append(nodes, node)
 		}
 	}
 	return
@@ -92,7 +91,7 @@ type GetChildrenArgs struct {
 }
 
 func (i *DataService) GetChildren(args GetChildrenArgs,
-	reply *[]service.NodeInfo) error {
+	reply *[][]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getChildren(site, args.Path)
 	*reply = ret
@@ -159,7 +158,7 @@ func writeNode(reqnode service.NodeInfo, root string) error {
 		return err
 	}
 	node_path := filepath.Join(root, path[1:],
-		"node.yaml")
+		"node.json")
 	if err := os.Mkdir(filepath.Dir(node_path), 0700); err != nil {
 		if !os.IsExist(err) {
 			panic("Can't create directory for new node: " + err.Error())
