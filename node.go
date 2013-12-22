@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"path/filepath"
+	"path"
 	"strings"
 )
 
@@ -66,7 +66,7 @@ func (n NodeInfo) PathToID() string {
 
 // Name returns the name of the node.
 func (n NodeInfo) Name() string {
-	base := filepath.Base(n.Path)
+	base := path.Base(n.Path)
 	if base == "." || base == "/" {
 		return ""
 	}
