@@ -17,6 +17,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -38,12 +39,17 @@ func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
 		return nil, s.Error
 	}
 	args := struct{ Site, Path string }{site, path}
-	var reply *NodeInfo
+	var reply []byte
 	err := s.RPCClient.Call("Data.GetNode", args, &reply)
 	if err != nil {
 		return nil, fmt.Errorf("service: GetNode error: %v", err)
 	}
-	return reply, nil
+	node := &NodeInfo{}
+	err = json.Unmarshal(reply, node)
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not decode node: %v", err)
+	}
+	return node, nil
 }
 
 // GetChildren returns the children of the given node.
@@ -52,12 +58,21 @@ func (s *DataClient) GetChildren(site, path string) ([]*NodeInfo, error) {
 		return nil, s.Error
 	}
 	args := struct{ Site, Path string }{site, path}
-	var reply []*NodeInfo
+	var reply [][]byte
 	err := s.RPCClient.Call("Data.GetChildren", args, &reply)
 	if err != nil {
 		return nil, fmt.Errorf("service: GetChildren error: %v", err)
 	}
-	return reply, nil
+	nodes := make([]*NodeInfo, 0, len(reply))
+	for _, entry := range reply {
+		node := &NodeInfo{}
+		err = json.Unmarshal(entry, node)
+		if err != nil {
+			return nil, fmt.Errorf("service: Could not decode node: %v", err)
+		}
+		nodes = append(nodes, node)
+	}
+	return nodes, nil
 }
 
 // GetNodeData requests data from some node.
