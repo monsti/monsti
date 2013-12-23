@@ -17,13 +17,14 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
 	"fmt"
-	"github.com/gorilla/sessions"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"net/http"
 	"path/filepath"
+
+	"code.google.com/p/go.crypto/bcrypt"
+	"github.com/gorilla/sessions"
+	"launchpad.net/goyaml"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
@@ -36,55 +37,51 @@ type loginFormData struct {
 }
 
 // Login handles login requests.
-func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Login(c *reqContext) {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
 			nil},
 		"Password": form.Field{G("Password"), "", form.Required(G("Required.")),
 			new(form.PasswordWidget)}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
 			user := getUser(data.Login,
-				h.Settings.Monsti.GetSiteConfigPath(site.Name))
+				h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
 			if user != nil && passwordEqual(user.Password, data.Password) {
-				session.Values["login"] = user.Login
-				session.Save(r, w)
-				http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)
+				c.Session.Values["login"] = user.Login
+				c.Session.Save(c.Req, c.Res)
+				http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
 				return
 			}
 			form.AddError("", G("Wrong login or password."))
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		panic("Request method not supported: " + c.Req.Method)
 	}
 	data.Password = ""
 	body, err := h.Renderer.Render("httpd/actions/loginform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData()}, c.UserSession.Locale,
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		panic("Can't render login form: " + err.Error())
 	}
-	env := masterTmplEnv{Node: reqnode, Session: cSession, Title: G("Login"),
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
 }
 
 // Logout handles logout requests.
-func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session) {
-	delete(session.Values, "login")
-	session.Save(r, w)
-	http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)
+func (h *nodeHandler) Logout(c *reqContext) {
+	delete(c.Session.Values, "login")
+	c.Session.Save(c.Req, c.Res)
+	http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
 }
 
 // getSession returns a currently active or new session.
@@ -101,8 +98,8 @@ func getSession(r *http.Request, site util.SiteSettings) *sessions.Session {
 //
 // configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
-	configDir string) (cSession *service.UserSession) {
-	cSession = new(service.UserSession)
+	configDir string) (uSession *service.UserSession) {
+	uSession = new(service.UserSession)
 	loginData, ok := session.Values["login"]
 	if !ok {
 		return
@@ -117,7 +114,7 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	*cSession = service.UserSession{User: user}
+	*uSession = service.UserSession{User: user}
 	return
 }
 

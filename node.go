@@ -24,11 +24,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gorilla/sessions"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
 )
 
@@ -163,14 +161,11 @@ type addFormData struct {
 }
 
 // Add handles add requests.
-func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Add(c *reqContext) {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
-	nodeTypes, err := h.Info.GetAddableNodeTypes(site.Name, reqnode.Type)
+	nodeTypes, err := h.Info.GetAddableNodeTypes(c.Site.Name, c.Node.Type)
 	if err != nil {
 		panic("Could not get addable node types: " + err.Error())
 	}
@@ -186,16 +181,16 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
 				G("Contains	invalid characters."))), nil},
 		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
 			data.Name = strings.ToLower(data.Name)
 			if !inStringSlice(data.Type, nodeTypes) {
 				panic("Can't add this node type.")
 			}
-			newPath := filepath.Join(reqnode.Path, data.Name)
+			newPath := filepath.Join(c.Node.Path, data.Name)
 			newNode := service.NodeInfo{
 				Path:  newPath,
 				Type:  data.Type,
@@ -204,25 +199,25 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			if err != nil {
 				panic("Can't find data service: " + err.Error())
 			}
-			if err := data.UpdateNode(site.Name, newNode); err != nil {
+			if err := data.UpdateNode(c.Site.Name, newNode); err != nil {
 				panic("Can't add node: " + err.Error())
 			}
-			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
+			http.Redirect(c.Res, c.Req, newPath+"/@@edit", http.StatusSeeOther)
 			return
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		panic("Request method not supported: " + c.Req.Method)
 	}
 	body, err := h.Renderer.Render("httpd/actions/addform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData()}, c.UserSession.Locale,
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		panic("Can't render node add formular: " + err.Error())
 	}
-	env := masterTmplEnv{Node: reqnode, Session: cSession,
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
 }
 
 type removeFormData struct {
@@ -230,43 +225,40 @@ type removeFormData struct {
 }
 
 // Remove handles remove requests.
-func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
-	node *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Remove(c *reqContext) {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),
 			new(form.HiddenWidget)}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
 			dataServ, err := h.Info.FindDataService()
 			if err != nil {
 				panic("httpd: Could not connect to data service: " +
 					err.Error())
 			}
-			if err := dataServ.RemoveNode(site.Name, node.Path); err != nil {
+			if err := dataServ.RemoveNode(c.Site.Name, c.Node.Path); err != nil {
 				panic("Could not remove node: " + err.Error())
 			}
-			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
+			http.Redirect(c.Res, c.Req, path.Dir(c.Node.Path), http.StatusSeeOther)
 			return
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		panic("Request method not supported: " + c.Req.Method)
 	}
 	data.Confirm = 1489
 	body, err := h.Renderer.Render("httpd/actions/removeform", template.Context{
-		"Form": form.RenderData(), "Node": node},
-		cSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData(), "Node": c.Node},
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
 	}
-	env := masterTmplEnv{Node: node, Session: cSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
+		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Title)}
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
 }

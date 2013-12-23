@@ -35,6 +35,18 @@ import (
 	"pkg.monsti.org/util/template"
 )
 
+// Context holds information about a request
+type reqContext struct {
+	Res         http.ResponseWriter
+	Req         *http.Request
+	Node        *service.NodeInfo
+	Action      string
+	Session     *sessions.Session
+	UserSession *service.UserSession
+	Site        *util.SiteSettings
+	Serv        *service.Session
+}
+
 // nodeHandler is a net/http handler to process incoming HTTP requests.
 type nodeHandler struct {
 	Renderer template.Renderer
@@ -68,99 +80,104 @@ func splitAction(path string) (string, string) {
 
 // ServeHTTP handles incoming HTTP requests.
 func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c := reqContext{Res: w, Req: r}
 	defer func() {
 		if err := recover(); err != nil {
 			var buf bytes.Buffer
 			fmt.Fprintf(&buf, "panic: %v\n", err)
 			buf.Write(debug.Stack())
 			h.Log.Println(buf.String())
-			http.Error(w, "Application error.",
+			http.Error(c.Res, "Application error.",
 				http.StatusInternalServerError)
 		}
 	}()
-	s, err := h.Sessions.New()
+	var err error
+	c.Serv, err = h.Sessions.New()
 	if err != nil {
 		panic(fmt.Errorf("Could not get session: %v", err))
 	}
-	defer h.Sessions.Free(s)
-	nodePath, action := splitAction(r.URL.Path)
-	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
+	defer h.Sessions.Free(c.Serv)
+	var nodePath string
+	nodePath, c.Action = splitAction(c.Req.URL.Path)
+	if len(c.Action) == 0 && nodePath[len(nodePath)-1] != '/' {
 		newPath, err := url.Parse(nodePath + "/")
 		if err != nil {
 			panic("Could not parse request URL:" + err.Error())
 		}
-		url := r.URL.ResolveReference(newPath)
-		http.Redirect(w, r, url.String(), http.StatusSeeOther)
+		url := c.Req.URL.ResolveReference(newPath)
+		http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
 		return
 	}
-	site_name, ok := h.Hosts[r.Host]
+	site_name, ok := h.Hosts[c.Req.Host]
 	if !ok {
-		panic("No site found for host " + r.Host)
+		panic("No site found for host " + c.Req.Host)
 	}
 	site := h.Settings.Monsti.Sites[site_name]
-	site.Name = site_name
-	session := getSession(r, site)
-	defer context.Clear(r)
-	cSession := getClientSession(session, h.Settings.Monsti.GetSiteConfigPath(
-		site.Name))
-	cSession.Locale = site.Locale
-	node, err := s.Data().GetNode(site.Name, nodePath)
+	c.Site = &site
+	c.Site.Name = site_name
+	c.Session = getSession(c.Req, *c.Site)
+	defer context.Clear(c.Req)
+	c.UserSession = getClientSession(c.Session,
+		h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
+	c.UserSession.Locale = c.Site.Locale
+	c.Node, err = c.Serv.Data().GetNode(c.Site.Name, nodePath)
 	if err != nil {
-		h.Log.Println("Node not found.")
-		http.Error(w, "Node not found: "+err.Error(), http.StatusNotFound)
+		h.Log.Printf("Node not found: %v", err)
+		c.Node = &service.NodeInfo{Path: nodePath}
+		h.DisplayError(http.StatusNotFound, &c)
 		return
 	}
-
-	if !checkPermission(action, cSession) {
+	if !checkPermission(c.Action, c.UserSession) {
 		http.Error(w, "Unauthorized.", http.StatusUnauthorized)
 		return
 	}
-	switch action {
+	switch c.Action {
 	case "login":
-		h.Login(w, r, node, session, cSession, site, s)
+		h.Login(&c)
 	case "logout":
-		h.Logout(w, r, node, session)
+		h.Logout(&c)
 	case "add":
-		h.Add(w, r, node, session, cSession, site, s)
+		h.Add(&c)
 	case "remove":
-		h.Remove(w, r, node, session, cSession, site, s)
+		h.Remove(&c)
 	default:
-		h.RequestNode(w, r, node, action, session, cSession, site, s)
+		h.RequestNode(&c)
 	}
 }
 
-// RequestNode handles node requests.
-func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, action string, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	// Setup ticket and send to workers.
-	h.Log.Println(site.Name, r.Method, r.URL.Path)
+// DisplayError shows an error page to the user.
+func (h *nodeHandler) DisplayError(HTTPErr int, c *reqContext) {
+	http.Error(c.Res, "Document not found", HTTPErr)
+}
 
-	nodeServ, err := h.Info.FindNodeService(reqnode.Type)
+// RequestNode handles node requests.
+func (h *nodeHandler) RequestNode(c *reqContext) {
+	// Setup ticket and send to workers.
+	h.Log.Print(c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
 	if err != nil {
-		panic(fmt.Sprintf("Could not find node service for %q at %q: %v", reqnode.Type, err))
+		panic(fmt.Sprintf("Could not find node service for %q at %q: %v", c.Node.Type, err))
 	}
-	if err = r.ParseMultipartForm(1024 * 1024); err != nil {
+	if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
 		panic(fmt.Sprintf("Could not parse form: %v", err))
 	}
 	req := service.Request{
-		Site:     site.Name,
-		Method:   r.Method,
-		Node:     *reqnode,
-		Query:    r.URL.Query(),
-		Session:  *cSession,
-		Action:   action,
-		FormData: r.Form,
+		Site:     c.Site.Name,
+		Method:   c.Req.Method,
+		Node:     *c.Node,
+		Query:    c.Req.URL.Query(),
+		Session:  *c.UserSession,
+		Action:   c.Action,
+		FormData: c.Req.Form,
 	}
 
 	// Attach request files
-	if r.MultipartForm != nil {
-		if len(r.MultipartForm.File) > 0 {
+	if c.Req.MultipartForm != nil {
+		if len(c.Req.MultipartForm.File) > 0 {
 			req.Files = make(map[string][]service.RequestFile)
 		}
-		for name, fileHeaders := range r.MultipartForm.File {
-			h.Log.Println(name)
+		for name, fileHeaders := range c.Req.MultipartForm.File {
 			if _, ok := req.Files[name]; !ok {
 				req.Files[name] = make([]service.RequestFile, 0)
 			}
@@ -189,22 +206,22 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		panic(fmt.Sprintf("Could not request node: %v", err))
 	}
 
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	if len(res.Body) == 0 && len(res.Redirect) == 0 {
 		panic("Got empty response.")
 	}
 	if res.Node != nil {
-		oldPath := reqnode.Path
-		reqnode = res.Node
-		reqnode.Path = oldPath
+		oldPath := c.Node.Path
+		c.Node = res.Node
+		c.Node.Path = oldPath
 	}
 	if len(res.Redirect) > 0 {
-		http.Redirect(w, r, res.Redirect, http.StatusSeeOther)
+		http.Redirect(c.Res, c.Req, res.Redirect, http.StatusSeeOther)
 		return
 	}
-	env := masterTmplEnv{Node: reqnode, Session: cSession}
-	if action == "edit" {
-		env.Title = fmt.Sprintf(G("Edit \"%s\""), reqnode.Title)
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
+	if c.Action == "edit" {
+		env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Title)
 		env.Flags = EDIT_VIEW
 	}
 	var content []byte
@@ -212,11 +229,11 @@ func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 		content = res.Body
 	} else {
 		content = []byte(renderInMaster(h.Renderer, res.Body, env, h.Settings,
-			site, cSession.Locale, s))
+			*c.Site, c.UserSession.Locale, c.Serv))
 	}
-	err = session.Save(r, w)
+	err = c.Session.Save(c.Req, c.Res)
 	if err != nil {
 		panic(err.Error())
 	}
-	w.Write(content)
+	c.Res.Write(content)
 }
