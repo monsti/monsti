@@ -19,19 +19,20 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"runtime/debug"
+	"strings"
+
+	"github.com/gorilla/context"
+	"github.com/gorilla/sessions"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	"runtime/debug"
-	"strings"
 )
 
 // nodeHandler is a net/http handler to process incoming HTTP requests.
@@ -124,7 +125,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "remove":
 		h.Remove(w, r, node, session, cSession, site, s)
 	default:
-		h.RequestNode(w, r, node, action, session, cSession, site,s )
+		h.RequestNode(w, r, node, action, session, cSession, site, s)
 	}
 }
 
@@ -132,7 +133,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *nodeHandler) RequestNode(w http.ResponseWriter, r *http.Request,
 	reqnode *service.NodeInfo, action string, session *sessions.Session,
 	cSession *service.UserSession, site util.SiteSettings,
-  s *service.Session) {
+	s *service.Session) {
 	// Setup ticket and send to workers.
 	h.Log.Println(site.Name, r.Method, r.URL.Path)
 
