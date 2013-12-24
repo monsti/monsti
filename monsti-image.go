@@ -24,13 +24,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/l10n"
 	"pkg.monsti.org/util/template"
-	"log"
-	"os"
 )
 
 var settings struct {
@@ -84,9 +85,13 @@ func edit(req service.Request, res *service.Response, s *service.Session) {
 	default:
 		panic("Request method not supported: " + req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("image/edit",
+	rendered, err := renderer.Render("image/edit",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale, ""))
+		req.Session.Locale, "")
+	if err != nil {
+		panic("Could not render template: " + err.Error())
+	}
+	fmt.Fprint(res, rendered)
 }
 
 func view(req service.Request, res *service.Response, s *service.Session) {
