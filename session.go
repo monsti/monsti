@@ -16,10 +16,7 @@
 
 package service
 
-import (
-	"fmt"
-	"log"
-)
+import "fmt"
 
 // SessionPool holds sessions to be used to access services.
 type SessionPool struct {
@@ -111,23 +108,18 @@ func (s *Session) Data() *DataClient {
 
 // Mail returns a MailClient.
 func (s *Session) Mail() *MailClient {
-	log.Printf("Get Mail Service")
 	if s.mail != nil {
 		return s.mail
 	}
 	select {
 	case s.mail = <-s.pool.mail:
-		log.Printf("Get OLD Mail Service")
 	default:
-		log.Printf("Get NEW Mail Service")
 		mail, err := s.info.FindMailService()
-		log.Printf("Got mail Service: %v %v", mail, err)
 		s.mail = mail
 		if err != nil {
 			s.mail = NewMailClient()
 			s.mail.Error = err
 		}
 	}
-	log.Printf("Return mail Service: %v", s.mail)
 	return s.mail
 }
