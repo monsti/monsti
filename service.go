@@ -56,3 +56,8 @@ func (s *Client) Connect(path string) error {
 	s.RPCClient = rpc.NewClient(conn)
 	return nil
 }
+
+// Close closes the client's RPC connection.
+func (s *Client) Close() error {
+	return s.RPCClient.Close()
+}

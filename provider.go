@@ -48,7 +48,10 @@ func (p *Provider) Serve(path string, service string, rcvr interface{}) error {
 			return fmt.Errorf("service: Could not register RPC methods: %v",
 				err.Error())
 		}
-		go server.ServeConn(conn)
+		go func() {
+			server.ServeConn(conn)
+			conn.Close()
+		}()
 	}
 	return nil
 }

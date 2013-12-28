@@ -16,7 +16,9 @@
 
 package service
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // SessionPool holds sessions to be used to access services.
 type SessionPool struct {
@@ -59,18 +61,21 @@ func (s *SessionPool) Free(session *Session) {
 		select {
 		case s.data <- session.data:
 		default:
+			session.data.Close()
 		}
 	}
 	if session.info != nil {
 		select {
 		case s.info <- session.info:
 		default:
+			session.info.Close()
 		}
 	}
 	if session.mail != nil {
 		select {
 		case s.mail <- session.mail:
 		default:
+			session.mail.Close()
 		}
 	}
 }
