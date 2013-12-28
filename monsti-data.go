@@ -38,7 +38,6 @@ import (
 
 // DataService implements RPC methods for the Data service.
 type DataService struct {
-	Info     *service.InfoClient
 	Settings settings
 }
 
@@ -198,7 +197,6 @@ func main() {
 		defer waitGroup.Done()
 		var provider service.Provider
 		var data_ DataService
-		data_.Info = info
 		data_.Settings = settings
 		provider.Logger = logger
 		if err := provider.Serve(dataPath, "Data", &data_); err != nil {
