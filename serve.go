@@ -156,6 +156,11 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 	h.Log.Print(c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
+	defer func() {
+		if err := nodeServ.Close(); err != nil {
+			panic(fmt.Sprintf("Could not close connection to node service: %v", err))
+		}
+	}()
 	if err != nil {
 		panic(fmt.Sprintf("Could not find node service for %q at %q: %v", c.Node.Type, err))
 	}
