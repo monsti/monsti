@@ -60,7 +60,6 @@ type GetNodeArgs struct{ Site, Path string }
 func (i *DataService) GetNode(args *GetNodeArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	fmt.Println(site, args.Path)
 	node, err := getNode(site, args.Path)
 	if err != nil {
 		reply = nil
