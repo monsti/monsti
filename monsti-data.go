@@ -23,14 +23,16 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"sync"
-	"launchpad.net/goyaml"
 
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
@@ -124,13 +126,13 @@ func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
 }
 
 type UpdateNodeArgs struct {
-	Site string
-	Node service.NodeInfo
+	Site, Path string
+	Content    []byte
 }
 
 func (i *DataService) UpdateNode(args *UpdateNodeArgs, reply *int) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return writeNode(args.Node, site)
+	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	return writeNode(args.Content, args.Path, root)
 }
 
 type RemoveNodeArgs struct {
@@ -148,13 +150,7 @@ func (i *DataService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 
 // writeNode writes the given node to the data directory located at the given
 // root.
-func writeNode(reqnode service.NodeInfo, root string) error {
-	path := reqnode.Path
-	reqnode.Path = ""
-	content, err := goyaml.Marshal(&reqnode)
-	if err != nil {
-		return err
-	}
+func writeNode(content []byte, path, root string) error {
 	node_path := filepath.Join(root, path[1:],
 		"node.json")
 	if err := os.Mkdir(filepath.Dir(node_path), 0700); err != nil {
