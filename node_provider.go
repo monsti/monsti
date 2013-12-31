@@ -96,10 +96,8 @@ func (i nodeService) Request(req Request,
 	}
 	defer i.Pool.Free(session)
 	switch req.Action {
-	case "edit":
+	case EditAction:
 		f = i.Provider.types[nodeType].EditAction
-	case "embed":
-		f = i.Provider.types[nodeType].EmbedAction
 	}
 	if f == nil {
 		f = i.Provider.types[nodeType].ViewAction

@@ -90,6 +90,24 @@ func (r RequestFile) ReadFile() ([]byte, error) {
 	return r.Content, nil
 }
 
+type RequestMethod uint
+
+const (
+	GetRequest = iota
+	PostRequest
+)
+
+type Action uint
+
+const (
+	ViewAction = iota
+	EditAction
+	LoginAction
+	LogoutAction
+	AddAction
+	RemoveAction
+)
+
 // A request to be processed by a nodes service.
 type Request struct {
 	// Site name
@@ -99,11 +117,11 @@ type Request struct {
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
-	Method string
+	Method RequestMethod
 	// User session
 	Session UserSession
 	// Action to perform (e.g. "edit").
-	Action string
+	Action Action
 	// FormData stores the requests form data.
 	FormData url.Values
 	// Files stores files of multipart requests.
