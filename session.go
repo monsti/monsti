@@ -138,14 +138,15 @@ func getUser(login_, configDir string) *service.User {
 }
 
 // checkPermission checks if the session's user might perform the given action.
-func checkPermission(action string, session *service.UserSession) bool {
+func checkPermission(action service.Action, session *service.UserSession) bool {
 	auth := session.User != nil
 	switch action {
-	case "remove", "edit", "add", "logout":
+	case service.RemoveAction, service.EditAction, service.AddAction,
+		service.LogoutAction:
 		if auth {
 			return true
 		}
-	case "", "login":
+	default:
 		return true
 	}
 	return false

@@ -40,7 +40,7 @@ type reqContext struct {
 	Res         http.ResponseWriter
 	Req         *http.Request
 	Node        *service.NodeInfo
-	Action      string
+	Action      service.Action
 	Session     *sessions.Session
 	UserSession *service.UserSession
 	Site        *util.SiteSettings
@@ -98,8 +98,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer h.Sessions.Free(c.Serv)
 	var nodePath string
-	nodePath, c.Action = splitAction(c.Req.URL.Path)
-	if len(c.Action) == 0 && nodePath[len(nodePath)-1] != '/' {
+	nodePath, action := splitAction(c.Req.URL.Path)
+	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
 		newPath, err := url.Parse(nodePath + "/")
 		if err != nil {
 			panic("Could not parse request URL:" + err.Error())
@@ -108,6 +108,14 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
 		return
 	}
+	c.Action = map[string]service.Action{
+		"view":   service.ViewAction,
+		"edit":   service.EditAction,
+		"login":  service.LoginAction,
+		"logout": service.LogoutAction,
+		"add":    service.AddAction,
+		"remove": service.RemoveAction,
+	}[action]
 	site_name, ok := h.Hosts[c.Req.Host]
 	if !ok {
 		panic("No site found for host " + c.Req.Host)
@@ -132,13 +140,13 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch c.Action {
-	case "login":
+	case service.LoginAction:
 		h.Login(&c)
-	case "logout":
+	case service.LogoutAction:
 		h.Logout(&c)
-	case "add":
+	case service.AddAction:
 		h.Add(&c)
-	case "remove":
+	case service.RemoveAction:
 		h.Remove(&c)
 	default:
 		h.RequestNode(&c)
@@ -167,9 +175,13 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 	if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
 		panic(fmt.Sprintf("Could not parse form: %v", err))
 	}
+	method := map[string]service.RequestMethod{
+		"GET":  service.GetRequest,
+		"POST": service.PostRequest,
+	}[c.Req.Method]
 	req := service.Request{
 		Site:     c.Site.Name,
-		Method:   c.Req.Method,
+		Method:   method,
 		Node:     *c.Node,
 		Query:    c.Req.URL.Query(),
 		Session:  *c.UserSession,
@@ -225,7 +237,7 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 		return
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
-	if c.Action == "edit" {
+	if c.Action == service.EditAction {
 		env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Title)
 		env.Flags = EDIT_VIEW
 	}
