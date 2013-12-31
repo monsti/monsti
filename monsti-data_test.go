@@ -16,7 +16,9 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -83,6 +85,39 @@ func TestGetChildren(t *testing.T) {
 				t.Errorf(`Item %v of getChildren(%q) is %v, should be %v`,
 					i, test.Path, ret[i], test.Children[i])
 			}
+		}
+	}
+}
+
+func TestGetConfig(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/foo.json": `{"foo":{"foobar":"foobarvalue"},"bar":"barvalue"}`,
+	}, "TestGetSection")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	tests := []struct{ Name, Value string }{
+		{"", `{"":{"foo":{"foobar":"foobarvalue"},"bar":"barvalue"}}`},
+		{"foo", `{"foo":{"foobar":"foobarvalue"}}`},
+		{"foo.foobar", `{"foo.foobar":"foobarvalue"}`},
+		{"bar", `{"bar":"barvalue"}`},
+		{"unknown", `{"unknown": null}`},
+	}
+	for _, test := range tests {
+		unmarshal := func(in []byte) (out interface{}) {
+			if err = json.Unmarshal(in, &out); err != nil {
+				t.Errorf("Could not unmarshal for %v: %v", test.Name, err)
+			}
+			return
+		}
+		ret, err := getConfig(filepath.Join(root, "foo.json"), test.Name)
+		switch {
+		case err != nil:
+			t.Errorf("getConfig(_, %q) returned error: %v", test.Name, err)
+		case !reflect.DeepEqual(unmarshal(ret), unmarshal([]byte(test.Value))):
+			t.Errorf("getConfig(_, %q) = `%s`, _ should be `%s`", test.Name, ret,
+				test.Value)
 		}
 	}
 }

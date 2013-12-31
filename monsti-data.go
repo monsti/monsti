@@ -165,6 +165,56 @@ func writeNode(reqnode service.NodeInfo, root string) error {
 	return ioutil.WriteFile(node_path, content, 0600)
 }
 
+// getConfig returns the configuration value or section for the given name.
+func getConfig(path, name string) ([]byte, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read configuration: %v", err)
+	}
+	var target interface{}
+	err = json.Unmarshal(content, &target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse configuration: %v", err)
+	}
+	subs := strings.Split(name, ".")
+	for _, sub := range subs {
+		if sub == "" {
+			break
+		}
+		targetT := reflect.TypeOf(target)
+		if targetT != reflect.TypeOf(map[string]interface{}{}) {
+			target = nil
+			break
+		}
+		var ok bool
+		if target, ok = (target.(map[string]interface{}))[sub]; !ok {
+			target = nil
+			break
+		}
+	}
+	target = map[string]interface{}{"Value": target}
+	ret, err := json.Marshal(target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not encode configuration: %v", err)
+	}
+	return ret, nil
+}
+
+type GetConfigArgs struct{ Site, Module, Name string }
+
+func (i *DataService) GetConfig(args *GetConfigArgs,
+	reply *[]byte) error {
+	configPath := i.Settings.Monsti.GetSiteConfigPath(args.Site)
+	config, err := getConfig(filepath.Join(configPath, args.Module+".json"),
+		args.Name)
+	if err != nil {
+		reply = nil
+		return err
+	}
+	*reply = config
+	return nil
+}
+
 type settings struct {
 	Monsti util.MonstiSettings
 }
