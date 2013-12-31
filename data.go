@@ -194,3 +194,33 @@ func (s *DataClient) RemoveNode(site string, node string) error {
 	}
 	return nil
 }
+
+func getConfig(reply []byte, out interface{}) error {
+	objectV := reflect.New(
+		reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf(out)))
+	err := json.Unmarshal(reply, objectV.Interface())
+	if err != nil {
+		return fmt.Errorf("service: Could not decode configuration: %v", err)
+	}
+	value := objectV.Elem().MapIndex(
+		objectV.Elem().MapKeys()[0])
+	if !value.IsNil() {
+		reflect.ValueOf(out).Elem().Set(value.Elem())
+	}
+	return nil
+}
+
+// GetConfig puts the named configuration into the variable out.
+func (s *DataClient) GetConfig(site, module, name string,
+	out interface{}) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct{ Site, Module, Name string }{site, module, name}
+	var reply []byte
+	err := s.RPCClient.Call("Data.GetConfig", args, &reply)
+	if err != nil {
+		return fmt.Errorf("service: GetConfig error: %v", err)
+	}
+	return getConfig(reply, out)
+}
