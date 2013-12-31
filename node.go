@@ -155,7 +155,7 @@ func (s *NodeClient) Request(req *Request) (*Response, error) {
 	var res Response
 	err := s.RPCClient.Call("Node.Request", req, &res)
 	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request:", err)
+		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
 	}
 	return &res, nil
 }
@@ -165,7 +165,7 @@ func (s *NodeClient) GetNodeTypes() ([]string, error) {
 	var res []string
 	err := s.RPCClient.Call("Node.GetNodeTypes", 0, &res)
 	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request:", err)
+		return nil, fmt.Errorf("service: RPC error for GetNodeTypes: %v", err)
 	}
 	return res, nil
 }
