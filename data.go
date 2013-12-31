@@ -166,11 +166,15 @@ func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
 	if s.Error != nil {
 		return nil
 	}
+	content, err := json.Marshal(node_)
+	if err != nil {
+		return fmt.Errorf("service: Could not marshal node: %v", err)
+	}
 	args := struct {
-		Site string
-		Node NodeInfo
+		Site, Path string
+		Content    []byte
 	}{
-		site, node_}
+		site, node_.Path, content}
 	if err := s.RPCClient.Call("Data.UpdateNode", &args, new(int)); err != nil {
 		return fmt.Errorf("service: UpdateNode error: %v", err)
 	}

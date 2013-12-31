@@ -37,7 +37,7 @@ func NewNodeClient() *NodeClient {
 }
 
 type NodeInfo struct {
-	Path string "path,omitempty"
+	Path string "-"
 	// Content type of the node.
 	Type        string
 	Title       string
