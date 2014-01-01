@@ -177,7 +177,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // RequestNode handles node requests.
 func (h *nodeHandler) RequestNode(c *reqContext) error {
 	// Setup ticket and send to workers.
-	h.Log.Print(c.Site.Name, c.Req.Method, c.Req.URL.Path)
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
 	defer func() {
