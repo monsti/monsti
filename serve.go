@@ -78,14 +78,26 @@ func splitAction(path string) (string, string) {
 	return nodePath, action
 }
 
+type ServeError string
+
+func (err ServeError) Error() string {
+	return string(err)
+}
+
+func serveError(args ...interface{}) {
+	panic(ServeError(fmt.Sprintf(args[0].(string), args[1:]...)))
+}
+
 // ServeHTTP handles incoming HTTP requests.
 func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := reqContext{Res: w, Req: r}
 	defer func() {
 		if err := recover(); err != nil {
 			var buf bytes.Buffer
-			fmt.Fprintf(&buf, "panic: %v\n", err)
-			buf.Write(debug.Stack())
+			fmt.Fprintf(&buf, "error: %v\n", err)
+			if _, ok := err.(ServeError); !ok {
+				buf.Write(debug.Stack())
+			}
 			h.Log.Println(buf.String())
 			http.Error(c.Res, "Application error.",
 				http.StatusInternalServerError)
@@ -94,7 +106,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	c.Serv, err = h.Sessions.New()
 	if err != nil {
-		panic(fmt.Errorf("Could not get session: %v", err))
+		serveError("Could not get session: %v", err)
 	}
 	defer h.Sessions.Free(c.Serv)
 	var nodePath string
@@ -102,7 +114,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
 		newPath, err := url.Parse(nodePath + "/")
 		if err != nil {
-			panic("Could not parse request URL:" + err.Error())
+			serveError("Could not parse request URL: %v", err)
 		}
 		url := c.Req.URL.ResolveReference(newPath)
 		http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
@@ -118,21 +130,27 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}[action]
 	site_name, ok := h.Hosts[c.Req.Host]
 	if !ok {
-		panic("No site found for host " + c.Req.Host)
+		serveError("No site found for host %v", c.Req.Host)
 	}
 	site := h.Settings.Monsti.Sites[site_name]
 	c.Site = &site
 	c.Site.Name = site_name
-	c.Session = getSession(c.Req, *c.Site)
+	c.Session, err = getSession(c.Req, *c.Site)
+	if err != nil {
+		serveError("Could not get session: %v", err)
+	}
 	defer context.Clear(c.Req)
-	c.UserSession = getClientSession(c.Session,
+	c.UserSession, err = getClientSession(c.Session,
 		h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
+	if err != nil {
+		serveError("Could not get client session: %v", err)
+	}
 	c.UserSession.Locale = c.Site.Locale
 	c.Node, err = c.Serv.Data().GetNode(c.Site.Name, nodePath)
 	if err != nil {
 		h.Log.Printf("Node not found: %v", err)
 		c.Node = &service.NodeInfo{Path: nodePath}
-		h.DisplayError(http.StatusNotFound, &c)
+		http.Error(c.Res, "Document not found", http.StatusNotFound)
 		return
 	}
 	if !checkPermission(c.Action, c.UserSession) {
@@ -141,39 +159,37 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	switch c.Action {
 	case service.LoginAction:
-		h.Login(&c)
+		err = h.Login(&c)
 	case service.LogoutAction:
-		h.Logout(&c)
+		err = h.Logout(&c)
 	case service.AddAction:
-		h.Add(&c)
+		err = h.Add(&c)
 	case service.RemoveAction:
-		h.Remove(&c)
+		err = h.Remove(&c)
 	default:
-		h.RequestNode(&c)
+		err = h.RequestNode(&c)
+	}
+	if err != nil {
+		serveError("Could not process request: %v", err)
 	}
 }
 
-// DisplayError shows an error page to the user.
-func (h *nodeHandler) DisplayError(HTTPErr int, c *reqContext) {
-	http.Error(c.Res, "Document not found", HTTPErr)
-}
-
 // RequestNode handles node requests.
-func (h *nodeHandler) RequestNode(c *reqContext) {
+func (h *nodeHandler) RequestNode(c *reqContext) error {
 	// Setup ticket and send to workers.
 	h.Log.Print(c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
 	defer func() {
 		if err := nodeServ.Close(); err != nil {
-			panic(fmt.Sprintf("Could not close connection to node service: %v", err))
+			panic(fmt.Errorf("Could not close connection to node service: %v", err))
 		}
 	}()
 	if err != nil {
-		panic(fmt.Sprintf("Could not find node service for %q at %q: %v", c.Node.Type, err))
+		return fmt.Errorf("Could not find node service for %q at %q: %v", c.Node.Type, err)
 	}
 	if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
-		panic(fmt.Sprintf("Could not parse form: %v", err))
+		return fmt.Errorf("Could not parse form: %v", err)
 	}
 	method := map[string]service.RequestMethod{
 		"GET":  service.GetRequest,
@@ -201,7 +217,7 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 			for _, fileHeader := range fileHeaders {
 				file, err := fileHeader.Open()
 				if err != nil {
-					panic("Could not open multipart file header: " + err.Error())
+					return fmt.Errorf("Could not open multipart file header: %v", err)
 				}
 				if osFile, ok := file.(*os.File); ok {
 					req.Files[name] = append(req.Files[name], service.RequestFile{
@@ -209,7 +225,7 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 				} else {
 					content, err := ioutil.ReadAll(file)
 					if err != nil {
-						panic("Could not read multipart file: " + err.Error())
+						return fmt.Errorf("Could not read multipart file: %v", err)
 					}
 					req.Files[name] = append(req.Files[name], service.RequestFile{
 						Content: content})
@@ -220,12 +236,12 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 
 	res, err := nodeServ.Request(&req)
 	if err != nil {
-		panic(fmt.Sprintf("Could not request node: %v", err))
+		return fmt.Errorf("Could not request node: %v", err)
 	}
 
 	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	if len(res.Body) == 0 && len(res.Redirect) == 0 {
-		panic("Got empty response.")
+		return fmt.Errorf("Got empty response.")
 	}
 	if res.Node != nil {
 		oldPath := c.Node.Path
@@ -234,7 +250,7 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 	}
 	if len(res.Redirect) > 0 {
 		http.Redirect(c.Res, c.Req, res.Redirect, http.StatusSeeOther)
-		return
+		return nil
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	if c.Action == service.EditAction {
@@ -250,7 +266,8 @@ func (h *nodeHandler) RequestNode(c *reqContext) {
 	}
 	err = c.Session.Save(c.Req, c.Res)
 	if err != nil {
-		panic(err.Error())
+		return fmt.Errorf("Could not save user session: %v", err)
 	}
 	c.Res.Write(content)
+	return nil
 }
