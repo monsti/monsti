@@ -23,7 +23,7 @@ import (
 )
 
 // ActionHandler processes incoming requests for some node action.
-type ActionHandler func(req Request, res *Response, s *Session)
+type ActionHandler func(req Request, res *Response, s *Session) error
 
 // NodeTypeHandler handles requests for some node type.
 type NodeTypeHandler struct {
@@ -86,8 +86,7 @@ type nodeService struct {
 	Pool     *SessionPool
 }
 
-func (i nodeService) Request(req Request,
-	reply *Response) error {
+func (i nodeService) Request(req Request, reply *Response) error {
 	nodeType := req.Node.Type
 	var f ActionHandler
 	session, err := i.Pool.New()
@@ -102,8 +101,7 @@ func (i nodeService) Request(req Request,
 	if f == nil {
 		f = i.Provider.types[nodeType].ViewAction
 	}
-	f(req, reply, session)
-	return nil
+	return f(req, reply, session)
 }
 
 func (i *nodeService) GetNodeTypes(req int,
