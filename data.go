@@ -84,7 +84,11 @@ func (s *DataClient) FillFields(target interface{}, site string, nodes ...*NodeI
 			return fmt.Errorf("Could not decode fields for %q: %v", nodes[0].Path, err)
 		}
 		info := targetValue.Elem().FieldByName("NodeInfo")
-		info.Set(reflect.ValueOf(nodes[0]))
+		if info.Type().Kind() == reflect.Ptr {
+			info.Set(reflect.ValueOf(nodes[0]))
+		} else {
+			info.Set(reflect.ValueOf(nodes[0]).Elem())
+		}
 		return nil
 	default:
 		if targetType.Kind() != reflect.Ptr ||
