@@ -24,15 +24,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	htmlT "html/template"
+	"log"
+	"os"
+
 	"github.com/chrneumann/mimemail"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/l10n"
 	"pkg.monsti.org/util/template"
-	htmlT "html/template"
-	"log"
-	"os"
 )
 
 var settings struct {
@@ -46,7 +47,7 @@ type contactFormData struct {
 	Name, Email, Subject, Message string
 }
 
-func view(req service.Request, res *service.Response, s *service.Session) {
+func view(req service.Request, res *service.Response, s *service.Session) error {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := contactFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -57,11 +58,11 @@ func view(req service.Request, res *service.Response, s *service.Session) {
 			new(form.TextArea)}})
 	context := template.Context{}
 	switch req.Method {
-	case "GET":
+	case service.GetRequest:
 		if _, submitted := req.Query["submitted"]; submitted {
 			context["Submitted"] = 1
 		}
-	case "POST":
+	case service.PostRequest:
 		if form.Fill(req.FormData) {
 			mail := mimemail.Mail{
 				From:    mimemail.Address{data.Name, data.Email},
@@ -70,33 +71,37 @@ func view(req service.Request, res *service.Response, s *service.Session) {
 			site := settings.Monsti.Sites[req.Site]
 			owner := mimemail.Address{site.Owner.Name, site.Owner.Email}
 			mail.To = []mimemail.Address{owner}
-			mail = mimemail.Mail{}
 			err := s.Mail().SendMail(&mail)
 			if err != nil {
-				panic("Could not send mail: " + err.Error())
+				return fmt.Errorf("Could not send mail: %v", err)
 			}
 			res.Redirect = req.Node.Path + "/?submitted"
-			return
+			return nil
 		}
 	default:
-		panic("Request method not supported: " + req.Method)
+		return fmt.Errorf("Request method not supported: %v", req.Method)
 	}
 	res.Node = &req.Node
 	body, err := s.Data().GetNodeData(req.Site, req.Node.Path, "body.html")
 	if err != nil {
-		panic("Could not get node data: " + err.Error())
+		return fmt.Errorf("Could not get node data: %v", err)
 	}
 	context["Body"] = htmlT.HTML(string(body))
 	context["Form"] = form.RenderData()
-	fmt.Fprint(res, renderer.Render("contactform/view", context,
-		req.Session.Locale, ""))
+	rendered, err := renderer.Render("contactform/view", context,
+		req.Session.Locale, "")
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+	fmt.Fprint(res, rendered)
+	return nil
 }
 
 type editFormData struct {
 	Title, Body string
 }
 
-func edit(req service.Request, res *service.Response, s *service.Session) {
+func edit(req service.Request, res *service.Response, s *service.Session) error {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	form := form.NewForm(&data, form.Fields{
@@ -105,33 +110,38 @@ func edit(req service.Request, res *service.Response, s *service.Session) {
 			new(form.AlohaEditor)}})
 	dataCli := s.Data()
 	switch req.Method {
-	case "GET":
+	case service.GetRequest:
 		data.Title = req.Node.Title
 		nodeData, err := dataCli.GetNodeData(req.Site, req.Node.Path, "body.html")
 		if err != nil {
-			panic("Could not get node data: " + err.Error())
+			return fmt.Errorf("Could not get node data: %v", err)
 		}
 		data.Body = string(nodeData)
-	case "POST":
+	case service.PostRequest:
 		if form.Fill(req.FormData) {
 			node := req.Node
 			node.Title = data.Title
 			if err := dataCli.UpdateNode(req.Site, node); err != nil {
-				panic("Could not update node: " + err.Error())
+				return fmt.Errorf("Could not update node: %v", err)
 			}
 			if err := dataCli.WriteNodeData(req.Site, req.Node.Path, "body.html",
 				data.Body); err != nil {
-				panic("Could not update node data: " + err.Error())
+				return fmt.Errorf("Could not update node data: %v", err)
 			}
 			res.Redirect = req.Node.Path
-			return
+			return nil
 		}
 	default:
-		panic("Request method not supported: " + req.Method)
+		return fmt.Errorf("Request method not supported: %v", req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("contactform/edit",
+	rendered, err := renderer.Render("contactform/edit",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale, ""))
+		req.Session.Locale, "")
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+	fmt.Fprint(res, rendered)
+	return nil
 }
 
 func main() {
