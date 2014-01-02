@@ -24,14 +24,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	htmlT "html/template"
+	"log"
+	"os"
+
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/l10n"
 	"pkg.monsti.org/util/template"
-	htmlT "html/template"
-	"log"
-	"os"
 )
 
 var settings struct {
@@ -45,7 +46,7 @@ type editFormData struct {
 	Title, Body string
 }
 
-func edit(req service.Request, res *service.Response, s *service.Session) {
+func edit(req service.Request, res *service.Response, s *service.Session) error {
 	G := l10n.UseCatalog(req.Session.Locale)
 	data := editFormData{}
 	dataServ := s.Data()
@@ -54,46 +55,55 @@ func edit(req service.Request, res *service.Response, s *service.Session) {
 		"Body": form.Field{G("Body"), "", form.Required(G("Required.")),
 			new(form.AlohaEditor)}})
 	switch req.Method {
-	case "GET":
+	case service.GetRequest:
 		data.Title = req.Node.Title
 		body, err := dataServ.GetNodeData(req.Site, req.Node.Path,
 			"body.html")
 		if err != nil {
-			panic("document: Could not get node data")
+			return fmt.Errorf("document: Could not get node data")
 		}
 		data.Body = string(body)
-	case "POST":
+	case service.PostRequest:
 		if form.Fill(req.FormData) {
 			node := req.Node
 			node.Title = data.Title
 			if err := dataServ.UpdateNode(req.Site, node); err != nil {
-				panic("document: Could not update node: " + err.Error())
+				return fmt.Errorf("document: Could not update node: ", err)
 			}
 			if err := dataServ.WriteNodeData(req.Site, req.Node.Path,
 				"body.html", data.Body); err != nil {
-				panic("document: Could not update node: " + err.Error())
+				return fmt.Errorf("document: Could not update node: %v", err.Error())
 			}
 			res.Redirect = req.Node.Path
-			return
+			return nil
 		}
 	default:
-		panic("Request method not supported: " + req.Method)
+		return fmt.Errorf("Request method not supported: %v", req.Method)
 	}
-	fmt.Fprint(res, renderer.Render("document/edit",
+	rendered, err := renderer.Render("document/edit",
 		template.Context{"Form": form.RenderData()},
-		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site)))
+		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site))
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+	fmt.Fprint(res, rendered)
+	return nil
 }
 
-func view(req service.Request, res *service.Response, s *service.Session) {
+func view(req service.Request, res *service.Response, s *service.Session) error {
 	dataServ := s.Data()
 	body, err := dataServ.GetNodeData(req.Site, req.Node.Path, "body.html")
 	if err != nil {
 		logger.Fatalf("Could not fetch node data: %v", err)
 	}
-	content := renderer.Render("document/view",
+	rendered, err := renderer.Render("document/view",
 		template.Context{"Body": htmlT.HTML(body)},
 		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site))
-	fmt.Fprint(res, content)
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+	fmt.Fprint(res, rendered)
+	return nil
 }
 
 func main() {
@@ -122,6 +132,6 @@ func main() {
 	provider.AddNodeType(&document)
 	if err := provider.Serve(settings.Monsti.GetServicePath(
 		service.Node.String() + "_document")); err != nil {
-		panic("Could not setup node provider: " + err.Error())
+		panic(fmt.Sprintf("Could not setup node provider: %v", err))
 	}
 }
