@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-func TestNodeInfoName(t *testing.T) {
+func TestNodeFieldsName(t *testing.T) {
 	tests := []struct{ path, name string }{
 		{"", ""},
 		{"/", ""},
@@ -29,7 +29,7 @@ func TestNodeInfoName(t *testing.T) {
 		{"/foo/bar/", "bar"},
 	}
 	for _, test := range tests {
-		node := NodeInfo{Path: test.path}
+		node := NodeFields{Path: test.path}
 		name := node.Name()
 		if name != test.name {
 			t.Errorf(`%v.Name() = %q, should be %q`, node, name, test.name)
