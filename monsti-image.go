@@ -68,14 +68,16 @@ func edit(req service.Request, res *service.Response, s *service.Session) error 
 		if form.Fill(req.FormData) {
 			if len(imageData) > 0 {
 				dataC := s.Data()
-				node := req.Node
+				var node struct{ service.NodeFields }
+				node.NodeFields = req.Node
 				node.Title = data.Title
 				node.Hide = true
-				if err := dataC.UpdateNode(req.Site, node); err != nil {
+				if err := dataC.WriteNode(req.Site, node.Path, node,
+					"node"); err != nil {
 					return fmt.Errorf("Could not update node: %v", err)
 				}
 				if err := dataC.WriteNodeData(req.Site, req.Node.Path,
-					"image.data", string(imageData)); err != nil {
+					"image.data", imageData); err != nil {
 					return fmt.Errorf("Could not write image data: %v", err)
 				}
 				res.Redirect = req.Node.Path
@@ -134,7 +136,7 @@ func view(req service.Request, res *service.Response, s *service.Session) error 
 					return fmt.Errorf("Could not dump image: %v", err)
 				}
 				if err := s.Data().WriteNodeData(req.Site, req.Node.Path,
-					sizePath, string(body)); err != nil {
+					sizePath, body); err != nil {
 					return fmt.Errorf("Could not write resized image data: %v", err)
 				}
 			}
