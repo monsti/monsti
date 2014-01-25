@@ -36,7 +36,7 @@ func NewNodeClient() *NodeClient {
 	return &service_
 }
 
-type NodeInfo struct {
+type NodeFields struct {
 	Path string "-"
 	// Content type of the node.
 	Type        string
@@ -57,7 +57,7 @@ type NodeInfo struct {
 // PathToID will panic if the path is not set.
 //
 // For example, a node with path "/foo/bar" will get the ID "node-__foo__bar".
-func (n NodeInfo) PathToID() string {
+func (n NodeFields) PathToID() string {
 	if len(n.Path) == 0 {
 		panic("Can't calculate ID of node with unset path.")
 	}
@@ -65,7 +65,7 @@ func (n NodeInfo) PathToID() string {
 }
 
 // Name returns the name of the node.
-func (n NodeInfo) Name() string {
+func (n NodeFields) Name() string {
 	base := path.Base(n.Path)
 	if base == "." || base == "/" {
 		return ""
@@ -113,7 +113,7 @@ type Request struct {
 	// Site name
 	Site string
 	// The requested node.
-	Node NodeInfo
+	Node NodeFields
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
@@ -141,7 +141,7 @@ type Response struct {
 	// updated (e.g. modified title).
 	//
 	// If nil, the original node data is used.
-	Node *NodeInfo
+	Node *NodeFields
 }
 
 // Write appends the given bytes to the body of the response.
