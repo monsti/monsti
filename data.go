@@ -211,26 +211,6 @@ func (s *DataClient) WriteNodeData(site, path, file string,
 	return nil
 }
 
-// UpdateNode saves changes to given node.
-func (s *DataClient) UpdateNode(site string, node_ NodeFields) error {
-	if s.Error != nil {
-		return nil
-	}
-	content, err := json.Marshal(node_)
-	if err != nil {
-		return fmt.Errorf("service: Could not marshal node: %v", err)
-	}
-	args := struct {
-		Site, Path string
-		Content    []byte
-	}{
-		site, node_.Path, content}
-	if err := s.RPCClient.Call("Data.UpdateNode", &args, new(int)); err != nil {
-		return fmt.Errorf("service: UpdateNode error: %v", err)
-	}
-	return nil
-}
-
 // RemoveNode recursively removes the given site's node.
 func (s *DataClient) RemoveNode(site string, node string) error {
 	if s.Error != nil {
