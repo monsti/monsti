@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // DataClient represents the RPC connection to the Data service.
@@ -53,6 +54,17 @@ func (s *DataClient) GetNode(site, path string) (*NodeFields, error) {
 	return node, nil
 }
 
+// lowerCaseEqualTo returns a function that checks for lowercase
+// equality with the given value.
+func lowerCaseEqualTo(value string) func(string) bool {
+	return func(name string) bool {
+		if strings.ToLower(name) == strings.ToLower(value) {
+			return true
+		}
+		return false
+	}
+}
+
 // nodeToData creates JSON data for the given field namespaces of the node.
 func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 	nodeType := reflect.TypeOf(node)
@@ -67,13 +79,7 @@ func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 	}
 	ret := make([][]byte, 0, len(namespaces))
 	for _, ns := range namespaces {
-		pred := func(name string) bool {
-			if strings.ToLower(name) == strings.ToLower(ns+"Fields") {
-				return true
-			}
-			return false
-		}
-		nsFields := nodeValue.FieldByNameFunc(pred)
+		nsFields := nodeValue.FieldByNameFunc(lowerCaseEqualTo(ns + "fields"))
 		data, err := json.Marshal(nsFields.Interface())
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -97,66 +103,53 @@ func (s *DataClient) WriteNode(site, path string, node interface{},
 	for idx, field := range fields {
 		err := s.WriteNodeData(site, path, field+".json", fieldsData[idx])
 		if err != nil {
-			return fmt.Errorf("Could not write node fields for namespace %v: %v",
-				field, err)
+			return fmt.Errorf(
+				"service: Could not write node fields for namespace %v: %v", field, err)
 		}
 	}
 	return nil
 }
 
-// ReadFields loads the fields of the given nodes and namespace into target.
-//
-// If only one node is given, target must be a pointer to a struct.
-// If more than one node is given, the target must be an initialized
-// slice of structs.
-//
-// After loading the fields into the target, the node will be assigned
-// to the target's (possibly embedded) NodeInfo field.
-func (s *DataClient) FillFields(target interface{}, site string, nodes ...*NodeInfo) error {
+// dataToNode fills gven node's fields.
+func dataToNode(data [][]byte, node interface{}, namespaces []string) error {
+	nodeType := reflect.TypeOf(node)
+	nodeValue := reflect.ValueOf(node)
+	if nodeType.Kind() != reflect.Ptr ||
+		nodeType.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("service: Node must be a pointer to a struct")
+	}
+	nodeValue = nodeValue.Elem()
+	for idx, ns := range namespaces {
+		nsFields := nodeValue.FieldByNameFunc(lowerCaseEqualTo(ns + "fields"))
+		err := json.Unmarshal(data[idx], nsFields.Addr().Interface())
+		if err != nil {
+			return fmt.Errorf(
+				"service: Could not unmarshal fields of namespace %v: %v", ns, err)
+		}
+	}
+	return nil
+}
+
+// ReadNode reads the named fields into the given node.
+func (s *DataClient) ReadNode(site, path string, node interface{},
+	fields ...string) error {
 	if s.Error != nil {
-		return s.Error
-	}
-	targetType := reflect.TypeOf(target)
-	targetValue := reflect.ValueOf(target)
-	switch len(nodes) {
-	case 0:
-		return nil
-	case 1:
-		if targetType.Kind() != reflect.Ptr ||
-			targetType.Elem().Kind() != reflect.Struct {
-			return fmt.Errorf("service: Target must be a pointer to a struct")
-		}
-		fields, err := s.GetNodeData(site, nodes[0].Path, "fields.json")
-		if err != nil {
-			return fmt.Errorf("Could not get node fields: %v", err)
-		}
-		err = json.Unmarshal(fields, target)
-		if err != nil {
-			return fmt.Errorf("Could not decode fields for %q: %v", nodes[0].Path, err)
-		}
-		info := targetValue.Elem().FieldByName("NodeFields")
-		if info.Type().Kind() == reflect.Ptr {
-			info.Set(reflect.ValueOf(nodes[0]))
-		} else {
-			info.Set(reflect.ValueOf(nodes[0]).Elem())
-		}
-		return nil
-	default:
-		if targetType.Kind() != reflect.Ptr ||
-			targetType.Elem().Kind() != reflect.Slice ||
-			targetValue.Elem().IsNil() {
-			return fmt.Errorf("service: Target must be a pointer to a non-nil slice")
-		}
-		for _, node := range nodes {
-			singleTarget := reflect.New(targetType.Elem().Elem())
-			if err := s.FillFields(singleTarget.Interface(), site, node); err != nil {
-				return err
-			}
-			targetValue.Elem().Set(
-				reflect.Append(targetValue.Elem(), singleTarget.Elem()))
-		}
 		return nil
 	}
+	fieldsData := make([][]byte, 0, len(fields))
+	for _, field := range fields {
+		fieldData, err := s.GetNodeData(site, path, field+".json")
+		if err != nil {
+			return fmt.Errorf(
+				"service: Could not read node fields for namespace %v: %v", field, err)
+		}
+		fieldsData = append(fieldsData, fieldData)
+	}
+	err := dataToNode(fieldsData, node, fields)
+	if err != nil {
+		return fmt.Errorf("service: Could not fill fields: %v", err)
+	}
+	return nil
 }
 
 // GetChildren returns the children of the given node.

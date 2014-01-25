@@ -16,6 +16,7 @@
 package service
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 )
@@ -52,14 +53,14 @@ type BarFields struct {
 }
 
 type FooBarNode struct {
-	*FooFields
-	*BarFields
+	FooFields
+	BarFields
 }
 
 func TestNodeToData(t *testing.T) {
 	var node FooBarNode
-	node.FooFields = &FooFields{"FooField1Val", 13}
-	node.BarFields = &BarFields{"BarField1Val", 4}
+	node.FooFields = FooFields{"FooField1Val", 13}
+	node.BarFields = BarFields{"BarField1Val", 4}
 	data, err := nodeToData(node, []string{"foo"})
 	if err != nil {
 		t.Fatalf("nodeToData returns error: %v", err)
@@ -71,5 +72,18 @@ func TestNodeToData(t *testing.T) {
 	}
 	if !bytes.Equal(data[0], expected) {
 		t.Fatalf("nodeToData should return %q, got %q", expected, data[0])
+	}
+}
+
+func TestDataToNode(t *testing.T) {
+	var node, expected FooBarNode
+	expected.FooFields = FooFields{"FooField1Val", 13}
+	data := []byte(`{"FooField1":"FooField1Val","FooField2":13}`)
+	err := dataToNode([][]byte{data}, &node, []string{"foo"})
+	if err != nil {
+		t.Fatalf("dataToNode returns error: %v", err)
+	}
+	if !reflect.DeepEqual(node, expected) {
+		t.Fatalf("dataToNode should fill as %v, got %v", expected, node)
 	}
 }
