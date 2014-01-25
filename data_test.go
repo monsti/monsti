@@ -40,3 +40,36 @@ func TestGetConfig(t *testing.T) {
 		}
 	}
 }
+
+type FooFields struct {
+	FooField1 string
+	FooField2 int
+}
+
+type BarFields struct {
+	BarField1 string
+	BarField2 int
+}
+
+type FooBarNode struct {
+	*FooFields
+	*BarFields
+}
+
+func TestNodeToData(t *testing.T) {
+	var node FooBarNode
+	node.FooFields = &FooFields{"FooField1Val", 13}
+	node.BarFields = &BarFields{"BarField1Val", 4}
+	data, err := nodeToData(node, []string{"foo"})
+	if err != nil {
+		t.Fatalf("nodeToData returns error: %v", err)
+	}
+	expected := []byte(`{"FooField1":"FooField1Val","FooField2":13}`)
+	if len(data) != 1 {
+		t.Fatalf("nodeToData should return a slice of length 1, got length %d",
+			len(data))
+	}
+	if !bytes.Equal(data[0], expected) {
+		t.Fatalf("nodeToData should return %q, got %q", expected, data[0])
+	}
+}

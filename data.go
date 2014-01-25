@@ -53,7 +53,58 @@ func (s *DataClient) GetNode(site, path string) (*NodeFields, error) {
 	return node, nil
 }
 
-// FillFields loads the fields of the given nodes into target.
+// nodeToData creates JSON data for the given field namespaces of the node.
+func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
+	nodeType := reflect.TypeOf(node)
+	nodeValue := reflect.ValueOf(node)
+	if nodeType.Kind() == reflect.Ptr {
+		nodeType = nodeType.Elem()
+		nodeValue = nodeValue.Elem()
+	}
+	if nodeType.Kind() != reflect.Struct {
+		return nil, fmt.Errorf(
+			"service: Node must be a struct or a pointer to a struct")
+	}
+	ret := make([][]byte, 0, len(namespaces))
+	for _, ns := range namespaces {
+		pred := func(name string) bool {
+			if strings.ToLower(name) == strings.ToLower(ns+"Fields") {
+				return true
+			}
+			return false
+		}
+		nsFields := nodeValue.FieldByNameFunc(pred)
+		data, err := json.Marshal(nsFields.Interface())
+		if err != nil {
+			return nil, fmt.Errorf(
+				"service: Could not marshal fields of namespace %v: %v", ns, err)
+		}
+		ret = append(ret, data)
+	}
+	return ret, nil
+}
+
+// WriteNode writes the named fields of the given node.
+func (s *DataClient) WriteNode(site, path string, node interface{},
+	fields ...string) error {
+	if s.Error != nil {
+		return nil
+	}
+	fieldsData, err := nodeToData(node, fields)
+	if err != nil {
+		return fmt.Errorf("service: Could not convert fields: %v", err)
+	}
+	for idx, field := range fields {
+		err := s.WriteNodeData(site, path, field+".json", fieldsData[idx])
+		if err != nil {
+			return fmt.Errorf("Could not write node fields for namespace %v: %v",
+				field, err)
+		}
+	}
+	return nil
+}
+
+// ReadFields loads the fields of the given nodes and namespace into target.
 //
 // If only one node is given, target must be a pointer to a struct.
 // If more than one node is given, the target must be an initialized
