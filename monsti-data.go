@@ -57,20 +57,6 @@ func getNode(root, path string) (node []byte, err error) {
 	return
 }
 
-type GetNodeArgs struct{ Site, Path string }
-
-func (i *DataService) GetNode(args *GetNodeArgs,
-	reply *[]byte) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	node, err := getNode(site, args.Path)
-	if err != nil {
-		reply = nil
-		return err
-	}
-	*reply = node
-	return nil
-}
-
 // getChildren looks up child nodes of the given node.
 func getChildren(root, path string) (nodes [][]byte, err error) {
 	files, err := ioutil.ReadDir(filepath.Join(root, path))
@@ -114,7 +100,8 @@ func (i *DataService) GetNodeData(args *GetNodeDataArgs,
 }
 
 type WriteNodeDataArgs struct {
-	Site, Path, File, Content string
+	Site, Path, File string
+	Content          []byte
 }
 
 func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
@@ -123,16 +110,6 @@ func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
 	path := filepath.Join(site, args.Path[1:], args.File)
 	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
 	return err
-}
-
-type UpdateNodeArgs struct {
-	Site, Path string
-	Content    []byte
-}
-
-func (i *DataService) UpdateNode(args *UpdateNodeArgs, reply *int) error {
-	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return writeNode(args.Content, args.Path, root)
 }
 
 type RemoveNodeArgs struct {
@@ -146,19 +123,6 @@ func (i *DataService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 		return fmt.Errorf("Can't remove node: %v", err)
 	}
 	return nil
-}
-
-// writeNode writes the given node to the data directory located at the given
-// root.
-func writeNode(content []byte, path, root string) error {
-	node_path := filepath.Join(root, path[1:],
-		"node.json")
-	if err := os.Mkdir(filepath.Dir(node_path), 0700); err != nil {
-		if !os.IsExist(err) {
-			panic("Can't create directory for new node: " + err.Error())
-		}
-	}
-	return ioutil.WriteFile(node_path, content, 0600)
 }
 
 // getConfig returns the configuration value or section for the given name.
