@@ -35,25 +35,6 @@ func NewDataClient() *DataClient {
 	return &service_
 }
 
-// GetNode returns the given node or nil if it does not exist.
-func (s *DataClient) GetNode(site, path string) (*NodeFields, error) {
-	if s.Error != nil {
-		return nil, s.Error
-	}
-	args := struct{ Site, Path string }{site, path}
-	var reply []byte
-	err := s.RPCClient.Call("Data.GetNode", args, &reply)
-	if err != nil {
-		return nil, fmt.Errorf("service: GetNode error: %v", err)
-	}
-	node := &NodeFields{}
-	err = json.Unmarshal(reply, node)
-	if err != nil {
-		return nil, fmt.Errorf("service: Could not decode node: %v", err)
-	}
-	return node, nil
-}
-
 // lowerCaseEqualTo returns a function that checks for lowercase
 // equality with the given value.
 func lowerCaseEqualTo(value string) func(string) bool {
