@@ -26,35 +26,35 @@ import (
 
 func TestGetNav(t *testing.T) {
 	nodes := map[string]struct {
-		Node     service.NodeInfo
+		Node     service.NodeFields
 		Children []string
 	}{
-		"/": {service.NodeInfo{Title: "Root"},
+		"/": {service.NodeFields{Title: "Root"},
 			[]string{"foo", "bar", "hideme", "cruz"}},
-		"/foo": {service.NodeInfo{Title: "Node Foo", ShortTitle: "Foo"},
+		"/foo": {service.NodeFields{Title: "Node Foo", ShortTitle: "Foo"},
 			[]string{"child1", "child2"}},
 		"/foo/child1": {
-			service.NodeInfo{Title: "Node Foo Child 1",
+			service.NodeFields{Title: "Node Foo Child 1",
 				ShortTitle: "Foo Child 1"}, []string{}},
 		"/foo/child2": {
-			service.NodeInfo{Title: "Node Foo Child 2",
+			service.NodeFields{Title: "Node Foo Child 2",
 				ShortTitle: "Foo Child 2"}, []string{"child1"}},
 		"/foo/child2/child1": {
-			service.NodeInfo{Title: "Node Foo Child 2 Child 1",
+			service.NodeFields{Title: "Node Foo Child 2 Child 1",
 				ShortTitle: "Foo Child 2 Child 1"}, []string{}},
 		"/bar": {
-			service.NodeInfo{Title: "Node Bar", Order: 2,
+			service.NodeFields{Title: "Node Bar", Order: 2,
 				ShortTitle: "Bar"}, []string{}},
 		"/hideme": {
-			service.NodeInfo{Title: "Node Hide me!", Hide: true,
+			service.NodeFields{Title: "Node Hide me!", Hide: true,
 				ShortTitle: "Hide me!"}, []string{}},
 		"/cruz": {
-			service.NodeInfo{Title: "Node Cruz", Order: -2,
+			service.NodeFields{Title: "Node Cruz", Order: -2,
 				ShortTitle: "Cruz"}, []string{"child1"}},
 		"/cruz/child1": {
-			service.NodeInfo{Title: "Node Cruz Child 1",
+			service.NodeFields{Title: "Node Cruz Child 1",
 				ShortTitle: "Cruz Child 1"}, []string{}}}
-	getNodeFn := func(nodePath string) (*service.NodeInfo, error) {
+	getNodeFn := func(nodePath string) (*service.NodeFields, error) {
 		if val, ok := nodes[nodePath]; ok {
 			val.Node.Path = nodePath
 			return &val.Node, nil
@@ -63,8 +63,8 @@ func TestGetNav(t *testing.T) {
 		}
 		return nil, nil
 	}
-	getChildrenFn := func(nodePath string) ([]*service.NodeInfo, error) {
-		children := make([]*service.NodeInfo, 0)
+	getChildrenFn := func(nodePath string) ([]*service.NodeFields, error) {
+		children := make([]*service.NodeFields, 0)
 		for _, child := range nodes[nodePath].Children {
 			node, _ := getNodeFn(path.Join(nodePath, child))
 			children = append(children, node)

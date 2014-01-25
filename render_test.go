@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -40,6 +40,7 @@ func TestSplitFirstDir(t *testing.T) {
 		}
 	}
 }
+
 /*
 
 func TestRenderInMaster(t *testing.T) {
@@ -70,11 +71,11 @@ func TestRenderInMaster(t *testing.T) {
 	settings := util.MonstiSettings{}
 	settings.Directories.Data = filepath.Join(root, "data")
 	tests := []struct {
-		Node              service.NodeInfo
+		Node              service.NodeFields
 		Flags             masterTmplFlags
 		Content, Rendered string
 	}{
-		{service.NodeInfo{Title: "Foo Child 2", Description: "Bar!",
+		{service.NodeFields{Title: "Foo Child 2", Description: "Bar!",
 			Path: "/foo/child2"}, 0,
 			"The content.", `Foo Child 2
 Bar!

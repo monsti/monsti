@@ -58,15 +58,15 @@ func (n *navigation) Swap(i, j int) {
 
 // getShortTitle returns the given node's ShortTitle attribute, or, if the
 // ShortTitle is of zero length, its Title attribute.
-func getShortTitle(node *service.NodeInfo) string {
+func getShortTitle(node *service.NodeFields) string {
 	if len(node.ShortTitle) > 0 {
 		return node.ShortTitle
 	}
 	return node.Title
 }
 
-type getNodeFunc func(path string) (*service.NodeInfo, error)
-type getChildrenFunc func(path string) ([]*service.NodeInfo, error)
+type getNodeFunc func(path string) (*service.NodeFields, error)
+type getChildrenFunc func(path string) ([]*service.NodeFields, error)
 
 // getNav returns the navigation for the given node.
 //
@@ -191,7 +191,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 				return fmt.Errorf("Can't add this node type.")
 			}
 			newPath := filepath.Join(c.Node.Path, data.Name)
-			newNode := service.NodeInfo{
+			newNode := service.NodeFields{
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
@@ -199,7 +199,8 @@ func (h *nodeHandler) Add(c *reqContext) error {
 			if err != nil {
 				return fmt.Errorf("Can't find data service: %v", err)
 			}
-			if err := data.UpdateNode(c.Site.Name, newNode); err != nil {
+			if err := data.WriteNode(c.Site.Name, newNode.Path, newNode,
+				"node"); err != nil {
 				return fmt.Errorf("Can't add node: %v", err)
 			}
 			http.Redirect(c.Res, c.Req, newPath+"/@@edit", http.StatusSeeOther)

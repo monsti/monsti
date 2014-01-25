@@ -39,7 +39,7 @@ import (
 type reqContext struct {
 	Res         http.ResponseWriter
 	Req         *http.Request
-	Node        *service.NodeInfo
+	Node        *service.NodeFields
 	Action      service.Action
 	Session     *sessions.Session
 	UserSession *service.UserSession
@@ -146,10 +146,13 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		serveError("Could not get client session: %v", err)
 	}
 	c.UserSession.Locale = c.Site.Locale
-	c.Node, err = c.Serv.Data().GetNode(c.Site.Name, nodePath)
+	var node struct{ service.NodeFields }
+	err = c.Serv.Data().ReadNode(c.Site.Name, nodePath, &node, "node")
+	c.Node = &node.NodeFields
+	c.Node.Path = nodePath
 	if err != nil {
 		h.Log.Printf("Node not found: %v", err)
-		c.Node = &service.NodeInfo{Path: nodePath}
+		c.Node = &service.NodeFields{Path: nodePath}
 		http.Error(c.Res, "Document not found", http.StatusNotFound)
 		return
 	}

@@ -36,7 +36,7 @@ const (
 
 // Environment/context for the master template.
 type masterTmplEnv struct {
-	Node               *service.NodeInfo
+	Node               *service.NodeFields
 	Session            *service.UserSession
 	Title, Description string
 	Flags              masterTmplFlags
@@ -55,10 +55,12 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
-	getNodeFn := func(path string) (*service.NodeInfo, error) {
-		return s.Data().GetNode(site.Name, path)
+	getNodeFn := func(path string) (*service.NodeFields, error) {
+		var node struct{ service.NodeFields }
+		err := s.Data().ReadNode(site.Name, path, &node, "node")
+		return &node.NodeFields, err
 	}
-	getChildrenFn := func(path string) ([]*service.NodeInfo, error) {
+	getChildrenFn := func(path string) ([]*service.NodeFields, error) {
 		return s.Data().GetChildren(site.Name, path)
 	}
 	prinav, err := getNav("/", path.Join("/", firstDir), getNodeFn, getChildrenFn)
