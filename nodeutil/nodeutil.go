@@ -32,7 +32,9 @@ func SimpleJSONRequest(path string, s *service.Session, req *service.Request,
 	if err != nil {
 		return fmt.Errorf("nodeutil: Could not parse node path: %v", err)
 	}
-	node, err := s.Data().GetNode(req.Site, url.Path)
+	var node struct{ service.NodeFields }
+	err = s.Data().ReadNode(req.Site, url.Path, &node, "node")
+	node.Path = url.Path
 	if err != nil {
 		return fmt.Errorf("nodeutil: Could not find node: %v", err)
 	}
@@ -51,7 +53,7 @@ func SimpleJSONRequest(path string, s *service.Session, req *service.Request,
 	subReq := service.Request{
 		Site:    req.Site,
 		Method:  service.GetRequest,
-		Node:    *node,
+		Node:    node.NodeFields,
 		Query:   url.Query(),
 		Session: req.Session,
 		Action:  service.ViewAction,
