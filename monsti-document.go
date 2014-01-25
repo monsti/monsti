@@ -65,13 +65,15 @@ func edit(req service.Request, res *service.Response, s *service.Session) error 
 		data.Body = string(body)
 	case service.PostRequest:
 		if form.Fill(req.FormData) {
-			node := req.Node
+			var node struct{ service.NodeFields }
+			node.NodeFields = req.Node
 			node.Title = data.Title
-			if err := dataServ.UpdateNode(req.Site, node); err != nil {
+			err := dataServ.WriteNode(req.Site, node.Path, node, "node")
+			if err != nil {
 				return fmt.Errorf("document: Could not update node: ", err)
 			}
 			if err := dataServ.WriteNodeData(req.Site, req.Node.Path,
-				"body.html", data.Body); err != nil {
+				"body.html", []byte(data.Body)); err != nil {
 				return fmt.Errorf("document: Could not update node: %v", err.Error())
 			}
 			res.Redirect = req.Node.Path
