@@ -151,12 +151,14 @@ func (s *DataClient) GetNodeData(site, path, file string) ([]byte, error) {
 }
 
 // WriteNodeData writes data for some node.
-func (s *DataClient) WriteNodeData(site, path, file, content string) error {
+func (s *DataClient) WriteNodeData(site, path, file string,
+	content []byte) error {
 	if s.Error != nil {
 		return nil
 	}
 	args := struct {
-		Site, Path, File, Content string
+		Site, Path, File string
+		Content          []byte
 	}{
 		site, path, file, content}
 	if err := s.RPCClient.Call("Data.WriteNodeData", &args, new(int)); err != nil {
