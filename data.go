@@ -35,7 +35,7 @@ func NewDataClient() *DataClient {
 }
 
 // GetNode returns the given node or nil if it does not exist.
-func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
+func (s *DataClient) GetNode(site, path string) (*NodeFields, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
@@ -45,7 +45,7 @@ func (s *DataClient) GetNode(site, path string) (*NodeInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("service: GetNode error: %v", err)
 	}
-	node := &NodeInfo{}
+	node := &NodeFields{}
 	err = json.Unmarshal(reply, node)
 	if err != nil {
 		return nil, fmt.Errorf("service: Could not decode node: %v", err)
@@ -83,7 +83,7 @@ func (s *DataClient) FillFields(target interface{}, site string, nodes ...*NodeI
 		if err != nil {
 			return fmt.Errorf("Could not decode fields for %q: %v", nodes[0].Path, err)
 		}
-		info := targetValue.Elem().FieldByName("NodeInfo")
+		info := targetValue.Elem().FieldByName("NodeFields")
 		if info.Type().Kind() == reflect.Ptr {
 			info.Set(reflect.ValueOf(nodes[0]))
 		} else {
@@ -109,7 +109,7 @@ func (s *DataClient) FillFields(target interface{}, site string, nodes ...*NodeI
 }
 
 // GetChildren returns the children of the given node.
-func (s *DataClient) GetChildren(site, path string) ([]*NodeInfo, error) {
+func (s *DataClient) GetChildren(site, path string) ([]*NodeFields, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
@@ -119,9 +119,9 @@ func (s *DataClient) GetChildren(site, path string) ([]*NodeInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("service: GetChildren error: %v", err)
 	}
-	nodes := make([]*NodeInfo, 0, len(reply))
+	nodes := make([]*NodeFields, 0, len(reply))
 	for _, entry := range reply {
-		node := &NodeInfo{}
+		node := &NodeFields{}
 		err = json.Unmarshal(entry, node)
 		if err != nil {
 			return nil, fmt.Errorf("service: Could not decode node: %v", err)
@@ -168,7 +168,7 @@ func (s *DataClient) WriteNodeData(site, path, file string,
 }
 
 // UpdateNode saves changes to given node.
-func (s *DataClient) UpdateNode(site string, node_ NodeInfo) error {
+func (s *DataClient) UpdateNode(site string, node_ NodeFields) error {
 	if s.Error != nil {
 		return nil
 	}
