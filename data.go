@@ -46,7 +46,8 @@ func lowerCaseEqualTo(value string) func(string) bool {
 	}
 }
 
-// nodeToData creates JSON data for the given field namespaces of the node.
+// nodeToData converts the node's fields of the given field namespaces
+// to a JSON document.
 func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 	nodeType := reflect.TypeOf(node)
 	nodeValue := reflect.ValueOf(node)
