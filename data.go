@@ -62,6 +62,9 @@ func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 	ret := make([][]byte, 0, len(namespaces))
 	for _, ns := range namespaces {
 		nsFields := nodeValue.FieldByNameFunc(lowerCaseEqualTo(ns + "fields"))
+		if !nsFields.IsValid() {
+			panic(fmt.Errorf("service: Invalid field namespace %q", ns))
+		}
 		data, err := json.Marshal(nsFields.Interface())
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -73,6 +76,8 @@ func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 }
 
 // WriteNode writes the named fields of the given node.
+//
+// It panics if the node does not contain one of the named fields.
 func (s *DataClient) WriteNode(site, path string, node interface{},
 	fields ...string) error {
 	if s.Error != nil {
