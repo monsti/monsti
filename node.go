@@ -191,7 +191,8 @@ func (h *nodeHandler) Add(c *reqContext) error {
 				return fmt.Errorf("Can't add this node type.")
 			}
 			newPath := filepath.Join(c.Node.Path, data.Name)
-			newNode := service.NodeFields{
+			var newNode struct{ service.NodeFields }
+			newNode.NodeFields = service.NodeFields{
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
