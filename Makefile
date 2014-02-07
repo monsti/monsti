@@ -6,7 +6,7 @@ GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
 
-MONSTI_VERSION=0.6.1
+MONSTI_VERSION=unstable
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
 ALOHA_VERSION=0.23.2
