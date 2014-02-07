@@ -18,17 +18,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/sessions"
 	"net/http"
 	"path"
 	"path/filepath"
+	"sort"
+	"strings"
+
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
 	"pkg.monsti.org/util/template"
-	"sort"
-	"strings"
 )
 
 // navLink represents a link in the navigation.
@@ -59,55 +58,58 @@ func (n *navigation) Swap(i, j int) {
 
 // getShortTitle returns the given node's ShortTitle attribute, or, if the
 // ShortTitle is of zero length, its Title attribute.
-func getShortTitle(node *service.NodeInfo) string {
+func getShortTitle(node *service.NodeFields) string {
 	if len(node.ShortTitle) > 0 {
 		return node.ShortTitle
 	}
 	return node.Title
 }
 
+type getNodeFunc func(path string) (*service.NodeFields, error)
+type getChildrenFunc func(path string) ([]*service.NodeFields, error)
+
 // getNav returns the navigation for the given node.
 //
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
-func getNav(nodePath, active, site string,
-	s *service.Session) (navLinks navigation, err error) {
+func getNav(nodePath, active string,
+	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
+	navLinks navigation, err error) {
 	// Search children
-	children, err := s.Data().GetChildren(site, nodePath)
+	children, err := getChildrenFn(nodePath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get children: %v", err)
 	}
 	childrenNavLinks := navLinks[:]
-	anyChild := false
 	for _, child := range children {
 		if child.Hide {
 			continue
 		}
-		anyChild = true
 		childrenNavLinks = append(childrenNavLinks, navLink{
 			Name:   getShortTitle(child),
-			Target: child.Name(), Child: true, Order: child.Order})
+			Target: path.Join(nodePath, child.Name()),
+			Child:  true, Order: child.Order})
 	}
-	if !anyChild {
+	if len(childrenNavLinks) == 0 {
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
 			return nil, nil
 		}
-		return getNav(path.Dir(nodePath), active, site, s)
+		return getNav(path.Dir(nodePath), active, getNodeFn, getChildrenFn)
 	}
 	sort.Sort(&childrenNavLinks)
 	siblingsNavLinks := navLinks[:]
 	// Search siblings
 	if nodePath != "/" && path.Dir(nodePath) == "/" {
-		node, err := s.Data().GetNode(nodePath, site)
+		node, err := getNodeFn(nodePath)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
 			Name:   getShortTitle(node),
-			Target: path.Join("..", path.Base(nodePath)), Order: node.Order})
+			Target: nodePath, Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
-		siblings, err := s.Data().GetChildren(site, parent)
+		siblings, err := getChildrenFn(parent)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
@@ -117,13 +119,13 @@ func getNav(nodePath, active, site string,
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
 				Name:   getShortTitle(sibling),
-				Target: path.Join("..", sibling.Name()), Order: sibling.Order})
+				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
 		}
 	}
 	sort.Sort(&siblingsNavLinks)
 	// Insert children at their parent
 	for i, link := range siblingsNavLinks {
-		if link.Target == path.Join("..", path.Base(nodePath)) {
+		if link.Target == nodePath {
 			navLinks = append(navLinks, siblingsNavLinks[:i+1]...)
 			navLinks = append(navLinks, childrenNavLinks...)
 			navLinks = append(navLinks, siblingsNavLinks[i+1:]...)
@@ -136,12 +138,7 @@ func getNav(nodePath, active, site string,
 	// Compute node paths relative to active node and search and set the Active
 	// link
 	for i, link := range navLinks {
-		rel, err := filepath.Rel(active, path.Join(nodePath, link.Target))
-		if err != nil {
-			panic(fmt.Sprint("Could not comute relative path:", err))
-		}
-		navLinks[i].Target = rel
-		if rel == "." || (len(rel) >= 5 && rel[:2] == ".." && rel[len(rel)-2:] == "..") {
+		if strings.Contains(active, link.Target) && path.Dir(active) != link.Target {
 			navLinks[i].Active = true
 		}
 	}
@@ -164,16 +161,13 @@ type addFormData struct {
 }
 
 // Add handles add requests.
-func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Add(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := addFormData{}
 	nodeTypeOptions := []form.Option{}
-	nodeTypes, err := h.Info.GetAddableNodeTypes(site.Name, reqnode.Type)
+	nodeTypes, err := h.Info.GetAddableNodeTypes(c.Site.Name, c.Node.Type)
 	if err != nil {
-		panic("Could not get addable node types: " + err.Error())
+		return fmt.Errorf("Could not get addable node types: %v", err)
 	}
 	for _, nodeType := range nodeTypes {
 		nodeTypeOptions = append(nodeTypeOptions,
@@ -187,43 +181,46 @@ func (h *nodeHandler) Add(w http.ResponseWriter, r *http.Request,
 			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
 				G("Contains	invalid characters."))), nil},
 		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
 			data.Name = strings.ToLower(data.Name)
 			if !inStringSlice(data.Type, nodeTypes) {
-				panic("Can't add this node type.")
+				return fmt.Errorf("Can't add this node type.")
 			}
-			newPath := filepath.Join(reqnode.Path, data.Name)
-			newNode := service.NodeInfo{
+			newPath := filepath.Join(c.Node.Path, data.Name)
+			var newNode struct{ service.NodeFields }
+			newNode.NodeFields = service.NodeFields{
 				Path:  newPath,
 				Type:  data.Type,
 				Title: data.Title}
 			data, err := h.Info.FindDataService()
 			if err != nil {
-				panic("Can't find data service: " + err.Error())
+				return fmt.Errorf("Can't find data service: %v", err)
 			}
-			if err := data.UpdateNode(site.Name, newNode); err != nil {
-				panic("Can't add node: " + err.Error())
+			if err := data.WriteNode(c.Site.Name, newNode.Path, newNode,
+				"node"); err != nil {
+				return fmt.Errorf("Can't add node: %v", err)
 			}
-			http.Redirect(w, r, newPath+"/@@edit", http.StatusSeeOther)
-			return
+			http.Redirect(c.Res, c.Req, newPath+"/@@edit", http.StatusSeeOther)
+			return nil
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	body, err := h.Renderer.Render("httpd/actions/addform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData()}, c.UserSession.Locale,
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		panic("Can't render node add formular: " + err.Error())
+		return fmt.Errorf("Can't render node add formular: %v", err)
 	}
-	env := masterTmplEnv{Node: reqnode, Session: cSession,
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+	return nil
 }
 
 type removeFormData struct {
@@ -231,43 +228,40 @@ type removeFormData struct {
 }
 
 // Remove handles remove requests.
-func (h *nodeHandler) Remove(w http.ResponseWriter, r *http.Request,
-	node *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Remove(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),
 			new(form.HiddenWidget)}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
 			dataServ, err := h.Info.FindDataService()
 			if err != nil {
-				panic("httpd: Could not connect to data service: " +
-					err.Error())
+				return fmt.Errorf("httpd: Could not connect to data service: %v", err)
 			}
-			if err := dataServ.RemoveNode(site.Name, node.Path); err != nil {
-				panic("Could not remove node: " + err.Error())
+			if err := dataServ.RemoveNode(c.Site.Name, c.Node.Path); err != nil {
+				return fmt.Errorf("Could not remove node: %v", err)
 			}
-			http.Redirect(w, r, path.Dir(node.Path), http.StatusSeeOther)
-			return
+			http.Redirect(c.Res, c.Req, path.Dir(c.Node.Path), http.StatusSeeOther)
+			return nil
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Confirm = 1489
 	body, err := h.Renderer.Render("httpd/actions/removeform", template.Context{
-		"Form": form.RenderData(), "Node": node},
-		cSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData(), "Node": c.Node},
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
 	}
-	env := masterTmplEnv{Node: node, Session: cSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), node.Title)}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
+		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Title)}
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+	return nil
 }

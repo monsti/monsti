@@ -17,13 +17,14 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
 	"fmt"
-	"github.com/gorilla/sessions"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"net/http"
 	"path/filepath"
+
+	"code.google.com/p/go.crypto/bcrypt"
+	"github.com/gorilla/sessions"
+	"launchpad.net/goyaml"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/service"
@@ -36,73 +37,75 @@ type loginFormData struct {
 }
 
 // Login handles login requests.
-func (h *nodeHandler) Login(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session,
-	cSession *service.UserSession, site util.SiteSettings,
-	s *service.Session) {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", cSession.Locale)
+func (h *nodeHandler) Login(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
 			nil},
 		"Password": form.Field{G("Password"), "", form.Required(G("Required.")),
 			new(form.PasswordWidget)}})
-	switch r.Method {
+	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		r.ParseForm()
-		if form.Fill(r.Form) {
-			user := getUser(data.Login,
-				h.Settings.Monsti.GetSiteConfigPath(site.Name))
+		c.Req.ParseForm()
+		if form.Fill(c.Req.Form) {
+			user, err := getUser(data.Login,
+				h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
+			if err != nil {
+				return fmt.Errorf("Could not get user: %v", err)
+			}
 			if user != nil && passwordEqual(user.Password, data.Password) {
-				session.Values["login"] = user.Login
-				session.Save(r, w)
-				http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)
-				return
+				c.Session.Values["login"] = user.Login
+				c.Session.Save(c.Req, c.Res)
+				http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
+				return nil
 			}
 			form.AddError("", G("Wrong login or password."))
 		}
 	default:
-		panic("Request method not supported: " + r.Method)
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Password = ""
 	body, err := h.Renderer.Render("httpd/actions/loginform", template.Context{
-		"Form": form.RenderData()}, cSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(site.Name))
+		"Form": form.RenderData()}, c.UserSession.Locale,
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		panic("Can't render login form: " + err.Error())
+		return fmt.Errorf("Can't render login form: %v", err)
 	}
-	env := masterTmplEnv{Node: reqnode, Session: cSession, Title: G("Login"),
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
-	fmt.Fprint(w, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		site, cSession.Locale, s))
+	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+	return nil
 }
 
 // Logout handles logout requests.
-func (h *nodeHandler) Logout(w http.ResponseWriter, r *http.Request,
-	reqnode *service.NodeInfo, session *sessions.Session) {
-	delete(session.Values, "login")
-	session.Save(r, w)
-	http.Redirect(w, r, reqnode.Path, http.StatusSeeOther)
+func (h *nodeHandler) Logout(c *reqContext) error {
+	delete(c.Session.Values, "login")
+	c.Session.Save(c.Req, c.Res)
+	http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
+	return nil
 }
 
 // getSession returns a currently active or new session.
-func getSession(r *http.Request, site util.SiteSettings) *sessions.Session {
+func getSession(r *http.Request, site util.SiteSettings) (
+	*sessions.Session, error) {
 	if len(site.SessionAuthKey) == 0 {
-		panic(`Missing "SessionAuthKey" setting.`)
+		return nil, fmt.Errorf(`Missing "SessionAuthKey" setting.`)
 	}
 	store := sessions.NewCookieStore([]byte(site.SessionAuthKey))
 	session, _ := store.Get(r, "monsti-session")
-	return session
+	return session, nil
 }
 
 // getClientSession returns the client session for the given session.
 //
 // configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
-	configDir string) (cSession *service.UserSession) {
-	cSession = new(service.UserSession)
+	configDir string) (uSession *service.UserSession, err error) {
+	uSession = new(service.UserSession)
 	loginData, ok := session.Values["login"]
 	if !ok {
 		return
@@ -112,43 +115,48 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	user := getUser(login_, configDir)
+	user, err := getUser(login_, configDir)
+	if err != nil {
+		err = fmt.Errorf("Could not get user: %v", err)
+		return
+	}
 	if user == nil {
 		delete(session.Values, "login")
 		return
 	}
-	*cSession = service.UserSession{User: user}
+	*uSession = service.UserSession{User: user}
 	return
 }
 
 // getUser returns the user with the given login.
-func getUser(login_, configDir string) *service.User {
+func getUser(login_, configDir string) (*service.User, error) {
 	path := filepath.Join(configDir, "users.yaml")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic("Could not load users.yaml: " + err.Error())
+		return nil, fmt.Errorf("Could not load users.yaml: %v", err)
 	}
 	var users []service.User
 	if err = goyaml.Unmarshal(content, &users); err != nil {
-		panic("Could not unmarshal users.yaml: " + err.Error())
+		return nil, fmt.Errorf("Could not unmarshal users.yaml: %v", err)
 	}
 	for _, user := range users {
 		if user.Login == login_ {
-			return &user
+			return &user, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // checkPermission checks if the session's user might perform the given action.
-func checkPermission(action string, session *service.UserSession) bool {
+func checkPermission(action service.Action, session *service.UserSession) bool {
 	auth := session.User != nil
 	switch action {
-	case "remove", "edit", "add", "logout":
+	case service.RemoveAction, service.EditAction, service.AddAction,
+		service.LogoutAction:
 		if auth {
 			return true
 		}
-	case "", "login":
+	default:
 		return true
 	}
 	return false
