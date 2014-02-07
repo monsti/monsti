@@ -11,20 +11,12 @@ DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
 ALOHA_VERSION=0.23.2
 
-DAEMON_VERSION=0.6.1
-DOCUMENT_VERSION=0.3.1
-CONTACTFORM_VERSION=0.3.1
-IMAGE_VERSION=0.3.1
-MAIL_VERSION=0.1.1
-DATA_VERSION=0.1.1
-HTTPD_VERSION=0.1.2
-
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 MODULE_SOURCES=$(MODULES:%=go/src/pkg.monsti.org/monsti-%)
 
 all: monsti bcrypt
 
-monsti: modules templates/master.html dep-aloha-editor dep-jquery
+monsti: modules templates locales templates/master.html dep-aloha-editor dep-jquery
 
 .PHONY: bcrypt
 bcrypt: 
@@ -33,53 +25,33 @@ bcrypt:
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
 
-module/daemon.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-daemon/monsti-daemon-$(DAEMON_VERSION).tar.gz -O module/daemon.tar.gz
+locales: $(MODULES:%=locales-monsti-%)
 
-module/data.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-data/monsti-data-$(DATA_VERSION).tar.gz -O module/data.tar.gz
-
-module/httpd.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-httpd/monsti-httpd-$(HTTPD_VERSION).tar.gz -O module/httpd.tar.gz
-
-module/image.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-image/monsti-image-$(IMAGE_VERSION).tar.gz -O module/image.tar.gz
-
-module/mail.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-mail/monsti-mail-$(MAIL_VERSION).tar.gz -O module/mail.tar.gz
-
-module/document.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-document/monsti-document-$(DOCUMENT_VERSION).tar.gz -O module/document.tar.gz
-
-module/contactform.tar.gz:
-	mkdir -p module/
-	wget -nv http://pkg.monsti.org/monsti-contactform/monsti-contactform-$(CONTACTFORM_VERSION).tar.gz -O module/contactform.tar.gz
-
-module/%: module/%.tar.gz
-	cd module; tar xf $*.tar.gz && mv monsti-monsti-$* $*
+locales-monsti-%:
 	mkdir -p locale/
-	mkdir -p module/$*/locale/
-	cp -Rn module/$*/locale .
+	mkdir -p modules/monsti-$*/locale/
+	cp -Rn modules/monsti-$*/locale .
+
+templates: $(MODULES:%=templates-monsti-%)
+
+templates-monsti-%:
 	mkdir -p templates/
-	mkdir -p module/$*/templates/
-	ln -nsf ../module/$*/templates templates/$*
+	mkdir -p modules/monsti-$*/templates/
+	ln -nsf ../modules/monsti-$*/templates templates/$*
 
 templates/master.html: templates/httpd/master.html
 	for i in $(wildcard templates/httpd/*); \
 	do \
 		ln -nsf httpd/`basename $${i}` templates/`basename $${i}`; \
 	done; \
-  rm templates/httpd/templates
+  #rm templates/httpd/templates
 
-$(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: module/%
+modules/monsti-%:
+	git clone git@gitorious.org:monsti/monsti-$*.git modules/monsti-$*
+
+$(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: modules/monsti-%
 	mkdir -p go/src/pkg.monsti.org
-	ln -sf ../../../module/$* go/src/pkg.monsti.org/monsti-$*
+	ln -sf ../../../modules/monsti-$* go/src/pkg.monsti.org/monsti-$*
 
 dist: monsti bcrypt
 	mkdir -p $(DIST_PATH)/bin
@@ -113,7 +85,6 @@ test-%:
 clean:
 	rm go/* -Rf
 	rm static/aloha/ -Rf
-	rm module/ -Rf
 	rm locale/ -Rf
 	rm dist/ -Rf
 	rm templates/ -Rf
