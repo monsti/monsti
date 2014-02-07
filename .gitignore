@@ -1,6 +1,6 @@
 go/
 static/aloha/
-*.swp
-*~
 locale/
-module/
+templates/
+modules/
+dist/
