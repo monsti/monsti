@@ -22,58 +22,43 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"sync"
 
-	"launchpad.net/goyaml"
 	"pkg.monsti.org/service"
 	"pkg.monsti.org/util"
 )
 
 // DataService implements RPC methods for the Data service.
 type DataService struct {
-	Info     *service.InfoClient
 	Settings settings
 }
 
 // getNode looks up the given node.
 // If no such node exists, return nil.
-func getNode(root, path string) (node *service.NodeInfo, err error) {
-	node_path := filepath.Join(root, path[1:], "node.yaml")
-	content, err := ioutil.ReadFile(node_path)
+// It adds a path attribute with the given path.
+func getNode(root, path string) (node []byte, err error) {
+	node_path := filepath.Join(root, path[1:], "node.json")
+	node, err = ioutil.ReadFile(node_path)
 	if err != nil {
 		return
 	}
-	if err = goyaml.Unmarshal(content, &node); err != nil {
-		node = nil
-		return
-	}
-	node.Path = path
+	pathJSON := fmt.Sprintf(`{"path":%q,`, path)
+	node = bytes.Replace(node, []byte("{"), []byte(pathJSON), 1)
 	return
 }
 
-type GetNodeArgs struct{ Site, Path string }
-
-func (i *DataService) GetNode(args *GetNodeArgs,
-	reply *service.NodeInfo) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	fmt.Println(site, args.Path)
-	node, err := getNode(site, args.Path)
-	if err != nil {
-		reply = nil
-		return err
-	}
-	*reply = *node
-	return nil
-}
-
 // getChildren looks up child nodes of the given node.
-func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
+func getChildren(root, path string) (nodes [][]byte, err error) {
 	files, err := ioutil.ReadDir(filepath.Join(root, path))
 	if err != nil {
 		return
@@ -81,7 +66,7 @@ func getChildren(root, path string) (nodes []service.NodeInfo, err error) {
 	for _, file := range files {
 		node, _ := getNode(root, filepath.Join(path, file.Name()))
 		if node != nil {
-			nodes = append(nodes, *node)
+			nodes = append(nodes, node)
 		}
 	}
 	return
@@ -92,7 +77,7 @@ type GetChildrenArgs struct {
 }
 
 func (i *DataService) GetChildren(args GetChildrenArgs,
-	reply *[]service.NodeInfo) error {
+	reply *[][]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getChildren(site, args.Path)
 	*reply = ret
@@ -115,25 +100,23 @@ func (i *DataService) GetNodeData(args *GetNodeDataArgs,
 }
 
 type WriteNodeDataArgs struct {
-	Site, Path, File, Content string
+	Site, Path, File string
+	Content          []byte
 }
 
 func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
-	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
-	return err
-}
-
-type UpdateNodeArgs struct {
-	Site string
-	Node service.NodeInfo
-}
-
-func (i *DataService) UpdateNode(args *UpdateNodeArgs, reply *int) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return writeNode(args.Node, site)
+	err := os.MkdirAll(filepath.Dir(path), 0700)
+	if err != nil {
+		return fmt.Errorf("Could not create node directory: %v", err)
+	}
+	err = ioutil.WriteFile(path, []byte(args.Content), 0600)
+	if err != nil {
+		return fmt.Errorf("Could not write node data: %v", err)
+	}
+	return nil
 }
 
 type RemoveNodeArgs struct {
@@ -149,23 +132,54 @@ func (i *DataService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	return nil
 }
 
-// writeNode writes the given node to the data directory located at the given
-// root.
-func writeNode(reqnode service.NodeInfo, root string) error {
-	path := reqnode.Path
-	reqnode.Path = ""
-	content, err := goyaml.Marshal(&reqnode)
+// getConfig returns the configuration value or section for the given name.
+func getConfig(path, name string) ([]byte, error) {
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("Could not read configuration: %v", err)
 	}
-	node_path := filepath.Join(root, path[1:],
-		"node.yaml")
-	if err := os.Mkdir(filepath.Dir(node_path), 0700); err != nil {
-		if !os.IsExist(err) {
-			panic("Can't create directory for new node: " + err.Error())
+	var target interface{}
+	err = json.Unmarshal(content, &target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse configuration: %v", err)
+	}
+	subs := strings.Split(name, ".")
+	for _, sub := range subs {
+		if sub == "" {
+			break
+		}
+		targetT := reflect.TypeOf(target)
+		if targetT != reflect.TypeOf(map[string]interface{}{}) {
+			target = nil
+			break
+		}
+		var ok bool
+		if target, ok = (target.(map[string]interface{}))[sub]; !ok {
+			target = nil
+			break
 		}
 	}
-	return ioutil.WriteFile(node_path, content, 0600)
+	target = map[string]interface{}{"Value": target}
+	ret, err := json.Marshal(target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not encode configuration: %v", err)
+	}
+	return ret, nil
+}
+
+type GetConfigArgs struct{ Site, Module, Name string }
+
+func (i *DataService) GetConfig(args *GetConfigArgs,
+	reply *[]byte) error {
+	configPath := i.Settings.Monsti.GetSiteConfigPath(args.Site)
+	config, err := getConfig(filepath.Join(configPath, args.Module+".json"),
+		args.Name)
+	if err != nil {
+		reply = nil
+		return err
+	}
+	*reply = config
+	return nil
 }
 
 type settings struct {
@@ -199,7 +213,6 @@ func main() {
 		defer waitGroup.Done()
 		var provider service.Provider
 		var data_ DataService
-		data_.Info = info
 		data_.Settings = settings
 		provider.Logger = logger
 		if err := provider.Serve(dataPath, "Data", &data_); err != nil {

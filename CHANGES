@@ -1,5 +1,6 @@
 * 0.2.0 - unreleased
  - Implemented GetNode and GetChildren RPC methods.
+ - Switched from YAML to JSON.
 * 0.1.1 - released 2013/07/14
  - Use new import paths.
 * 0.1.0 - released 2013/07/02
