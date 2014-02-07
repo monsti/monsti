@@ -87,6 +87,7 @@ clean:
 	rm static/aloha/ -Rf
 	rm locale/ -Rf
 	rm dist/ -Rf
+	rm modules/ -Rf
 	rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
