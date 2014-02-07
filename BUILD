@@ -1,19 +1,17 @@
 Installation instructions
 =========================
 
-Get the latest release of the main package (monsti-cms):
-https://gitorious.org/monsti/monsti-cms/trees/0.5
+1) Get the latest sources of the main package (monsti-cms):
+https://gitorious.org/monsti/monsti-cms/
 
-Unpackage it and follow the instructions:
-
-1) Install dependencies:
+2) Install dependencies:
 
 - make
 - C compiler
-- Git, Bazaar, Mercurial (to fetch Go packages)
-- Go 1.1 compiler and tools
+- Git, Bazaar, Mercurial (to fetch modules and Go packages)
+- Latest Go compiler and tools
 
-2) Build:
+3) Build:
 
 $ make
 
@@ -21,7 +19,7 @@ $ make
 
 $ make tests
 
-3) Run:
+4) Run:
 
 $ go/bin/monsti-daemon <configuration directory>
 
@@ -29,11 +27,3 @@ To run the example site, go to the example site directory (example/)
 and run the start script:
 $ ./start.sh
 Monsti will be listening on http://localhost:8080
-
-Problems?
----------
-
-Fill an issue at:
-https://github.com/monsti/monsti-cms/issues
-
-Thanks and have fun!
