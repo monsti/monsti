@@ -58,12 +58,17 @@ dist: monsti bcrypt
 	cp go/bin/* $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/share
 	cp -RL locale static templates $(DIST_PATH)/share
-	mkdir -p $(DIST_PATH)/doc/examples
+	mkdir -p $(DIST_PATH)/doc
 	cp CHANGES COPYING LICENSE README $(DIST_PATH)/doc
-	cp -R example/config/* example/data example/start.sh $(DIST_PATH)/doc/examples
 	mkdir -p $(DIST_PATH)/etc
+	cp -R example/config/* $(DIST_PATH)/etc
+	mv $(DIST_PATH)/etc/sites/example $(DIST_PATH)/etc/sites/default
 	mkdir -p $(DIST_PATH)/run
 	mkdir -p $(DIST_PATH)/data
+	cp -R example/data/example $(DIST_PATH)/data/default
+	cp example/start.sh $(DIST_PATH)/
+	sed -i 's/\.\.\/go\///' $(DIST_PATH)/start.sh
+	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
 # Build module executable
