@@ -1,0 +1,112 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-07-14 10:43+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: standard input:8
+msgid "WARNING: You are about to remove this content and all content below."
+msgstr ""
+
+#: standard input:9
+msgid "The removed content will be lost, so be careful!"
+msgstr ""
+
+#: standard input:13
+msgid "Proceed"
+msgstr ""
+
+#: standard input:14
+msgid "Abort"
+msgstr ""
+
+#: standard input:90
+msgid "Edit"
+msgstr ""
+
+#: standard input:93
+msgid "Add"
+msgstr ""
+
+#: standard input:96
+msgid "Remove"
+msgstr ""
+
+#: standard input:100
+msgid "Logout"
+msgstr ""
+
+#: standard input:141
+msgid "Submit"
+msgstr ""
+
+#: standard input:513
+msgid "Content type"
+msgstr ""
+
+#: standard input:513 standard input:516 standard input:518 standard input:566
+#: standard input:1338 standard input:1340
+msgid "Required."
+msgstr ""
+
+#: standard input:514
+msgid "Name"
+msgstr ""
+
+#: standard input:515
+msgid "The name as it should appear in the URL."
+msgstr ""
+
+#: standard input:517
+msgid "Contains\tinvalid characters."
+msgstr ""
+
+#: standard input:518
+msgid "Title"
+msgstr ""
+
+#: standard input:550
+msgid "Add content"
+msgstr ""
+
+#: standard input:566
+msgid "Confirm"
+msgstr ""
+
+#: standard input:592
+msgid "Remove \"%v\""
+msgstr ""
+
+#: standard input:1146
+#, c-format
+msgid "Edit \"%s\""
+msgstr ""
+
+#: standard input:1338 standard input:1364
+msgid "Login"
+msgstr ""
+
+#: standard input:1340
+msgid "Password"
+msgstr ""
+
+#: standard input:1355
+msgid "Wrong login or password."
+msgstr ""
+
+#: standard input:1365
+msgid "Login with your site account."
+msgstr ""

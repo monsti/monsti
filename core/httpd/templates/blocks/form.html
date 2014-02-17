@@ -1,0 +1,28 @@
+<form class="form" action="" method="POST" accept-charset="utf-8" {{.EncTypeAttr}}>
+  <fieldset>
+    {{with .Errors}}
+    <ul class="errors">
+      {{range .}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+    {{range .Fields}}
+    <div class="field {{if .Errors}}error{{end}}">
+      {{.LabelTag}}
+      {{.Input}}
+      <span class="help">{{.Help}}</span>
+      {{with .Errors}}
+      <ul class="errors">
+        {{range .}}
+        <li>{{.}}</li>
+        {{end}}
+      </ul>
+      {{end}}
+    </div>
+    {{end}}
+    <div class="buttons">
+      <button type="submit">{{G "Submit"}}</button>
+    </div>
+  </fieldset>
+</form>
