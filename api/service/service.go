@@ -1,0 +1,63 @@
+// This file is part of Monsti, a web content management system.
+// Copyright 2012-2013 Christian Neumann
+//
+// Monsti is free software: you can redistribute it and/or modify it under the
+// terms of the GNU Affero General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option) any
+// later version.
+//
+// Monsti is distributed in the hope that it will be useful, but WITHOUT ANY
+// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+// A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more
+// details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
+
+package service
+
+import (
+	"net"
+	"net/rpc"
+)
+
+type Type uint
+
+// Monsti service types.
+const (
+	Info Type = iota
+	Data
+	Login
+	Node
+	Mail
+)
+
+func (t Type) String() string {
+	serviceNames := [...]string{
+		"Info", "Data", "Login", "Node", "Mail"}
+	return serviceNames[t]
+}
+
+// Client represents the rpc connection to a service.
+type Client struct {
+	RPCClient *rpc.Client
+	// Error holds the last error if any.
+	Error error
+}
+
+// Connect establishes a new RPC connection to the given service.
+//
+// path is the unix domain socket path to the service.
+func (s *Client) Connect(path string) error {
+	conn, err := net.Dial("unix", path)
+	if err != nil {
+		return err
+	}
+	s.RPCClient = rpc.NewClient(conn)
+	return nil
+}
+
+// Close closes the client's RPC connection.
+func (s *Client) Close() error {
+	return s.RPCClient.Close()
+}
