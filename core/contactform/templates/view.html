@@ -1,0 +1,10 @@
+{{.Body}}
+<div class="contact-form-wrapper">
+  {{if .Submitted}}
+    <p class="alert alert-success">
+    {{G "Thanks for your message!"}}
+    </p>
+  {{else}}
+    {{template "blocks/form" .Form}}
+  {{end}}
+</div>
