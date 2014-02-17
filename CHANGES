@@ -1,2 +1,0 @@
-- 2013/03/10: Added MakeAbsolute function.
-- 2013/02/14: Fixed l10n: Did not correctly setup catalogs: https://github.com/monsti/monsti-cms/issues/15
