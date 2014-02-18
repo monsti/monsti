@@ -2,6 +2,7 @@ GOPATH=$(PWD)/go/
 GO=GOPATH=$(GOPATH) go
 #GO_COMMON_OPTS=-race
 GO_GET=$(GO) get $(GO_COMMON_OPTS)
+GO_BUILD=$(GO) build $(GO_COMMON_OPTS)
 GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
@@ -12,7 +13,6 @@ DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 ALOHA_VERSION=0.23.2
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
-MODULE_SOURCES=$(MODULES:%=go/src/pkg.monsti.org/monsti-%)
 
 all: monsti bcrypt
 
@@ -20,7 +20,8 @@ monsti: modules templates locales templates/master.html dep-aloha-editor dep-jqu
 
 .PHONY: bcrypt
 bcrypt: 
-	$(GO_GET) pkg.monsti.org/monsti-login/bcrypt
+	mkdir -p $(GOPATH)/bin
+	cd utils/bcrypt && $(GO_GET) -d . && $(GO_BUILD) -o $(GOPATH)/bin/bcrypt .
 
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
@@ -29,15 +30,15 @@ locales: $(MODULES:%=locales-monsti-%)
 
 locales-monsti-%:
 	mkdir -p locale/
-	mkdir -p modules/monsti-$*/locale/
-	cp -Rn modules/monsti-$*/locale .
+	mkdir -p core/$*/locale/
+	cp -Rn core/$*/locale .
 
 templates: $(MODULES:%=templates-monsti-%)
 
 templates-monsti-%:
 	mkdir -p templates/
-	mkdir -p modules/monsti-$*/templates/
-	ln -nsf ../modules/monsti-$*/templates templates/$*
+	mkdir -p core/$*/templates/
+	ln -nsf ../core/$*/templates templates/$*
 
 templates/master.html: templates/httpd/master.html
 	for i in $(wildcard templates/httpd/*); \
@@ -46,12 +47,8 @@ templates/master.html: templates/httpd/master.html
 	done; \
   #rm templates/httpd/templates
 
-modules/monsti-%:
-	git clone git@gitorious.org:monsti/monsti-$*.git modules/monsti-$*
-
-$(MODULE_SOURCES): go/src/pkg.monsti.org/monsti-%: modules/monsti-%
-	mkdir -p go/src/pkg.monsti.org
-	ln -sf ../../../modules/monsti-$* go/src/pkg.monsti.org/monsti-$*
+core/%:
+	git clone git@gitorious.org:monsti/$*.git core/$*
 
 dist: monsti bcrypt
 	mkdir -p $(DIST_PATH)/bin
@@ -73,15 +70,16 @@ dist: monsti bcrypt
 
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
-$(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti-%
-	$(GO_GET) pkg.monsti.org/monsti-$*
+$(MODULE_PROGRAMS): go/bin/monsti-%:
+	mkdir -p $(GOPATH)/bin
+	cd core/$* && $(GO_GET) -d . && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
 
 .PHONY: tests
-tests: $(MODULES:%=test-module-%) monsti-daemon/test-worker util/test-template util/test-testing\
+tests: $(MODULES:%=test-module-%) util/test-template util/test-testing\
 	util/test-l10n rpc/test-client
 
 test-module-%:
-	$(GO_TEST) pkg.monsti.org/monsti-$*
+	cd core/$* && $(GO_TEST) .
 
 test-%:
 	$(GO_TEST) pkg.monsti.org/$*
@@ -92,7 +90,6 @@ clean:
 	rm static/aloha/ -Rf
 	rm locale/ -Rf
 	rm dist/ -Rf
-	rm modules/ -Rf
 	rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
