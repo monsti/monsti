@@ -26,8 +26,8 @@ import (
 
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util/template"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
 // navLink represents a link in the navigation.

@@ -34,8 +34,8 @@ import (
 	"strings"
 	"sync"
 
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 )
 
 // DataService implements RPC methods for the Data service.

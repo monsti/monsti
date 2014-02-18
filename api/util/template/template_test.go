@@ -1,7 +1,7 @@
 package template
 
 import (
-	mtesting "pkg.monsti.org/util/testing"
+	mtesting "pkg.monsti.org/monsti/api/util/testing"
 	"path/filepath"
 	"reflect"
 	"sort"

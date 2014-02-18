@@ -30,9 +30,9 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/util/template"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
 // Context holds information about a request

@@ -29,10 +29,10 @@ import (
 
 	"github.com/quirkey/magick"
 	"pkg.monsti.org/form"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 	"pkg.monsti.org/util/l10n"
-	"pkg.monsti.org/util/template"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
 var settings struct {

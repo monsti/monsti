@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"pkg.monsti.org/service"
+	"pkg.monsti.org/monsti/api/service"
 )
 
 // SimpleJSONRequest receives the JSON data of the given node into out.

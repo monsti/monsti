@@ -25,9 +25,9 @@ package main
 
 import (
 	"flag"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/util/template"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/template"
 	"pkg.monsti.org/gettext"
 	"log"
 	"net/http"

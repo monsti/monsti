@@ -27,9 +27,9 @@ import (
 	"launchpad.net/goyaml"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
-	"pkg.monsti.org/util/template"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
 type loginFormData struct {

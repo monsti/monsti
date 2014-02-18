@@ -68,11 +68,18 @@ dist: monsti bcrypt
 	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
+go/src/pkg.monsti.org/monsti:
+	mkdir -p $(GOPATH)/src/pkg.monsti.org
+	ln -sf ../../.. $(GOPATH)/src/pkg.monsti.org/monsti
+
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
-$(MODULE_PROGRAMS): go/bin/monsti-%:
+$(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti
 	mkdir -p $(GOPATH)/bin
-	cd core/$* && $(GO_GET) -d . && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
+  # Get old util repository until we get rid of deprecated util/l10n usage.
+	$(GO_GET) pkg.monsti.org/util
+	$(GO_GET) -d pkg.monsti.org/monsti/core/$*
+	cd core/$* && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
 
 .PHONY: tests
 tests: $(MODULES:%=test-module-%) util/test-template util/test-testing\

@@ -31,8 +31,8 @@ import (
 	"sync"
 
 	"github.com/chrneumann/mimemail"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 )
 
 type settings struct {

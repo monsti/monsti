@@ -24,8 +24,8 @@ package main
 import (
 	"bytes"
 	"flag"
-	"pkg.monsti.org/service"
-	"pkg.monsti.org/util"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 	"log"
 	"os"
 	"os/exec"

@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"path/filepath"
-	utesting "pkg.monsti.org/util/testing"
+	utesting "pkg.monsti.org/monsti/api/util/testing"
 )
 
 func TestGetNode(t *testing.T) {

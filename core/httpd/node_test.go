@@ -21,7 +21,7 @@ import (
 	"reflect"
 	"testing"
 
-	"pkg.monsti.org/service"
+	"pkg.monsti.org/monsti/api/service"
 )
 
 func TestGetNav(t *testing.T) {
