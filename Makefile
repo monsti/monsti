@@ -76,8 +76,6 @@ go/src/pkg.monsti.org/monsti:
 .PHONY: $(MODULE_PROGRAMS)
 $(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti
 	mkdir -p $(GOPATH)/bin
-  # Get old util repository until we get rid of deprecated util/l10n usage.
-	$(GO_GET) pkg.monsti.org/util
 	$(GO_GET) -d pkg.monsti.org/monsti/core/$*
 	cd core/$* && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
 

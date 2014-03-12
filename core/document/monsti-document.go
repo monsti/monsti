@@ -29,9 +29,9 @@ import (
 	"os"
 
 	"pkg.monsti.org/form"
+	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
-	"pkg.monsti.org/util/l10n"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -47,7 +47,7 @@ type editFormData struct {
 }
 
 func edit(req service.Request, res *service.Response, s *service.Session) error {
-	G := l10n.UseCatalog(req.Session.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("", req.Session.Locale)
 	data := editFormData{}
 	dataServ := s.Data()
 	form := form.NewForm(&data, form.Fields{
@@ -122,7 +122,9 @@ func main() {
 
 	infoPath := settings.Monsti.GetServicePath(service.Info.String())
 
-	l10n.Setup("monsti-document", settings.Monsti.GetLocalePath())
+	gettext.DefaultLocales.Domain = "monsti-document"
+	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
+
 	renderer.Root = settings.Monsti.GetTemplatesPath()
 
 	provider := service.NewNodeProvider(logger, infoPath)
