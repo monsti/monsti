@@ -51,6 +51,7 @@ core/%:
 	git clone git@gitorious.org:monsti/$*.git core/$*
 
 dist: monsti bcrypt
+	rm -R $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/bin
 	cp go/bin/* $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/share
