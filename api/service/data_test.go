@@ -78,8 +78,11 @@ func TestNodeToData(t *testing.T) {
 func TestDataToNode(t *testing.T) {
 	var node, expected FooBarNode
 	expected.FooFields = FooFields{"FooField1Val", 13}
-	data := []byte(`{"FooField1":"FooField1Val","FooField2":13}`)
-	err := dataToNode([][]byte{data}, &node, []string{"foo"})
+	data := [][]byte{
+		[]byte(`{"FooField1":"FooField1Val","FooField2":13}`),
+		[]byte(""),
+	}
+	err := dataToNode(data, &node, []string{"foo", "bar"})
 	if err != nil {
 		t.Fatalf("dataToNode returns error: %v", err)
 	}

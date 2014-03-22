@@ -107,6 +107,9 @@ func dataToNode(data [][]byte, node interface{}, namespaces []string) error {
 	}
 	nodeValue = nodeValue.Elem()
 	for idx, ns := range namespaces {
+		if len(data[idx]) == 0 {
+			continue
+		}
 		nsFields := nodeValue.FieldByNameFunc(lowerCaseEqualTo(ns + "fields"))
 		err := json.Unmarshal(data[idx], nsFields.Addr().Interface())
 		if err != nil {
@@ -118,6 +121,7 @@ func dataToNode(data [][]byte, node interface{}, namespaces []string) error {
 }
 
 // ReadNode reads the named fields into the given node.
+// Fields without any data present will be ignored.
 func (s *DataClient) ReadNode(site, path string, node interface{},
 	fields ...string) error {
 	if s.Error != nil {
