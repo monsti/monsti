@@ -7,7 +7,11 @@ GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
 
-MONSTI_VERSION=unstable
+VCS_REVISION=`git rev-list HEAD --count`
+VCS_BRANCH=`git branch | sed -n '/\* /s///p'`
+MONSTI_VERSION=0.7.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
+DEB_VERSION=1
+
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
 ALOHA_VERSION=0.23.2
@@ -68,6 +72,39 @@ dist: monsti bcrypt
 	sed -i 's/\.\.\/go\///' $(DIST_PATH)/start.sh
 	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
+
+dist-deb: monsti bcrypt
+	rm -Rf $(DIST_PATH)
+	mkdir -p $(DIST_PATH)/usr/bin
+	cp go/bin/* $(DIST_PATH)/usr/bin
+	mkdir -p $(DIST_PATH)/usr/share/monsti
+	cp -RL static templates $(DIST_PATH)/usr/share/monsti
+	cp -RL locale $(DIST_PATH)/usr/share
+	rm $(DIST_PATH)/usr/share/locale/*.pot
+	mkdir -p $(DIST_PATH)/usr/share/doc/monsti/examples
+	cp example/start.sh $(DIST_PATH)/usr/share/doc/monsti/examples
+	sed -i 's/\.\.\/go\///' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
+	sed -i 's/config/etc\/monsti/' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
+	cp CHANGES COPYING LICENSE README $(DIST_PATH)/usr/share/doc/monsti
+	mkdir -p $(DIST_PATH)/etc/monsti/sites
+	cp -R example/config/* $(DIST_PATH)/etc/monsti
+	sed -i 's/\.\.\/share/\/usr\/share\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
+	sed -i 's/\.\.\/data/\/var\/lib\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
+	sed -i 's/\.\.\/run/\/var\/run\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
+	mv $(DIST_PATH)/etc/monsti/sites/example $(DIST_PATH)/etc/monsti/sites/default
+	mkdir -p $(DIST_PATH)/var/run/monsti
+	mkdir -p $(DIST_PATH)/var/lib/monsti
+	cp -R example/data/example $(DIST_PATH)/var/lib/monsti/default
+	find $(DIST_PATH) -type d -exec chmod 755 {} \;
+	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
+	chmod 755 $(DIST_PATH)/usr/bin/*
+	fpm -s dir -t deb -a all \
+		--depends libmagickcore5 \
+		-C $(DIST_PATH) \
+		-n monsti \
+		-p dist/monsti_$(MONSTI_VERSION)-$(DEB_VERSION).deb \
+		--version $(MONSTI_VERSION)-$(DEB_VERSION) \
+		etc usr var
 
 go/src/pkg.monsti.org/monsti:
 	mkdir -p $(GOPATH)/src/pkg.monsti.org
