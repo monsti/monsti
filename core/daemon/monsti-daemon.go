@@ -24,13 +24,14 @@ package main
 import (
 	"bytes"
 	"flag"
-	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
+
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 )
 
 type settings struct {
@@ -71,15 +72,18 @@ func main() {
 	// Start own INFO service
 	var waitGroup sync.WaitGroup
 	logger.Println("Starting INFO service")
-	waitGroup.Add(1)
 	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+	info := new(InfoService)
+	provider := service.NewProvider("Info", info)
+	provider.Logger = logger
+	if err := provider.Listen(infoPath); err != nil {
+		logger.Fatalf("service: Could not start Info service: %v", err)
+	}
+	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		var provider service.Provider
-		info := new(InfoService)
-		provider.Logger = logger
-		if err := provider.Serve(infoPath, "Info", info); err != nil {
-			logger.Fatalf("Could not start INFO service: %v", err)
+		if err := provider.Accept(); err != nil {
+			logger.Fatalf("Could not accept at Info service: %v", err)
 		}
 	}()
 
