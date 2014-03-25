@@ -57,16 +57,19 @@ func (p *NodeProvider) Serve(path string) error {
 	// Start own NODE service
 	var waitGroup sync.WaitGroup
 	p.Logger.Println("Starting Node service")
+	var node_ nodeService
+	node_.Provider = p
+	node_.Pool = p.pool
+	provider := NewProvider("Node", &node_)
+	provider.Logger = p.Logger
+	if err := provider.Listen(path); err != nil {
+		p.Logger.Printf("service: Could not start Node service: %v", err)
+	}
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		var provider Provider
-		var node_ nodeService
-		node_.Provider = p
-		node_.Pool = p.pool
-		provider.Logger = p.Logger
-		if err := provider.Serve(path, "Node", &node_); err != nil {
-			p.Logger.Printf("service: Could not start Node service: %v", err)
+		if err := provider.Accept(); err != nil {
+			p.Logger.Printf("service: Could not accept at Node service: %v", err)
 		}
 	}()
 	s, err := p.pool.New()
@@ -75,7 +78,7 @@ func (p *NodeProvider) Serve(path string) error {
 	}
 	defer p.pool.Free(s)
 	if err := s.Info().PublishService("Node", path); err != nil {
-		return fmt.Errorf("service: Could not publish node service: %v", err)
+		return fmt.Errorf("service: Could not publish Node service: %v", err)
 	}
 	waitGroup.Wait()
 	return nil

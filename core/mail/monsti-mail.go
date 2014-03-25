@@ -83,13 +83,16 @@ func main() {
 	mailPath := settings.Monsti.GetServicePath(service.Mail.String())
 	go func() {
 		defer waitGroup.Done()
-		var provider service.Provider
 		var mail_ MailService
 		mail_.Info = info
 		mail_.Settings = settings
+		provider := service.NewProvider("Mail", &mail_)
 		provider.Logger = logger
-		if err := provider.Serve(mailPath, "Mail", &mail_); err != nil {
+		if err := provider.Listen(mailPath); err != nil {
 			logger.Fatalf("Could not start Mail service: %v", err)
+		}
+		if err := provider.Accept(); err != nil {
+			logger.Fatalf("Could not accept at Mail service: %v", err)
 		}
 	}()
 

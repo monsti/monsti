@@ -211,12 +211,15 @@ func main() {
 	dataPath := settings.Monsti.GetServicePath(service.Data.String())
 	go func() {
 		defer waitGroup.Done()
-		var provider service.Provider
 		var data_ DataService
 		data_.Settings = settings
+		provider := service.NewProvider("Data", &data_)
 		provider.Logger = logger
-		if err := provider.Serve(dataPath, "Data", &data_); err != nil {
+		if err := provider.Listen(dataPath); err != nil {
 			logger.Fatalf("Could not start Data service: %v", err)
+		}
+		if err := provider.Accept(); err != nil {
+			logger.Fatalf("Could not accept at Data service: %v", err)
 		}
 	}()
 
