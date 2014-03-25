@@ -1,8 +1,8 @@
 Installation instructions
 =========================
 
-1) Get the latest sources of the main package (monsti-cms):
-https://gitorious.org/monsti/monsti-cms/
+1) Get the latest sources:
+https://gitorious.org/monsti/monsti/
 
 2) Install dependencies:
 
