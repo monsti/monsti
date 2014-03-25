@@ -99,6 +99,7 @@ dist-deb: monsti bcrypt
 	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
 	chmod 755 $(DIST_PATH)/usr/bin/*
 	fpm -s dir -t deb -a all \
+		--depends libmagickcore5 \
 		-C $(DIST_PATH) \
 		-n monsti \
 		-p dist/monsti_$(MONSTI_VERSION)-$(DEB_VERSION).deb \
