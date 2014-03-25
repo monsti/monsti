@@ -95,8 +95,9 @@ dist-deb: monsti bcrypt
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
 	cp -R example/data/example $(DIST_PATH)/var/lib/monsti/default
-	find $(DIST_PATH) -type d -exec chmod a+rx {} \;
-	find $(DIST_PATH) -not -type d -exec chmod a+r {} \;
+	find $(DIST_PATH) -type d -exec chmod 755 {} \;
+	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
+	chmod 755 $(DIST_PATH)/usr/bin/*
 	fpm -s dir -t deb -a all \
 		-C $(DIST_PATH) \
 		-n monsti \
