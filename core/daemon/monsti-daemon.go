@@ -24,7 +24,9 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"log"
+	"log/syslog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,16 +51,30 @@ type moduleLog struct {
 func (s moduleLog) Write(p []byte) (int, error) {
 	parts := bytes.SplitAfter(p, []byte("\n"))
 	for _, part := range parts {
-		s.Log.Print(s.Type, ": ", string(part))
+		if len(part) > 0 {
+			s.Log.Print(s.Type, ": ", string(part))
+		}
 	}
 	return len(p), nil
 }
 
 func main() {
-	logger := log.New(os.Stderr, "monsti ", log.LstdFlags)
+	useSyslog := flag.Bool("syslog", false, "use syslog")
+	flag.Parse()
+
+	var logger *log.Logger
+	if *useSyslog {
+		var err error
+		logger, err = syslog.NewLogger(syslog.LOG_INFO|syslog.LOG_DAEMON, 0)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not setup syslog logger: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		logger = log.New(os.Stderr, "monsti ", log.LstdFlags)
+	}
 
 	// Load configuration
-	flag.Parse()
 	if flag.NArg() != 1 {
 		logger.Fatalf("Usage: %v <config_directory>\n",
 			filepath.Base(os.Args[0]))

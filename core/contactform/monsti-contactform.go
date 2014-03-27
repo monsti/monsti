@@ -147,7 +147,7 @@ func edit(req service.Request, res *service.Response, s *service.Session) error 
 }
 
 func main() {
-	logger = log.New(os.Stderr, "contactform ", log.LstdFlags)
+	logger = log.New(os.Stderr, "", 0)
 	// Load configuration
 	flag.Parse()
 	if flag.NArg() != 1 {
