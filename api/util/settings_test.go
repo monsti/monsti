@@ -17,58 +17,48 @@
 package util
 
 import (
-	mtest "pkg.monsti.org/monsti/api/util/testing"
+	"os"
 	"path/filepath"
 	"testing"
+
+	mtest "pkg.monsti.org/monsti/api/util/testing"
 )
 
-func TestLoadSettings(t *testing.T) {
+func TestLoadSiteSettings(t *testing.T) {
 	files := map[string]string{
-		"/config/monsti.yaml": `
-nodetypes: [Document]
-listen: localhost:8080
-directories:
-  statics: ../foo
-`,
-		"/config/sites/example/site.yaml": `
+		"/etc/sites/example/site.yaml": `
 title: "Monsti CMS Example Site"
 hosts: ["localhost:8080"]
 directories:
   data: ../../../bar
+`,
+		"/linked_site/site.yaml": `
+title: "Linked Example Site"
 `}
 	root, cleanup, err := mtest.CreateDirectoryTree(files, "TestLoadSettings")
 	if err != nil {
 		t.Fatalf("Could not create test files: %v", err)
 	}
 	defer cleanup()
-	settings, err := loadSettings(filepath.Join(root, "config"))
+	err = os.Symlink(filepath.Join(root, "linked_site"),
+		filepath.Join(root, "etc", "sites", "linked"))
 	if err != nil {
-		t.Fatalf("Could not load test settings: %v", err)
+		t.Fatalf("Could not create symlink to site config: %v", err)
 	}
-	if settings.Listen != "localhost:8080" {
-		t.Errorf("settings.Listen == %v, should be \"localhost:8080\"",
-			settings.Listen)
+	sites, err := loadSiteSettings(filepath.Join(root, "etc", "sites"))
+	if err != nil {
+		t.Fatalf("Could not load site settings: %v", err)
 	}
-	if len(settings.NodeTypes) != 1 || settings.NodeTypes[0] != "Document" {
-		t.Errorf("settings.NodeTypes == %v, should be [Document]",
-			settings.NodeTypes)
+	if _, ok := sites["example"]; len(sites) != 2 || !ok {
+		t.Fatalf("Should find two sites, but found %v", len(sites))
 	}
-	if settings.Directories.Statics != filepath.Join(root, "/foo") {
-		t.Errorf(`Statics directory should be %v, but is %v`,
-			filepath.Join(root, "/foo"),
-			settings.Directories.Statics)
-	}
-	if _, ok := settings.Sites["example"]; len(settings.Sites) != 1 || !ok {
-		t.Fatalf("settings.Sites should consist of one key example, but is %v",
-			settings.Sites)
-	}
-	entry := settings.Sites["example"]
+	entry := sites["example"]
 	if entry.Title != "Monsti CMS Example Site" {
 		t.Errorf("settings.Sites[\"Example\"] should be "+
 			`"Monsti CMS Example Site", but is %q`, entry.Title)
 	}
 	if len(entry.Hosts) != 1 || entry.Hosts[0] != "localhost:8080" {
-		entry := settings.Sites["example"]
+		entry := sites["example"]
 		if entry.Title != "Monsti CMS Example Site" {
 			t.Errorf("settings.Sites[\"Example\"] should be "+
 				`"Monsti CMS Example Site", but is %q`, entry.Title)
@@ -79,10 +69,5 @@ directories:
 		}
 		t.Errorf(`settings.Sites["example"].Hosts == %v, should be`+
 			` ["localhost:8080"]`, entry.Hosts)
-		if entry.Directories.Data != filepath.Join(root, "/bar") {
-			t.Errorf(`Site's data directory should be %v, but is %v`,
-				filepath.Join(root, "/bar"),
-				entry.Directories.Data)
-		}
 	}
 }

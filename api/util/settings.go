@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -90,30 +92,41 @@ func (s MonstiSettings) GetTemplatesPath() string {
 	return filepath.Join(s.Directories.Share, "templates")
 }
 
-// LoadSiteSettings loads the configurated sites' settings.
-func (s *MonstiSettings) LoadSiteSettings() error {
-	// Load site specific configuration files
-	sitesPath := filepath.Join(s.Directories.Config, "sites")
+// loadSiteSettings returns the site settings in the given directory.
+func loadSiteSettings(sitesDir string) (map[string]SiteSettings, error) {
+	sitesPath := filepath.Join(sitesDir)
 	siteDirs, err := ioutil.ReadDir(sitesPath)
 	if err != nil {
-		return fmt.Errorf("Could not read sites directory: %v", err)
+		return nil, fmt.Errorf("Could not read sites directory: %v", err)
 	}
-	s.Sites = make(map[string]SiteSettings)
+	sites := make(map[string]SiteSettings)
 	for _, siteDir := range siteDirs {
-		if !siteDir.IsDir() {
-			continue
-		}
 		siteName := siteDir.Name()
 		sitePath := filepath.Join(sitesPath, siteName)
+		_, err := os.Stat(filepath.Join(sitePath, "site.yaml"))
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 		var siteSettings SiteSettings
-		err := ParseYAML(filepath.Join(sitePath, "site.yaml"),
+		err = ParseYAML(filepath.Join(sitePath, "site.yaml"),
 			&siteSettings)
 		if err != nil {
-			return fmt.Errorf("Could not load settings for site %q: %v",
+			return nil, fmt.Errorf("Could not load settings for site %q: %v",
 				siteName, err)
 		}
-		s.Sites[siteName] = siteSettings
+		sites[siteName] = siteSettings
 	}
+	return sites, nil
+}
+
+// LoadSiteSettings loads the configurated sites' settings.
+func (s *MonstiSettings) LoadSiteSettings() error {
+	sites, err := loadSiteSettings(filepath.Join(s.Directories.Config, "sites"))
+	if err != nil {
+		return err
+	}
+	s.Sites = sites
 	return nil
 }
 
