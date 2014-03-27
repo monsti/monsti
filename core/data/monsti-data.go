@@ -206,7 +206,7 @@ func main() {
 
 	// Start own Data service
 	var waitGroup sync.WaitGroup
-	logger.Println("Starting Data service")
+	logger.Println("Setting up Data service")
 	waitGroup.Add(1)
 	dataPath := settings.Monsti.GetServicePath(service.Data.String())
 	go func() {

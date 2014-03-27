@@ -56,7 +56,7 @@ func (p *NodeProvider) AddNodeType(h *NodeTypeHandler) {
 func (p *NodeProvider) Serve(path string) error {
 	// Start own NODE service
 	var waitGroup sync.WaitGroup
-	p.Logger.Println("Starting Node service")
+	p.Logger.Println("Setting up Node service")
 	var node_ nodeService
 	node_.Provider = p
 	node_.Pool = p.pool

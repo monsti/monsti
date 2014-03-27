@@ -85,9 +85,9 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	// Start own INFO service
+	// Start own Info service
 	var waitGroup sync.WaitGroup
-	logger.Println("Starting INFO service")
+	logger.Println("Setting up Info service")
 	infoPath := settings.Monsti.GetServicePath(service.Info.String())
 	info := new(InfoService)
 	provider := service.NewProvider("Info", info)

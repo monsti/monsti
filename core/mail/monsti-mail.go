@@ -78,7 +78,7 @@ func main() {
 
 	// Start own Mail service
 	var waitGroup sync.WaitGroup
-	logger.Println("Starting Mail service")
+	logger.Println("Setting up Mail service")
 	waitGroup.Add(1)
 	mailPath := settings.Monsti.GetServicePath(service.Mail.String())
 	go func() {
