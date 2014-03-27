@@ -1,11 +1,12 @@
 package template
 
 import (
-	mtesting "pkg.monsti.org/monsti/api/util/testing"
 	"path/filepath"
 	"reflect"
 	"sort"
 	"testing"
+
+	mtesting "pkg.monsti.org/monsti/api/util/testing"
 )
 
 func TestGetIncludes(t *testing.T) {
@@ -21,13 +22,14 @@ func TestGetIncludes(t *testing.T) {
 		t.Fatalf("Could not create test directory tree: %v", err)
 	}
 	defer cleanup()
-	includes := getIncludes([]string{filepath.Join(root, "first"),
+	includes, err := getIncludes([]string{filepath.Join(root, "first"),
 		filepath.Join(root, "second")},
 		"foo/bar/cruz/template")
 	sort.Strings(includes)
 	expected := []string{
 		"eight", "five", "four", "one", "seven", "six", "two"}
-	if !reflect.DeepEqual(includes, expected) {
-		t.Errorf("getIncludes returned: %v, should be %v", includes, expected)
+	if !reflect.DeepEqual(includes, expected) || err != nil {
+		t.Errorf("getIncludes returned: %v, %v should be %v, nil",
+			includes, err, expected)
 	}
 }

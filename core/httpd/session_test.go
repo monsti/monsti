@@ -1,6 +1,6 @@
 // This file is part of Monsti, a web content management system.
 // Copyright 2012-2013 Christian Neumann
-// 
+//
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
 // Software Foundation, either version 3 of the License, or (at your option) any
@@ -17,33 +17,30 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
-	"pkg.monsti.org/monsti/api/service"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"code.google.com/p/go.crypto/bcrypt"
+	"pkg.monsti.org/monsti/api/service"
 )
 
 func TestCheckPermission(t *testing.T) {
 	tests := []struct {
-		Action      string
+		Action      service.Action
 		Auth, Grant bool
 	}{
-		{"", false, true},
-		{"", true, true},
-		{"login", false, true},
-		{"login", true, true},
-		{"logout", false, false},
-		{"logout", true, true},
-		{"edit", false, false},
-		{"edit", true, true},
-		{"add", false, false},
-		{"add", true, true},
-		{"remove", false, false},
-		{"remove", true, true},
-		{"unknown_action", true, false},
-		{"unknown_action", false, false}}
+		{service.LoginAction, false, true},
+		{service.LoginAction, true, true},
+		{service.LogoutAction, false, false},
+		{service.LogoutAction, true, true},
+		{service.EditAction, false, false},
+		{service.EditAction, true, true},
+		{service.AddAction, false, false},
+		{service.AddAction, true, true},
+		{service.RemoveAction, false, false},
+		{service.RemoveAction, true, true}}
 	for _, v := range tests {
 		var user *service.User
 		if v.Auth {
@@ -85,9 +82,9 @@ func TestGetUser(t *testing.T) {
 		{Login: "bar", User: &service.User{Login: "bar", Password: "other pass",
 			Name: "Mrs. Bar", Email: "bar@example.com"}}}
 	for _, v := range tests {
-		user := getUser(v.Login, root)
-		if !reflect.DeepEqual(user, v.User) {
-			t.Errorf("getUser(%q, _) = %v, should be %v", v.Login,
+		user, err := getUser(v.Login, root)
+		if !reflect.DeepEqual(user, v.User) || err != nil {
+			t.Errorf("getUser(%q, _) = %v,%v should be %v, nil", v.Login, err,
 				user, v.User)
 		}
 	}

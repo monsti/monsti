@@ -118,14 +118,14 @@ $(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti
 	cd core/$* && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
 
 .PHONY: tests
-tests: $(MODULES:%=test-module-%) util/test-template util/test-testing\
-	util/test-l10n rpc/test-client
+tests: $(MODULES:%=test-module-%) api/util/test-template api/util/test-testing\
+	api/test-util api/test-service
 
 test-module-%:
 	cd core/$* && $(GO_TEST) .
 
 test-%:
-	$(GO_TEST) pkg.monsti.org/$*
+	$(GO_TEST) pkg.monsti.org/monsti/$*
 
 .PHONY: clean
 clean:

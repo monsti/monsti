@@ -98,11 +98,11 @@ func TestGetConfig(t *testing.T) {
 	}
 	defer cleanup()
 	tests := []struct{ Name, Value string }{
-		{"", `{"":{"foo":{"foobar":"foobarvalue"},"bar":"barvalue"}}`},
-		{"foo", `{"foo":{"foobar":"foobarvalue"}}`},
-		{"foo.foobar", `{"foo.foobar":"foobarvalue"}`},
-		{"bar", `{"bar":"barvalue"}`},
-		{"unknown", `{"unknown": null}`},
+		{"", `{"Value":{"foo":{"foobar":"foobarvalue"},"bar":"barvalue"}}`},
+		{"foo", `{"Value":{"foobar":"foobarvalue"}}`},
+		{"foo.foobar", `{"Value":"foobarvalue"}`},
+		{"bar", `{"Value":"barvalue"}`},
+		{"unknown", `{"Value": null}`},
 	}
 	for _, test := range tests {
 		unmarshal := func(in []byte) (out interface{}) {
