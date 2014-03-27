@@ -59,7 +59,7 @@ func (m *MailService) SendMail(mail mimemail.Mail, reply *int) error {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "mail ", log.LstdFlags)
+	logger := log.New(os.Stderr, "", 0)
 
 	// Load configuration
 	flag.Parse()

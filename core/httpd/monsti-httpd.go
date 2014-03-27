@@ -25,14 +25,15 @@ package main
 
 import (
 	"flag"
-	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
-	"pkg.monsti.org/monsti/api/util/template"
-	"pkg.monsti.org/gettext"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
 // Settings for the application and the sites.
@@ -43,7 +44,7 @@ type settings struct {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "httpd ", log.LstdFlags)
+	logger := log.New(os.Stderr, "", 0)
 
 	// Load configuration
 	flag.Parse()

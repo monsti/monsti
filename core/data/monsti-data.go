@@ -187,7 +187,7 @@ type settings struct {
 }
 
 func main() {
-	logger := log.New(os.Stderr, "data ", log.LstdFlags)
+	logger := log.New(os.Stderr, "", 0)
 
 	// Load configuration
 	flag.Parse()
