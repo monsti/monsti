@@ -20,13 +20,11 @@
             </div>
           </div>
         </div>
-        {{template "blocks/below-header" .}}
         <div id="content-wrap">
           <div id="messages">
           </div>
           <div id="sidebar">
             {{template "blocks/secondary-navigation" .}}
-            {{template "blocks/sidebar" .}}
           </div>
           <div id="content">
             <h1>{{.Page.Title}}</h1>
@@ -42,10 +40,9 @@
       <div id="bottom-wrap">
         <div id="footer-wrap">
           <div id="footer">
-            {{.Page.Footer}}
+            <p id="attribution">Powered by
+              <a href="http://www.monsti.org">Monsti</a>
           </div>
-          <p id="attribution">Powered by
-          <a href="http://www.monsti.org">Monsti</a>
           </p>
         </div>
       </div>
