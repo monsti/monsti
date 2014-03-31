@@ -7,7 +7,7 @@ https://gitorious.org/monsti/monsti/
 2) Install dependencies:
 
 - make
-- C compiler
+- C compiler, pkg-config
 - Git, Bazaar, Mercurial (to fetch modules and Go packages)
 - MagickCore library and development files
 - Latest Go compiler and tools
