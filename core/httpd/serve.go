@@ -183,14 +183,15 @@ func (h *nodeHandler) RequestNode(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
+	if err != nil {
+		return fmt.Errorf("Could not find node service for %q: %v",
+			c.Node.Type, err)
+	}
 	defer func() {
 		if err := nodeServ.Close(); err != nil {
 			panic(fmt.Errorf("Could not close connection to node service: %v", err))
 		}
 	}()
-	if err != nil {
-		return fmt.Errorf("Could not find node service for %q at %q: %v", c.Node.Type, err)
-	}
 	if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
 		return fmt.Errorf("Could not parse form: %v", err)
 	}
