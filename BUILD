@@ -8,7 +8,7 @@ https://gitorious.org/monsti/monsti/
 
 - make
 - C compiler, pkg-config
-- Git, Bazaar, Mercurial (to fetch modules and Go packages)
+- Git, Bazaar, Mercurial (to fetch Go packages)
 - MagickCore library and development files
 - Latest Go compiler and tools
 
