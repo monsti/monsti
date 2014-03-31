@@ -7,8 +7,8 @@ GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon httpd data document contactform mail image
 
-VCS_REVISION=`git rev-list HEAD --count`
-VCS_BRANCH=`git branch | sed -n '/\* /s///p'`
+VCS_REVISION:=$(shell git rev-list HEAD --count)
+VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')
 MONSTI_VERSION=0.7.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
 DEB_VERSION=1
 
