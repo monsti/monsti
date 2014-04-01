@@ -1,3 +1,4 @@
-- Fix all tests.
 - Lock on writes
 - Add CSRF tokens for forms
+- Move "owner" site setting to contactform setting. 
+- Remove title site setting (use template settings)
