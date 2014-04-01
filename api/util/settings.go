@@ -76,6 +76,12 @@ func (s MonstiSettings) GetSiteStaticsPath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "site-static")
 }
 
+// GetSiteDataPath returns the path to the given site's data
+// directory.
+func (s MonstiSettings) GetSiteDataPath(site string) string {
+	return filepath.Join(s.Directories.Data, site)
+}
+
 // GetSiteTemplatesPath returns the path to the given site's templates
 // directory.
 func (s MonstiSettings) GetSiteTemplatesPath(site string) string {

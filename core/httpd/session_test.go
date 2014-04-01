@@ -59,16 +59,11 @@ func TestGetUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not create temp dir: %s", err)
 	}
-	db := []byte(`- login: foo
-  name: Mr. Foo
-  password: the pass
-  email: foo@example.com
-- login: bar
-  name: Mrs. Bar
-  email: bar@example.com
-  password: other pass
+	db := []byte(`{
+"foo":{"name":"Mr. Foo","password":"the pass","email":"foo@example.com"},
+"bar":{"name":"Mrs. Bar","email":"bar@example.com","password":"other pass"}}
 `)
-	if err = ioutil.WriteFile(filepath.Join(root, "users.yaml"),
+	if err = ioutil.WriteFile(filepath.Join(root, "users.json"),
 		db, 0600); err != nil {
 		t.Fatalf("Could not write navigation: %s", err)
 	}

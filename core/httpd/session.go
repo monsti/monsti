@@ -17,6 +17,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -24,7 +25,6 @@ import (
 
 	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/gorilla/sessions"
-	"launchpad.net/goyaml"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
@@ -51,7 +51,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 		c.Req.ParseForm()
 		if form.Fill(c.Req.Form) {
 			user, err := getUser(data.Login,
-				h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
+				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
 			if err != nil {
 				return fmt.Errorf("Could not get user: %v", err)
 			}
@@ -104,7 +104,7 @@ func getSession(r *http.Request, site util.SiteSettings) (
 //
 // configDir is the site's configuration directory.
 func getClientSession(session *sessions.Session,
-	configDir string) (uSession *service.UserSession, err error) {
+	dataDir string) (uSession *service.UserSession, err error) {
 	uSession = new(service.UserSession)
 	loginData, ok := session.Values["login"]
 	if !ok {
@@ -115,7 +115,7 @@ func getClientSession(session *sessions.Session,
 		delete(session.Values, "login")
 		return
 	}
-	user, err := getUser(login_, configDir)
+	user, err := getUser(login_, dataDir)
 	if err != nil {
 		err = fmt.Errorf("Could not get user: %v", err)
 		return
@@ -129,20 +129,19 @@ func getClientSession(session *sessions.Session,
 }
 
 // getUser returns the user with the given login.
-func getUser(login_, configDir string) (*service.User, error) {
-	path := filepath.Join(configDir, "users.yaml")
+func getUser(login_, dataDir string) (*service.User, error) {
+	path := filepath.Join(dataDir, "users.json")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("Could not load users.yaml: %v", err)
+		return nil, fmt.Errorf("Could not load user database: %v", err)
 	}
-	var users []service.User
-	if err = goyaml.Unmarshal(content, &users); err != nil {
-		return nil, fmt.Errorf("Could not unmarshal users.yaml: %v", err)
+	var users map[string]service.User
+	if err = json.Unmarshal(content, &users); err != nil {
+		return nil, fmt.Errorf("Could not unmarshal user database: %v", err)
 	}
-	for _, user := range users {
-		if user.Login == login_ {
-			return &user, nil
-		}
+	if user, ok := users[login_]; ok {
+		user.Login = login_
+		return &user, nil
 	}
 	return nil, nil
 }

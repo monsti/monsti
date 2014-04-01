@@ -141,7 +141,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer context.Clear(c.Req)
 	c.UserSession, err = getClientSession(c.Session,
-		h.Settings.Monsti.GetSiteConfigPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
 	if err != nil {
 		serveError("Could not get client session: %v", err)
 	}
