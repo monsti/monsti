@@ -18,7 +18,7 @@ $ make
 
 (Optional) To run tests:
 
-$ make tests
+$ make test
 
 4) Run:
 

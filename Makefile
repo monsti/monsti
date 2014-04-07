@@ -32,20 +32,20 @@ $(MODULES): %: go/bin/monsti-%
 
 locales: $(MODULES:%=locales-monsti-%)
 
-locales-monsti-%:
+locales-%:
 	mkdir -p locale/
 	mkdir -p core/$*/locale/
 	cp -Rn core/$*/locale .
 
 templates: $(MODULES:%=templates-monsti-%)
 
-templates-monsti-%:
+templates-%:
 	mkdir -p templates/
 	mkdir -p core/$*/templates/
 	ln -nsf ../core/$*/templates templates/$*
 
-templates/master.html: templates/httpd/master.html
-	for i in $(wildcard templates/httpd/*); \
+templates/master.html: templates/monsti-httpd/master.html
+	for i in $(wildcard templates/monsti-httpd/*); \
 	do \
 		ln -nsf httpd/`basename $${i}` templates/`basename $${i}`; \
 	done; \
@@ -109,20 +109,14 @@ go/src/pkg.monsti.org/monsti:
 
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
-$(MODULE_PROGRAMS): go/bin/monsti-%: go/src/pkg.monsti.org/monsti
-	mkdir -p $(GOPATH)/bin
-	$(GO_GET) -d pkg.monsti.org/monsti/core/$*
-	cd core/$* && $(GO_BUILD) -o $(GOPATH)/bin/monsti-$* .
+$(MODULE_PROGRAMS): go/bin/%: go/src/pkg.monsti.org/monsti
+	$(GO_GET) pkg.monsti.org/monsti/core/$*
 
-.PHONY: tests
-tests: $(MODULES:%=test-module-%) api/util/test-template api/util/test-testing\
-	api/test-util api/test-service
-
-test-module-%:
-	cd core/$* && $(GO_TEST) .
-
-test-%:
-	$(GO_TEST) pkg.monsti.org/monsti/$*
+.PHONY: test
+test: monsti
+	cd $(GOPATH)/src/pkg.monsti.org/monsti/api && $(GO_TEST) ./...
+	cd $(GOPATH)/src/pkg.monsti.org/monsti/core && $(GO_TEST) ./...
+	cd $(GOPATH)/src/pkg.monsti.org/monsti/utils && $(GO_TEST) ./...
 
 .PHONY: clean
 clean:
