@@ -51,9 +51,6 @@ templates/master.html: templates/httpd/master.html
 	done; \
   #rm templates/httpd/templates
 
-core/%:
-	git clone git@gitorious.org:monsti/$*.git core/$*
-
 dist: monsti bcrypt
 	rm -R $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/bin
