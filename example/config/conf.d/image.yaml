@@ -14,14 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Monsti.  If not, see <http:#www.gnu.org/licenses/>.
 
-namespace: image
+namespace: core
 nodetypes:
-  -
-  id: image
-  name: {en: "Image", de: "Bild"}
-  fields:
-    -
-    id: file
-    name: {en: "File", de: "Datei"}
-    required: yes
-    type: file
+  - id: image
+    name: {en: "Image", de: "Bild"}
+    fields:
+      - id: file
+        name: {en: "File", de: "Datei"}
+        required: yes
+        type: file

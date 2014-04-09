@@ -14,13 +14,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Monsti.  If not, see <http:#www.gnu.org/licenses/>.
 
-namespace: document
+namespace: core
 nodetypes:
-  -
-  id: document
-  name: {en: "Document", de: "Dokument"}
-  fields:
-    -
-    id: body
-    name: {en: "Body", de: "Rumpf"}
-    type: widgets
+  - id: document
+    name: {en: "Document", de: "Dokument"}
+    fields:
+      - id: body
+        name: {en: "Body", de: "Rumpf"}
+        type: widgets
