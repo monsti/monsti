@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	htmlT "html/template"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -265,3 +266,213 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 		*c.Site, c.UserSession.Locale, c.Serv))
 	return nil
 }
+
+// ViewNode handles node views.
+func (h *nodeHandler) View(c *reqContext) error {
+	// Setup ticket and send to workers.
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	_, err := h.Info.GetNodeType(c.Node.Type)
+	if err != nil {
+		return fmt.Errorf("Could not get node type %q: %v",
+			c.Node.Type, err)
+	}
+	/*
+		if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
+			return fmt.Errorf("Could not parse form: %v", err)
+		}
+		method := map[string]service.RequestMethod{
+			"GET":  service.GetRequest,
+			"POST": service.PostRequest,
+		}[c.Req.Method]
+		req := service.Request{
+			Site:     c.Site.Name,
+			Method:   method,
+			Node:     *c.Node,
+			Query:    c.Req.URL.Query(),
+			Session:  *c.UserSession,
+			Action:   c.Action,
+			FormData: c.Req.Form,
+		}
+
+		// Attach request files
+		if c.Req.MultipartForm != nil {
+			if len(c.Req.MultipartForm.File) > 0 {
+				req.Files = make(map[string][]service.RequestFile)
+			}
+			for name, fileHeaders := range c.Req.MultipartForm.File {
+				if _, ok := req.Files[name]; !ok {
+					req.Files[name] = make([]service.RequestFile, 0)
+				}
+				for _, fileHeader := range fileHeaders {
+					file, err := fileHeader.Open()
+					if err != nil {
+						return fmt.Errorf("Could not open multipart file header: %v", err)
+					}
+					if osFile, ok := file.(*os.File); ok {
+						req.Files[name] = append(req.Files[name], service.RequestFile{
+							TmpFile: osFile.Name()})
+					} else {
+						content, err := ioutil.ReadAll(file)
+						if err != nil {
+							return fmt.Errorf("Could not read multipart file: %v", err)
+						}
+						req.Files[name] = append(req.Files[name], service.RequestFile{
+							Content: content})
+					}
+				}
+			}
+		}
+
+		nodeType := req.Node.Type
+	*/
+
+	dataServ := c.Serv.Data()
+	body, err := dataServ.GetNodeData(c.Site.Name, c.Node.Path, "body.html")
+	if err != nil {
+		return fmt.Errorf("Could not fetch node data: %v", err)
+	}
+	rendered, err := h.Renderer.Render(c.Node.Type+"/view",
+		template.Context{"Body": htmlT.HTML(body)},
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+
+	/*
+		G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+		if len(res.Body) == 0 && len(res.Redirect) == 0 {
+			return fmt.Errorf("Got empty response.")
+		}
+		if res.Node != nil {
+			oldPath := c.Node.Path
+			c.Node = res.Node
+			c.Node.Path = oldPath
+		}
+		if len(res.Redirect) > 0 {
+			http.Redirect(c.Res, c.Req, res.Redirect, http.StatusSeeOther)
+			return nil
+		}
+	*/
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
+	/*
+		if c.Action == service.EditAction {
+			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Title)
+			env.Flags = EDIT_VIEW
+		}
+	*/
+	var content []byte
+	/*
+		if res.Raw {
+			content = res.Body
+		} else {
+	*/
+	content = []byte(renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+	/*
+		}*/
+	err = c.Session.Save(c.Req, c.Res)
+	if err != nil {
+		return fmt.Errorf("Could not save user session: %v", err)
+	}
+	c.Res.Write(content)
+	return nil
+}
+
+/*
+	// Setup ticket and send to workers.
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	nodeServ, err := h.Info.FindNodeService(c.Node.Type)
+	if err != nil {
+		return fmt.Errorf("Could not find node service for %q: %v",
+			c.Node.Type, err)
+	}
+	defer func() {
+		if err := nodeServ.Close(); err != nil {
+			panic(fmt.Errorf("Could not close connection to node service: %v", err))
+		}
+	}()
+	if err = c.Req.ParseMultipartForm(1024 * 1024); err != nil {
+		return fmt.Errorf("Could not parse form: %v", err)
+	}
+	method := map[string]service.RequestMethod{
+		"GET":  service.GetRequest,
+		"POST": service.PostRequest,
+	}[c.Req.Method]
+	req := service.Request{
+		Site:     c.Site.Name,
+		Method:   method,
+		Node:     *c.Node,
+		Query:    c.Req.URL.Query(),
+		Session:  *c.UserSession,
+		Action:   c.Action,
+		FormData: c.Req.Form,
+	}
+
+	// Attach request files
+	if c.Req.MultipartForm != nil {
+		if len(c.Req.MultipartForm.File) > 0 {
+			req.Files = make(map[string][]service.RequestFile)
+		}
+		for name, fileHeaders := range c.Req.MultipartForm.File {
+			if _, ok := req.Files[name]; !ok {
+				req.Files[name] = make([]service.RequestFile, 0)
+			}
+			for _, fileHeader := range fileHeaders {
+				file, err := fileHeader.Open()
+				if err != nil {
+					return fmt.Errorf("Could not open multipart file header: %v", err)
+				}
+				if osFile, ok := file.(*os.File); ok {
+					req.Files[name] = append(req.Files[name], service.RequestFile{
+						TmpFile: osFile.Name()})
+				} else {
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						return fmt.Errorf("Could not read multipart file: %v", err)
+					}
+					req.Files[name] = append(req.Files[name], service.RequestFile{
+						Content: content})
+				}
+			}
+		}
+	}
+
+	res, err := nodeServ.Request(&req)
+	if err != nil {
+		return fmt.Errorf("Could not request node: %v", err)
+	}
+
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	if len(res.Body) == 0 && len(res.Redirect) == 0 {
+		return fmt.Errorf("Got empty response.")
+	}
+	if res.Node != nil {
+		oldPath := c.Node.Path
+		c.Node = res.Node
+		c.Node.Path = oldPath
+	}
+	if len(res.Redirect) > 0 {
+		http.Redirect(c.Res, c.Req, res.Redirect, http.StatusSeeOther)
+		return nil
+	}
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
+	if c.Action == service.EditAction {
+		env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Title)
+		env.Flags = EDIT_VIEW
+	}
+	var content []byte
+	if res.Raw {
+		content = res.Body
+	} else {
+		content = []byte(renderInMaster(h.Renderer, res.Body, env, h.Settings,
+			*c.Site, c.UserSession.Locale, c.Serv))
+	}
+	err = c.Session.Save(c.Req, c.Res)
+	if err != nil {
+		return fmt.Errorf("Could not save user session: %v", err)
+	}
+	c.Res.Write(content)
+	return nil
+*/
