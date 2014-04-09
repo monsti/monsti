@@ -20,7 +20,7 @@ MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt
 
-monsti: modules templates locales templates/master.html dep-aloha-editor dep-jquery
+monsti: modules dep-aloha-editor dep-jquery
 
 .PHONY: bcrypt
 bcrypt: 
@@ -29,27 +29,6 @@ bcrypt:
 
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
-
-locales: $(MODULES:%=locales-monsti-%)
-
-locales-%:
-	mkdir -p locale/
-	mkdir -p core/$*/locale/
-	cp -Rn core/$*/locale .
-
-templates: $(MODULES:%=templates-monsti-%)
-
-templates-%:
-	mkdir -p templates/
-	mkdir -p core/$*/templates/
-	ln -nsf ../core/$*/templates templates/$*
-
-templates/master.html: templates/monsti-httpd/master.html
-	for i in $(wildcard templates/monsti-httpd/*); \
-	do \
-		ln -nsf httpd/`basename $${i}` templates/`basename $${i}`; \
-	done; \
-  #rm templates/httpd/templates
 
 dist: monsti bcrypt
 	rm -R $(DIST_PATH)
@@ -122,9 +101,7 @@ test: monsti
 clean:
 	rm go/* -Rf
 	rm static/aloha/ -Rf
-	rm locale/ -Rf
 	rm dist/ -Rf
-	rm templates/ -Rf
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
