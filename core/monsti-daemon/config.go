@@ -22,41 +22,29 @@ import (
 	"os"
 	"path/filepath"
 
+	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
 )
 
-type NodeField struct {
-	Id       string
-	Name     map[string]string
-	Required bool
-	Type     string
-}
-
-type NodeTypes struct {
-	Id     string
-	Name   map[string]string
-	Fields []NodeField
-}
-
 type SingleConfig struct {
 	Namespace string
-	NodeTypes []NodeTypes
+	NodeTypes []service.NodeType
 }
 
 type Config struct {
-	NodeTypes map[string]NodeTypes
+	NodeTypes map[string]service.NodeType
 }
 
-// loadConfigs parses all configuration files in the given directory
+// loadConfig parses all configuration files in the given directory
 // and returns the application configuration.
-func loadConfigs(configDir string) (*Config, error) {
+func loadConfig(configDir string) (*Config, error) {
 	configPath := filepath.Join(configDir)
 	configFiles, err := ioutil.ReadDir(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read config directory: %v", err)
 	}
 	var config Config
-	config.NodeTypes = make(map[string]NodeTypes, 0)
+	config.NodeTypes = make(map[string]service.NodeType, 0)
 	for _, configFile := range configFiles {
 		configName := configFile.Name()
 		configPath := filepath.Join(configPath, configName)

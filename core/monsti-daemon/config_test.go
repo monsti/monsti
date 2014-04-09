@@ -24,7 +24,7 @@ import (
 	mtest "pkg.monsti.org/monsti/api/util/testing"
 )
 
-func TestLoadConfigs(t *testing.T) {
+func TestLoadConfig(t *testing.T) {
 	files := map[string]string{
 		"/configs/document.yaml": `
 namespace: core
@@ -47,7 +47,7 @@ nodetypes:
         required: yes
         type: file
 `}
-	root, cleanup, err := mtest.CreateDirectoryTree(files, "TestLoadConfigs")
+	root, cleanup, err := mtest.CreateDirectoryTree(files, "TestLoadConfig")
 	if err != nil {
 		t.Fatalf("Could not create test files: %v", err)
 	}
@@ -57,7 +57,7 @@ nodetypes:
 	if err != nil {
 		t.Fatalf("Could not create symlink to config: %v", err)
 	}
-	config, err := loadConfigs(filepath.Join(root, "configs"))
+	config, err := loadConfig(filepath.Join(root, "configs"))
 	if err != nil {
 		t.Fatalf("Could not load configs: %v", err)
 	}

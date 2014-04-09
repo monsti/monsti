@@ -18,8 +18,9 @@ package main
 
 import (
 	"fmt"
-	"pkg.monsti.org/monsti/api/service"
 	"sync"
+
+	"pkg.monsti.org/monsti/api/service"
 )
 
 type InfoService struct {
@@ -28,7 +29,8 @@ type InfoService struct {
 	// NodeTypes maps node types to service paths
 	NodeTypes map[string][]string
 	// Mutex to syncronize data access
-	mutex sync.RWMutex
+	mutex  sync.RWMutex
+	Config *Config
 }
 
 func (i *InfoService) PublishService(args service.PublishServiceArgs,
@@ -92,6 +94,17 @@ func (i *InfoService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
 		*types = append(*types, nodeType)
 	}
 	return nil
+}
+
+func (i *InfoService) GetNodeType(nodeTypeID string,
+	ret *service.NodeType) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	if nodeType, ok := i.Config.NodeTypes[nodeTypeID]; ok {
+		ret = &nodeType
+		return nil
+	}
+	return fmt.Errorf("Unknown node type %q", nodeTypeID)
 }
 
 func (i *InfoService) FindDataService(arg int, path *string) error {
