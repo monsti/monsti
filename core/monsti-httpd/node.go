@@ -211,7 +211,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	body, err := h.Renderer.Render("httpd/actions/addform", template.Context{
+	body, err := h.Renderer.Render("actions/addform", template.Context{
 		"Form": form.RenderData()}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
@@ -254,7 +254,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Confirm = 1489
-	body, err := h.Renderer.Render("httpd/actions/removeform", template.Context{
+	body, err := h.Renderer.Render("actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
