@@ -26,8 +26,6 @@ import (
 type InfoService struct {
 	// Services maps service names to service paths
 	Services map[string][]string
-	// NodeTypes maps node types to service paths
-	NodeTypes map[string][]string
 	// Mutex to syncronize data access
 	mutex  sync.RWMutex
 	Config *Config
@@ -41,24 +39,6 @@ func (i *InfoService) PublishService(args service.PublishServiceArgs,
 		i.Services = make(map[string][]string)
 	}
 	switch args.Service {
-	case "Node":
-		if i.NodeTypes == nil {
-			i.NodeTypes = make(map[string][]string)
-		}
-		nodeServ := service.NewNodeClient()
-		if err := nodeServ.Connect(args.Path); err != nil {
-			return fmt.Errorf("Could not connect to your node service: %v", err)
-		}
-		nodeTypes, err := nodeServ.GetNodeTypes()
-		if err != nil {
-			return fmt.Errorf("Could not retrieve your node types: %v", err)
-		}
-		for _, nodeType := range nodeTypes {
-			if i.NodeTypes[nodeType] == nil {
-				i.NodeTypes[nodeType] = make([]string, 0)
-			}
-			i.NodeTypes[nodeType] = append(i.NodeTypes[nodeType], args.Path)
-		}
 	case "Data":
 	case "Mail":
 	default:
@@ -73,16 +53,6 @@ func (i *InfoService) PublishService(args service.PublishServiceArgs,
 	return nil
 }
 
-func (i *InfoService) FindNodeService(nodeType string, path *string) error {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	if len(i.NodeTypes[nodeType]) == 0 {
-		return fmt.Errorf("Unknown node type %v", nodeType)
-	}
-	*path = i.NodeTypes[nodeType][0]
-	return nil
-}
-
 type GetAddableNodeTypesArgs struct{ Site, NodeType string }
 
 func (i *InfoService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
@@ -90,7 +60,7 @@ func (i *InfoService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	*types = make([]string, 0)
-	for nodeType, _ := range i.NodeTypes {
+	for nodeType, _ := range i.Config.NodeTypes {
 		*types = append(*types, nodeType)
 	}
 	return nil
@@ -101,7 +71,7 @@ func (i *InfoService) GetNodeType(nodeTypeID string,
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	if nodeType, ok := i.Config.NodeTypes[nodeTypeID]; ok {
-		ret = &nodeType
+		*ret = nodeType
 		return nil
 	}
 	return fmt.Errorf("Unknown node type %q", nodeTypeID)

@@ -39,14 +39,45 @@ func NewNodeClient() *NodeClient {
 type NodeFields struct {
 	Path string "-"
 	// Content type of the node.
-	Type        string
-	Title       string
-	ShortTitle  string
-	Description string
-	// Order of the node compared to its siblings.
+	Type  string
 	Order int
 	// Don't show the node in navigations if Hide is true.
-	Hide bool
+	Hide   bool
+	Fields map[string]interface{}
+}
+
+// GetField returns the named field (and true) of the node if present.
+//
+// If there is no such field, it returns nil.
+func (n NodeFields) GetField(id string) interface{} {
+	parts := strings.Split(id, ".")
+	field := interface{}(n.Fields)
+	for _, part := range parts {
+		var ok bool
+		field, ok = field.(map[string]interface{})[part]
+		if !ok {
+			return nil
+		}
+	}
+	return field
+}
+
+// SetField sets the value of the named field.
+func (n *NodeFields) SetField(id string, value interface{}) {
+	parts := strings.Split(id, ".")
+	if n.Fields == nil {
+		n.Fields = make(map[string]interface{})
+	}
+	field := interface{}(n.Fields)
+	for _, part := range parts[:len(parts)-1] {
+		next := field.(map[string]interface{})[part]
+		if next == nil {
+			next = make(map[string]interface{})
+			field.(map[string]interface{})[part] = next
+		}
+		field = next
+	}
+	field.(map[string]interface{})[parts[len(parts)-1]] = value
 }
 
 // PathToID returns an ID for the given node based on it's path.

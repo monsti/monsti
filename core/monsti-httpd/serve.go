@@ -166,10 +166,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.Add(&c)
 	case service.RemoveAction:
 		err = h.Remove(&c)
-		/*
-			case service.EditAction:
-				err = h.Edit(&c)
-		*/
+	case service.EditAction:
+		err = h.Edit(&c)
 	default:
 		err = h.View(&c)
 	}

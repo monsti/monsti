@@ -76,13 +76,9 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	title := env.Node.Title
+	title := env.Node.Fields["core"].(map[string]interface{})["title"].(string)
 	if env.Title != "" {
 		title = env.Title
-	}
-	description := env.Node.Description
-	if env.Title != "" {
-		description = env.Description
 	}
 	ret, err := r.Render("master", template.Context{
 		"Site": template.Context{
@@ -94,7 +90,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"SecondaryNav":     secnav,
 			"EditView":         env.Flags&EDIT_VIEW != 0,
 			"Title":            title,
-			"Description":      description,
 			"Content":          htmlT.HTML(content),
 			"ShowSecondaryNav": len(secnav) > 0},
 		"Session": env.Session}, locale,
