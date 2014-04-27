@@ -21,4 +21,4 @@ nodetypes:
     fields:
       - id: body
         name: {en: "Body", de: "Rumpf"}
-        type: widgets
+        type: htmlarea
