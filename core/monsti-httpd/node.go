@@ -18,8 +18,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"sort"
 	"strings"
@@ -238,6 +240,27 @@ func (h *nodeHandler) View(c *reqContext) error {
 			c.Node.Type, err)
 	}
 
+	// Redirect if trailing slash is missing and if this is not a file
+	// node (in which case we write out the file's content).
+	if c.Node.Path[len(c.Node.Path)-1] != '/' {
+		if c.Node.Type == "core.file" {
+			content, err := c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
+				"__file_file")
+			if err != nil {
+				return fmt.Errorf("Could not read file: %v", err)
+			}
+			c.Res.Write(content)
+		} else {
+			newPath, err := url.Parse(c.Node.Path + "/")
+			if err != nil {
+				serveError("Could not parse request URL: %v", err)
+			}
+			url := c.Req.URL.ResolveReference(newPath)
+			http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
+		}
+		return nil
+	}
+
 	rendered, err := h.Renderer.Render(c.Node.Type+"/view",
 		template.Context{"Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
@@ -253,35 +276,6 @@ func (h *nodeHandler) View(c *reqContext) error {
 	c.Res.Write(content)
 	return nil
 }
-
-/*
-
-	switch c.Req.Method {
-	case "GET":
-	case "POST":
-		c.Req.ParseForm()
-		if form.Fill(c.Req.Form) {
-			newPath := filepath.Join(c.Node.Path, data.Name)
-			var newNode struct{ service.NodeFields }
-			newNode.NodeFields = service.NodeFields{
-				Path: newPath,
-				Type: data.Type}
-			data, err := h.Info.FindDataService()
-			if err != nil {
-				return fmt.Errorf("Can't find data service: %v", err)
-			}
-			if err := data.WriteNode(c.Site.Name, newNode.Path, newNode,
-				"node"); err != nil {
-				return fmt.Errorf("Can't add node: %v", err)
-			}
-			http.Redirect(c.Res, c.Req, newPath+"/@@edit", http.StatusSeeOther)
-			return nil
-		}
-	default:
-		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
-	}
-
-*/
 
 type editFormData struct {
 	NodeType string
@@ -350,6 +344,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		Name:     map[string]string{"en": "Title", "de": "Titel"},
 		Required: true,
 		Type:     "text"})
+	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
 		fullId := "Node.Fields." + field.Id
 		switch field.Type {
@@ -359,6 +354,13 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			if formData.Node.GetField(field.Id) == nil {
 				formData.Node.SetField(field.Id, "")
 			}
+		case "file":
+			formFields[fullId] = form.Field{
+				field.Name["en"], "", nil, new(form.FileWidget)}
+			if formData.Node.GetField(field.Id) == nil {
+				formData.Node.SetField(field.Id, "")
+			}
+			fileFields = append(fileFields, field.Id)
 		case "text":
 			formFields[fullId] = form.Field{
 				field.Name["en"], "", form.Required(G("Required.")), nil}
@@ -391,6 +393,23 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			if err != nil {
 				return fmt.Errorf("document: Could not update node: ", err)
 			}
+
+			if len(fileFields) > 0 && c.Req.MultipartForm != nil {
+				for _, name := range fileFields {
+					file, _, err := c.Req.FormFile("Node.Fields." + name)
+					if err != nil {
+						return fmt.Errorf("Could not get form file: %v", err)
+					}
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						return fmt.Errorf("Could not read multipart file: %v", err)
+					}
+					if err = c.Serv.Data().WriteNodeData(c.Site.Name, node.Path,
+						"__file_"+name, content); err != nil {
+						return fmt.Errorf("Could not save file: %v", err)
+					}
+				}
+			}
 			http.Redirect(c.Res, c.Req, node.Path, http.StatusSeeOther)
 			return nil
 		}
@@ -418,79 +437,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 }
 
 /*
-	method := map[string]service.RequestMethod{
-		"GET":  service.GetRequest,
-		"POST": service.PostRequest,
-	}[c.Req.Method]
-	req := service.Request{
-		Site:     c.Site.Name,
-		Method:   method,
-		Node:     *c.Node,
-		Query:    c.Req.URL.Query(),
-		Session:  *c.UserSession,
-		Action:   c.Action,
-		FormData: c.Req.Form,
-	}
-
-	// Attach request files
-	if c.Req.MultipartForm != nil {
-		if len(c.Req.MultipartForm.File) > 0 {
-			req.Files = make(map[string][]service.RequestFile)
-		}
-		for name, fileHeaders := range c.Req.MultipartForm.File {
-			if _, ok := req.Files[name]; !ok {
-				req.Files[name] = make([]service.RequestFile, 0)
-			}
-			for _, fileHeader := range fileHeaders {
-				file, err := fileHeader.Open()
-				if err != nil {
-					return fmt.Errorf("Could not open multipart file header: %v", err)
-				}
-				if osFile, ok := file.(*os.File); ok {
-					req.Files[name] = append(req.Files[name], service.RequestFile{
-						TmpFile: osFile.Name()})
-				} else {
-					content, err := ioutil.ReadAll(file)
-					if err != nil {
-						return fmt.Errorf("Could not read multipart file: %v", err)
-					}
-					req.Files[name] = append(req.Files[name], service.RequestFile{
-						Content: content})
-				}
-			}
-		}
-	}
-
-	res, err := nodeServ.Request(&req)
-	if err != nil {
-		return fmt.Errorf("Could not request node: %v", err)
-	}
-
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
-	if len(res.Body) == 0 && len(res.Redirect) == 0 {
-		return fmt.Errorf("Got empty response.")
-	}
-	if res.Node != nil {
-		oldPath := c.Node.Path
-		c.Node = res.Node
-		c.Node.Path = oldPath
-	}
-	if len(res.Redirect) > 0 {
-		http.Redirect(c.Res, c.Req, res.Redirect, http.StatusSeeOther)
-		return nil
-	}
-	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
-	if c.Action == service.EditAction {
-		env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Title)
-		env.Flags = EDIT_VIEW
-	}
-	var content []byte
-	if res.Raw {
-		content = res.Body
-	} else {
-		content = []byte(renderInMaster(h.Renderer, res.Body, env, h.Settings,
-			*c.Site, c.UserSession.Locale, c.Serv))
-	}
 	err = c.Session.Save(c.Req, c.Res)
 	if err != nil {
 		return fmt.Errorf("Could not save user session: %v", err)

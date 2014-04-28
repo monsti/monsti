@@ -16,8 +16,8 @@
 
 namespace: core
 nodetypes:
-  - id: image
-    name: {en: "Image", de: "Bild"}
+  - id: file
+    name: {en: "File", de: "Datei"}
     fields:
       - id: file
         name: {en: "File", de: "Datei"}

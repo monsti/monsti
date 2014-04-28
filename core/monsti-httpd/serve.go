@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"runtime/debug"
 	"strings"
 
@@ -108,15 +107,6 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer h.Sessions.Free(c.Serv)
 	var nodePath string
 	nodePath, action := splitAction(c.Req.URL.Path)
-	if len(action) == 0 && nodePath[len(nodePath)-1] != '/' {
-		newPath, err := url.Parse(nodePath + "/")
-		if err != nil {
-			serveError("Could not parse request URL: %v", err)
-		}
-		url := c.Req.URL.ResolveReference(newPath)
-		http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
-		return
-	}
 	c.Action = map[string]service.Action{
 		"view":   service.ViewAction,
 		"edit":   service.EditAction,
