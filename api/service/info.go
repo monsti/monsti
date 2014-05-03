@@ -27,10 +27,16 @@ type NodeField struct {
 	Type     string
 }
 
+type EmbedNode struct {
+	Id  string
+	URI string
+}
+
 type NodeType struct {
 	Id     string
 	Name   map[string]string
 	Fields []NodeField
+	Embed  []EmbedNode
 }
 
 type InfoClient struct {

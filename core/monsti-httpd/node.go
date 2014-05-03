@@ -234,12 +234,6 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 func (h *nodeHandler) View(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
-	_, err := h.Info.GetNodeType(c.Node.Type)
-	if err != nil {
-		return fmt.Errorf("Could not get node type %q: %v",
-			c.Node.Type, err)
-	}
-
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
@@ -261,20 +255,60 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.Renderer.Render(c.Node.Type+"/view",
-		template.Context{"Node": c.Node},
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	rendered, err := h.RenderNode(c, nil)
 	if err != nil {
-		return fmt.Errorf("Could not render template: %v", err)
+		return fmt.Errorf("Could not render node: %v", err)
 	}
 
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	var content []byte
-	content = []byte(renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
+	content = []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
 
 	c.Res.Write(content)
 	return nil
+}
+
+func (h *nodeHandler) RenderNode(c *reqContext, embed *service.NodeFields) (
+	[]byte, error) {
+	reqNode := c.Node
+	if embed != nil {
+		reqNode = embed
+	}
+	nodeType, err := h.Info.GetNodeType(reqNode.Type)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get node type %q: %v",
+			reqNode.Type, err)
+	}
+	context := make(template.Context)
+	context["Embed"] = make(map[string][]byte)
+	// Embed nodes
+	for _, embed := range nodeType.Embed {
+		reqURL, err := url.Parse(embed.URI)
+		if err != nil {
+			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
+		}
+		var node struct{ service.NodeFields }
+		embedPath := path.Join(reqNode.Path, reqURL.Path)
+		err = c.Serv.Data().ReadNode(c.Site.Name, embedPath, &node, "node")
+		if err != nil || len(node.Type) == 0 {
+			continue
+		}
+		embedNode := &node.NodeFields
+		embedNode.Path = embedPath
+		rendered, err := h.RenderNode(c, embedNode)
+		if err != nil {
+			return nil, fmt.Errorf("Could not render embed node: %v", err)
+		}
+		context["Embed"].(map[string][]byte)[embed.Id] = rendered
+	}
+	context["Node"] = reqNode
+	rendered, err := h.Renderer.Render(reqNode.Type+"/view", context,
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	if err != nil {
+		return nil, fmt.Errorf("Could not render template: %v", err)
+	}
+	return []byte(rendered), nil
 }
 
 type editFormData struct {
