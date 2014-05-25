@@ -71,4 +71,11 @@ nodetypes:
 	if nodeType.Id != "core.image" {
 		t.Fatalf("Id field of core.image is %q, should be core.image", nodeType.Id)
 	}
+	if len(nodeType.Fields) != 1 {
+		t.Fatalf("Should have one node type, but found %v", len(nodeType.Fields))
+	}
+	if nodeType.Fields[0].Id != "core.file" {
+		t.Fatalf("Id of node field should be %q, is %q",
+			"core.file", nodeType.Fields[0].Id)
+	}
 }

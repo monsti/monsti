@@ -59,6 +59,9 @@ func loadConfig(configDir string) (*Config, error) {
 		}
 		for _, node := range singleConfig.NodeTypes {
 			node.Id = singleConfig.Namespace + "." + node.Id
+			for i, field := range node.Fields {
+				node.Fields[i].Id = singleConfig.Namespace + "." + field.Id
+			}
 			config.NodeTypes[node.Id] = node
 		}
 	}
