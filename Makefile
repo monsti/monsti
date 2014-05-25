@@ -27,6 +27,10 @@ bcrypt:
 	mkdir -p $(GOPATH)/bin
 	cd utils/bcrypt && $(GO_GET) -d . && $(GO_BUILD) -o $(GOPATH)/bin/bcrypt .
 
+.PHONY: upgrade
+upgrade:
+	$(GO_GET) pkg.monsti.org/monsti/utils/upgrade
+
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
 
