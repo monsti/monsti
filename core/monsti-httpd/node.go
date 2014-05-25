@@ -79,7 +79,7 @@ func getNav(nodePath, active string,
 			continue
 		}
 		childrenNavLinks = append(childrenNavLinks, navLink{
-			Name:   child.Fields["core"].(map[string]interface{})["title"].(string),
+			Name:   child.Fields["core"].(map[string]interface{})["Title"].(string),
 			Target: path.Join(nodePath, child.Name()),
 			Child:  true, Order: child.Order})
 	}
@@ -98,7 +98,7 @@ func getNav(nodePath, active string,
 			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
-			Name:   node.Fields["core"].(map[string]interface{})["title"].(string),
+			Name:   node.Fields["core"].(map[string]interface{})["Title"].(string),
 			Target: nodePath, Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
@@ -111,7 +111,7 @@ func getNav(nodePath, active string,
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
-				Name:   sibling.Fields["core"].(map[string]interface{})["title"].(string),
+				Name:   sibling.Fields["core"].(map[string]interface{})["Title"].(string),
 				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
 		}
 	}
@@ -374,28 +374,29 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 	log.Println("formdata before fields", formData)
 	nodeType.Fields = append(nodeType.Fields, service.NodeField{
-		Id:       "core.title",
+		Id:       "core.Title",
 		Name:     map[string]string{"en": "Title", "de": "Titel"},
 		Required: true,
-		Type:     "text"})
+		Type:     "Text"})
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
+		log.Println(field)
 		fullId := "Node.Fields." + field.Id
 		switch field.Type {
-		case "htmlarea":
+		case "HTMLArea":
 			formFields[fullId] = form.Field{
 				field.Name["en"], "", form.Required(G("Required.")), new(form.AlohaEditor)}
 			if formData.Node.GetField(field.Id) == nil {
 				formData.Node.SetField(field.Id, "")
 			}
-		case "file":
+		case "File":
 			formFields[fullId] = form.Field{
 				field.Name["en"], "", nil, new(form.FileWidget)}
 			if formData.Node.GetField(field.Id) == nil {
 				formData.Node.SetField(field.Id, "")
 			}
 			fileFields = append(fileFields, field.Id)
-		case "text":
+		case "Text":
 			formFields[fullId] = form.Field{
 				field.Name["en"], "", form.Required(G("Required.")), nil}
 			if formData.Node.GetField(field.Id) == nil {

@@ -16,10 +16,10 @@
 
 namespace: core
 nodetypes:
-  - id: file
+  - id: File
     name: {en: "File", de: "Datei"}
     fields:
-      - id: file
+      - id: File
         name: {en: "File", de: "Datei"}
         required: yes
-        type: file
+        type: File

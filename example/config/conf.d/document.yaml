@@ -16,9 +16,9 @@
 
 namespace: core
 nodetypes:
-  - id: document
+  - id: Document
     name: {en: "Document", de: "Dokument"}
     fields:
-      - id: body
+      - id: Body
         name: {en: "Body", de: "Rumpf"}
-        type: htmlarea
+        type: HTMLArea

@@ -76,7 +76,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	title := env.Node.Fields["core"].(map[string]interface{})["title"].(string)
+	title := env.Node.Fields["core"].(map[string]interface{})["Title"].(string)
 	if env.Title != "" {
 		title = env.Title
 	}
