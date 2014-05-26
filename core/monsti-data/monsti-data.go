@@ -52,7 +52,7 @@ func getNode(root, path string) (node []byte, err error) {
 	if err != nil {
 		return
 	}
-	pathJSON := fmt.Sprintf(`{"path":%q,`, path)
+	pathJSON := fmt.Sprintf(`{"Path":%q,`, path)
 	node = bytes.Replace(node, []byte("{"), []byte(pathJSON), 1)
 	return
 }
