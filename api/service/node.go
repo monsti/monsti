@@ -37,7 +37,7 @@ func NewNodeClient() *NodeClient {
 }
 
 type NodeFields struct {
-	Path string "-"
+	Path string `json:"-"`
 	// Content type of the node.
 	Type  string
 	Order int
