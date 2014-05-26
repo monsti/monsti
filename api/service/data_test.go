@@ -61,7 +61,7 @@ func TestNodeToData(t *testing.T) {
 	var node FooBarNode
 	node.FooFields = FooFields{"FooField1Val", 13}
 	node.BarFields = BarFields{"BarField1Val", 4}
-	data, err := nodeToData(node, []string{"foo"})
+	data, err := nodeToData(node, []string{"foo"}, false)
 	if err != nil {
 		t.Fatalf("nodeToData returns error: %v", err)
 	}

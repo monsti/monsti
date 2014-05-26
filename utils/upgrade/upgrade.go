@@ -51,7 +51,7 @@ func main() {
 		node.Order = oldNode.Order
 		node.Hide = oldNode.Hide
 		node.SetField("core.Title", oldNode.Title)
-		nodeJSON, err = json.Marshal(node)
+		nodeJSON, err = json.MarshalIndent(node, "", "  ")
 		err = ioutil.WriteFile(filepath.Join(path, "node.json"), nodeJSON, 0644)
 		if err != nil {
 			return fmt.Errorf("Could not write node.json: %v", err)

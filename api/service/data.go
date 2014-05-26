@@ -48,7 +48,8 @@ func lowerCaseEqualTo(value string) func(string) bool {
 
 // nodeToData converts the node's fields of the given field namespaces
 // to a JSON document.
-func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
+func nodeToData(node interface{}, namespaces []string,
+	indent bool) ([][]byte, error) {
 	nodeType := reflect.TypeOf(node)
 	nodeValue := reflect.ValueOf(node)
 	if nodeType.Kind() == reflect.Ptr {
@@ -65,7 +66,13 @@ func nodeToData(node interface{}, namespaces []string) ([][]byte, error) {
 		if !nsFields.IsValid() {
 			panic(fmt.Errorf("service: Invalid field namespace %q", ns))
 		}
-		data, err := json.Marshal(nsFields.Interface())
+		var data []byte
+		var err error
+		if indent {
+			data, err = json.MarshalIndent(nsFields.Interface(), "", "  ")
+		} else {
+			data, err = json.Marshal(nsFields.Interface())
+		}
 		if err != nil {
 			return nil, fmt.Errorf(
 				"service: Could not marshal fields of namespace %v: %v", ns, err)
@@ -83,7 +90,7 @@ func (s *DataClient) WriteNode(site, path string, node interface{},
 	if s.Error != nil {
 		return nil
 	}
-	fieldsData, err := nodeToData(node, fields)
+	fieldsData, err := nodeToData(node, fields, true)
 	if err != nil {
 		return fmt.Errorf("service: Could not convert fields: %v", err)
 	}
