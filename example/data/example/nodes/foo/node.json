@@ -1,0 +1,12 @@
+{
+  "Path": "/foo",
+  "Type": "core.Document",
+  "Order": 0,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "Body": "The Foo Page.\u003cbr class=\"aloha-cleanme\"\u003e",
+      "Title": "Foo"
+    }
+  }
+}

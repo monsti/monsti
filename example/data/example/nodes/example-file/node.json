@@ -1,0 +1,12 @@
+{
+  "Path": "/example-file",
+  "Type": "core.File",
+  "Order": 0,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "File": "",
+      "Title": "Example file"
+    }
+  }
+}

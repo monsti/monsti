@@ -1,0 +1,12 @@
+{
+  "Path": "/contact",
+  "Type": "core.ContactForm",
+  "Order": 0,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "Body": "A contact form!\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
+      "Title": "Contact"
+    }
+  }
+}

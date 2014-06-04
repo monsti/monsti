@@ -242,9 +242,9 @@ func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
-		if c.Node.Type == "core.file" {
+		if c.Node.Type == "core.File" {
 			content, err := c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
-				"__file_file")
+				"__file_core.File")
 			if err != nil {
 				return fmt.Errorf("Could not read file: %v", err)
 			}
