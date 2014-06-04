@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<?xml-stylesheet type="text/xsl"
+        href="http://docbook.sourceforge.net/release/xsl-ns/current/html/docbook.xsl"?>
+<book xmlns="http://docbook.org/ns/docbook"
+      xmlns:xi="http://www.w3.org/2001/XInclude" version="5.0">
+  <title>Monsti CMS Manual</title>
+  <info>
+    <author>
+      <personname>
+        <firstname>Christian</firstname><surname>Neumann</surname>
+      </personname>
+      <copyright>
+        <year>2014</year><holder>Christian Neumann</holder>
+      </copyright>
+    </author>
+  </info>
+  <xi:include href="monsti_glossary.xml"/>
+</book>
