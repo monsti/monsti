@@ -28,14 +28,14 @@ import (
 
 func TestGetNode(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/foo/node.json": `{"title":"Node Foo","shorttitle":"Foo"}`},
+		"/foo/node.json": `{"Type":"core.Foo"}`},
 		"TestGetNode")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
 	ret, err := getNode(root, "/foo")
-	expected := `{"path":"/foo","title":"Node Foo","shorttitle":"Foo"}`
+	expected := `{"Path":"/foo","Type":"core.Foo"}`
 	if err != nil {
 		t.Fatalf("Got error: %v", err)
 	}
