@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -42,8 +43,14 @@ func main() {
 		if err != nil {
 			return fmt.Errorf("Could not unmarshol node.json: %v", err)
 		}
+		if oldNode.Type == "Image" {
+			oldNode.Type = "File"
+			img, _ := ioutil.ReadFile(filepath.Join(path, "image.data"))
+			ioutil.WriteFile(filepath.Join(path, "__file_core.File"), img, 0644)
+		}
 		body, err := ioutil.ReadFile(filepath.Join(path, "body.html"))
 		if err == nil {
+			body = bytes.Replace(body, []byte("/?raw=1"), []byte(""), -1)
 			node.SetField("core.Body", string(body))
 			log.Println("Wrote core.body")
 		}
