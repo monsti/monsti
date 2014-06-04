@@ -36,3 +36,12 @@ func TestNodeFieldsName(t *testing.T) {
 		}
 	}
 }
+
+func TestNodeGetSetField(t *testing.T) {
+	node := NodeFields{}
+	node.SetField("foo.bar", "hey")
+	ret := node.GetField("foo.bar")
+	if ret.(string) != "hey" {
+		t.Errorf("node.GetField(...) = %q, should be 'hey'", ret)
+	}
+}

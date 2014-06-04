@@ -16,7 +16,6 @@
 package service
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
 )
@@ -39,54 +38,5 @@ func TestGetConfig(t *testing.T) {
 			t.Error("getConfig(%q, out); out is %q, should be %q",
 				test.Body, test.Out, test.Ret)
 		}
-	}
-}
-
-type FooFields struct {
-	FooField1 string
-	FooField2 int
-}
-
-type BarFields struct {
-	BarField1 string
-	BarField2 int
-}
-
-type FooBarNode struct {
-	FooFields
-	BarFields
-}
-
-func TestNodeToData(t *testing.T) {
-	var node FooBarNode
-	node.FooFields = FooFields{"FooField1Val", 13}
-	node.BarFields = BarFields{"BarField1Val", 4}
-	data, err := nodeToData(node, []string{"foo"})
-	if err != nil {
-		t.Fatalf("nodeToData returns error: %v", err)
-	}
-	expected := []byte(`{"FooField1":"FooField1Val","FooField2":13}`)
-	if len(data) != 1 {
-		t.Fatalf("nodeToData should return a slice of length 1, got length %d",
-			len(data))
-	}
-	if !bytes.Equal(data[0], expected) {
-		t.Fatalf("nodeToData should return %q, got %q", expected, data[0])
-	}
-}
-
-func TestDataToNode(t *testing.T) {
-	var node, expected FooBarNode
-	expected.FooFields = FooFields{"FooField1Val", 13}
-	data := [][]byte{
-		[]byte(`{"FooField1":"FooField1Val","FooField2":13}`),
-		[]byte(""),
-	}
-	err := dataToNode(data, &node, []string{"foo", "bar"})
-	if err != nil {
-		t.Fatalf("dataToNode returns error: %v", err)
-	}
-	if !reflect.DeepEqual(node, expected) {
-		t.Fatalf("dataToNode should fill as %v, got %v", expected, node)
 	}
 }

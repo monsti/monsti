@@ -18,9 +18,10 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -56,17 +57,8 @@ func (n *navigation) Swap(i, j int) {
 	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
 }
 
-// getShortTitle returns the given node's ShortTitle attribute, or, if the
-// ShortTitle is of zero length, its Title attribute.
-func getShortTitle(node *service.NodeFields) string {
-	if len(node.ShortTitle) > 0 {
-		return node.ShortTitle
-	}
-	return node.Title
-}
-
-type getNodeFunc func(path string) (*service.NodeFields, error)
-type getChildrenFunc func(path string) ([]*service.NodeFields, error)
+type getNodeFunc func(path string) (*service.Node, error)
+type getChildrenFunc func(path string) ([]*service.Node, error)
 
 // getNav returns the navigation for the given node.
 //
@@ -86,7 +78,7 @@ func getNav(nodePath, active string,
 			continue
 		}
 		childrenNavLinks = append(childrenNavLinks, navLink{
-			Name:   getShortTitle(child),
+			Name:   child.Fields["core"].(map[string]interface{})["Title"].(string),
 			Target: path.Join(nodePath, child.Name()),
 			Child:  true, Order: child.Order})
 	}
@@ -105,7 +97,7 @@ func getNav(nodePath, active string,
 			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
-			Name:   getShortTitle(node),
+			Name:   node.Fields["core"].(map[string]interface{})["Title"].(string),
 			Target: nodePath, Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
@@ -118,7 +110,7 @@ func getNav(nodePath, active string,
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
-				Name:   getShortTitle(sibling),
+				Name:   sibling.Fields["core"].(map[string]interface{})["Title"].(string),
 				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
 		}
 	}
@@ -157,13 +149,14 @@ func (nav *navigation) MakeAbsolute(root string) {
 }
 
 type addFormData struct {
-	Type, Name, Title string
+	NodeType string
+	New      string
 }
 
 // Add handles add requests.
 func (h *nodeHandler) Add(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
-	data := addFormData{}
+	data := addFormData{New: "1"}
 	nodeTypeOptions := []form.Option{}
 	nodeTypes, err := h.Info.GetAddableNodeTypes(c.Site.Name, c.Node.Type)
 	if err != nil {
@@ -175,42 +168,12 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	}
 	selectWidget := form.SelectWidget{nodeTypeOptions}
 	form := form.NewForm(&data, form.Fields{
-		"Type": form.Field{G("Content type"), "", form.Required(G("Required.")), selectWidget},
-		"Name": form.Field{G("Name"),
-			G("The name as it should appear in the URL."),
-			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
-				G("Contains	invalid characters."))), nil},
-		"Title": form.Field{G("Title"), "", form.Required(G("Required.")), nil}})
-	switch c.Req.Method {
-	case "GET":
-	case "POST":
-		c.Req.ParseForm()
-		if form.Fill(c.Req.Form) {
-			data.Name = strings.ToLower(data.Name)
-			if !inStringSlice(data.Type, nodeTypes) {
-				return fmt.Errorf("Can't add this node type.")
-			}
-			newPath := filepath.Join(c.Node.Path, data.Name)
-			var newNode struct{ service.NodeFields }
-			newNode.NodeFields = service.NodeFields{
-				Path:  newPath,
-				Type:  data.Type,
-				Title: data.Title}
-			data, err := h.Info.FindDataService()
-			if err != nil {
-				return fmt.Errorf("Can't find data service: %v", err)
-			}
-			if err := data.WriteNode(c.Site.Name, newNode.Path, newNode,
-				"node"); err != nil {
-				return fmt.Errorf("Can't add node: %v", err)
-			}
-			http.Redirect(c.Res, c.Req, newPath+"/@@edit", http.StatusSeeOther)
-			return nil
-		}
-	default:
-		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
-	}
-	body, err := h.Renderer.Render("httpd/actions/addform", template.Context{
+		"NodeType": form.Field{G("Content type"), "", form.Required(G("Required.")),
+			selectWidget},
+		"New": form.Field{"", "", nil, new(form.HiddenWidget)},
+	})
+	form.Action = path.Join(c.Node.Path, "@@edit")
+	body, err := h.Renderer.Render("actions/addform", template.Context{
 		"Form": form.RenderData()}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
@@ -237,7 +200,9 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		c.Req.ParseForm()
+		if err := c.Req.ParseForm(); err != nil {
+			return err
+		}
 		if form.Fill(c.Req.Form) {
 			dataServ, err := h.Info.FindDataService()
 			if err != nil {
@@ -253,15 +218,265 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Confirm = 1489
-	body, err := h.Renderer.Render("httpd/actions/removeform", template.Context{
+	body, err := h.Renderer.Render("actions/removeform", template.Context{
 		"Form": form.RenderData(), "Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Title)}
+		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
 	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
 	return nil
 }
+
+// ViewNode handles node views.
+func (h *nodeHandler) View(c *reqContext) error {
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	if err := c.Req.ParseForm(); err != nil {
+		return err
+	}
+
+	// Redirect if trailing slash is missing and if this is not a file
+	// node (in which case we write out the file's content).
+	if c.Node.Path[len(c.Node.Path)-1] != '/' {
+		if c.Node.Type == "core.file" {
+			content, err := c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
+				"__file_file")
+			if err != nil {
+				return fmt.Errorf("Could not read file: %v", err)
+			}
+			c.Res.Write(content)
+		} else {
+			newPath, err := url.Parse(c.Node.Path + "/")
+			if err != nil {
+				serveError("Could not parse request URL: %v", err)
+			}
+			url := c.Req.URL.ResolveReference(newPath)
+			http.Redirect(c.Res, c.Req, url.String(), http.StatusSeeOther)
+		}
+		return nil
+	}
+
+	rendered, err := h.RenderNode(c, nil)
+	if err != nil {
+		return fmt.Errorf("Could not render node: %v", err)
+	}
+
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
+	var content []byte
+	content = []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+
+	c.Res.Write(content)
+	return nil
+}
+
+func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
+	[]byte, error) {
+	reqNode := c.Node
+	if embed != nil {
+		reqNode = embed
+	}
+	nodeType, err := h.Info.GetNodeType(reqNode.Type)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get node type %q: %v",
+			reqNode.Type, err)
+	}
+	context := make(template.Context)
+	context["Embed"] = make(map[string][]byte)
+	// Embed nodes
+	for _, embed := range nodeType.Embed {
+		reqURL, err := url.Parse(embed.URI)
+		if err != nil {
+			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
+		}
+		embedPath := path.Join(reqNode.Path, reqURL.Path)
+		node, err := c.Serv.Data().GetNode(c.Site.Name, embedPath)
+		if err != nil || len(node.Type) == 0 {
+			continue
+		}
+		embedNode := node
+		embedNode.Path = embedPath
+		rendered, err := h.RenderNode(c, embedNode)
+		if err != nil {
+			return nil, fmt.Errorf("Could not render embed node: %v", err)
+		}
+		context["Embed"].(map[string][]byte)[embed.Id] = rendered
+	}
+	context["Node"] = reqNode
+	switch nodeType.Id {
+	case "core.ContactForm":
+		if err := renderContactForm(c, context, h); err != nil {
+			return nil, fmt.Errorf("Could not render contact form: %v", err)
+		}
+	}
+	rendered, err := h.Renderer.Render(reqNode.Type+"/view", context,
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	if err != nil {
+		return nil, fmt.Errorf("Could not render template: %v", err)
+	}
+	return []byte(rendered), nil
+}
+
+type editFormData struct {
+	NodeType string
+	Name     string
+	Node     service.Node
+}
+
+// EditNode handles node edits.
+func (h *nodeHandler) Edit(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	if err := c.Req.ParseMultipartForm(1024 * 1024); err != nil {
+		return fmt.Errorf("Could not parse form: %v", err)
+	}
+
+	nodeType, err := h.Info.GetNodeType(c.Node.Type)
+	if err != nil {
+		return fmt.Errorf("Could not get node type %q: %v",
+			c.Node.Type, err)
+	}
+
+	newNode := len(c.Req.FormValue("NodeType")) > 0
+	if newNode {
+		nodeType, err = h.Info.GetNodeType(c.Req.FormValue("NodeType"))
+		if err != nil {
+			return fmt.Errorf("Could not get node type to add %q: %v",
+				c.Req.FormValue("new"), err)
+		}
+		// TODO Check if node type may be added to this node
+	}
+
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
+
+	if c.Action == service.EditAction {
+		if newNode {
+			env.Title = fmt.Sprintf(G("Add %q to \"%s\""), nodeType.Id, c.Node.Path)
+		} else {
+			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Path)
+		}
+		env.Flags = EDIT_VIEW
+	}
+
+	formData := editFormData{}
+	if newNode {
+		formData.NodeType = nodeType.Id
+	} else {
+		formData.Node.Fields = c.Node.Fields
+	}
+	formFields := make(form.Fields)
+	formFields["NodeType"] = form.Field{"", "", nil, new(form.HiddenWidget)}
+	formFields["Node.Hide"] = form.Field{
+		G("Hide"), G("Don't show node in navigation."), nil, nil}
+	formFields["Node.Order"] = form.Field{
+		G("Order"), G("Order in navigation (higher numbered entries appear first)."), nil, nil}
+	if newNode {
+		formFields["Name"] = form.Field{
+			G("Name"), G("The name as it should appear in the URL."),
+			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
+				G("Contains	invalid characters."))), nil}
+	}
+
+	nodeType.Fields = append(nodeType.Fields, service.NodeField{
+		Id:       "core.Title",
+		Name:     map[string]string{"en": "Title", "de": "Titel"},
+		Required: true,
+		Type:     "Text"})
+	fileFields := make([]string, 0)
+	for _, field := range nodeType.Fields {
+		fullId := "Node.Fields." + field.Id
+		switch field.Type {
+		case "HTMLArea":
+			formFields[fullId] = form.Field{
+				field.Name["en"], "", form.Required(G("Required.")), new(form.AlohaEditor)}
+			if formData.Node.GetField(field.Id) == nil {
+				formData.Node.SetField(field.Id, "")
+			}
+		case "File":
+			formFields[fullId] = form.Field{
+				field.Name["en"], "", nil, new(form.FileWidget)}
+			if formData.Node.GetField(field.Id) == nil {
+				formData.Node.SetField(field.Id, "")
+			}
+			fileFields = append(fileFields, field.Id)
+		case "Text":
+			formFields[fullId] = form.Field{
+				field.Name["en"], "", form.Required(G("Required.")), nil}
+			if formData.Node.GetField(field.Id) == nil {
+				formData.Node.SetField(field.Id, "")
+			}
+		default:
+			return fmt.Errorf("Unknown field type: %q", field.Type)
+		}
+	}
+	form := form.NewForm(&formData, formFields)
+	switch c.Req.Method {
+	case "GET":
+	case "POST":
+		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
+			node := service.Node{
+				Type: nodeType.Id,
+				Path: c.Node.Path}
+			if newNode {
+				node.Path = path.Join(node.Path, formData.Name)
+			}
+			node.Fields = formData.Node.Fields
+			err := c.Serv.Data().WriteNode(c.Site.Name, node.Path, &node)
+			if err != nil {
+				return fmt.Errorf("document: Could not update node: ", err)
+			}
+
+			if len(fileFields) > 0 && c.Req.MultipartForm != nil {
+				for _, name := range fileFields {
+					file, _, err := c.Req.FormFile("Node.Fields." + name)
+					if err != nil {
+						return fmt.Errorf("Could not get form file: %v", err)
+					}
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						return fmt.Errorf("Could not read multipart file: %v", err)
+					}
+					if err = c.Serv.Data().WriteNodeData(c.Site.Name, node.Path,
+						"__file_"+name, content); err != nil {
+						return fmt.Errorf("Could not save file: %v", err)
+					}
+				}
+			}
+			http.Redirect(c.Res, c.Req, node.Path, http.StatusSeeOther)
+			return nil
+		}
+	default:
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
+	}
+	rendered, err := h.Renderer.Render(path.Join(nodeType.Id, "edit"),
+		template.Context{"Form": form.RenderData()},
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+
+	if err != nil {
+		return fmt.Errorf("Could not render template: %v", err)
+	}
+
+	content := []byte(renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv))
+
+	err = c.Session.Save(c.Req, c.Res)
+	if err != nil {
+		return fmt.Errorf("Could not save user session: %v", err)
+	}
+	c.Res.Write(content)
+	return nil
+}
+
+/*
+	err = c.Session.Save(c.Req, c.Res)
+	if err != nil {
+		return fmt.Errorf("Could not save user session: %v", err)
+	}
+	c.Res.Write(content)
+	return nil
+*/

@@ -71,7 +71,7 @@ func main() {
 
 	// Connect to Info service
 	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
-		service.Info.String()))
+		service.InfoService.String()))
 	if err != nil {
 		logger.Fatalf("Could not connect to Info service: %v", err)
 	}
@@ -80,7 +80,7 @@ func main() {
 	var waitGroup sync.WaitGroup
 	logger.Println("Setting up Mail service")
 	waitGroup.Add(1)
-	mailPath := settings.Monsti.GetServicePath(service.Mail.String())
+	mailPath := settings.Monsti.GetServicePath(service.MailService.String())
 	go func() {
 		defer waitGroup.Done()
 		var mail_ MailService

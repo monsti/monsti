@@ -20,6 +20,25 @@ import (
 	"fmt"
 )
 
+type NodeField struct {
+	Id       string
+	Name     map[string]string
+	Required bool
+	Type     string
+}
+
+type EmbedNode struct {
+	Id  string
+	URI string
+}
+
+type NodeType struct {
+	Id     string
+	Name   map[string]string
+	Fields []NodeField
+	Embed  []EmbedNode
+}
+
 type InfoClient struct {
 	Client
 }
@@ -76,6 +95,17 @@ func (s *InfoClient) FindMailService() (*MailClient, error) {
 				err)
 	}
 	return service_, nil
+}
+
+// FindNodeType requests information about the given node type.
+func (s *InfoClient) GetNodeType(nodeTypeID string) (*NodeType,
+	error) {
+	var nodeType NodeType
+	err := s.RPCClient.Call("Info.GetNodeType", nodeTypeID, &nodeType)
+	if err != nil {
+		return nil, fmt.Errorf("service: Error calling GetNodeType: %v", err)
+	}
+	return &nodeType, nil
 }
 
 // FindNodeService requests a node client for the given node type.

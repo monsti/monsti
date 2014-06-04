@@ -52,7 +52,7 @@ func getNode(root, path string) (node []byte, err error) {
 	if err != nil {
 		return
 	}
-	pathJSON := fmt.Sprintf(`{"path":%q,`, path)
+	pathJSON := fmt.Sprintf(`{"Path":%q,`, path)
 	node = bytes.Replace(node, []byte("{"), []byte(pathJSON), 1)
 	return
 }
@@ -199,7 +199,7 @@ func main() {
 
 	// Connect to Info service
 	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
-		service.Info.String()))
+		service.InfoService.String()))
 	if err != nil {
 		logger.Fatalf("Could not connect to Info service: %v", err)
 	}
@@ -208,7 +208,7 @@ func main() {
 	var waitGroup sync.WaitGroup
 	logger.Println("Setting up Data service")
 	waitGroup.Add(1)
-	dataPath := settings.Monsti.GetServicePath(service.Data.String())
+	dataPath := settings.Monsti.GetServicePath(service.DataService.String())
 	go func() {
 		defer waitGroup.Done()
 		var data_ DataService

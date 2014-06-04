@@ -64,7 +64,7 @@ func main() {
 	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
 
 	// Connect to INFO service
-	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+	infoPath := settings.Monsti.GetServicePath(service.InfoService.String())
 	info, err := service.NewInfoConnection(infoPath)
 
 	if err != nil {

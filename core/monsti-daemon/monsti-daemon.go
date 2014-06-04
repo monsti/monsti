@@ -40,6 +40,7 @@ type settings struct {
 	Monsti util.MonstiSettings
 	// List of modules to be activated.
 	Modules []string
+	Config  *Config
 }
 
 // moduleLog is a Writer used to log module messages on stderr.
@@ -85,11 +86,18 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
+	configsPath := filepath.Join(cfgPath, "conf.d")
+	var err error
+	if settings.Config, err = loadConfig(configsPath); err != nil {
+		logger.Fatalf("Could not load application configuration: %v", err)
+	}
+
 	// Start own Info service
 	var waitGroup sync.WaitGroup
 	logger.Println("Setting up Info service")
-	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+	infoPath := settings.Monsti.GetServicePath(service.InfoService.String())
 	info := new(InfoService)
+	info.Config = settings.Config
 	provider := service.NewProvider("Info", info)
 	provider.Logger = logger
 	if err := provider.Listen(infoPath); err != nil {

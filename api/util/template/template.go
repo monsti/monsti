@@ -22,12 +22,13 @@ package template
 
 import (
 	"bytes"
-	"pkg.monsti.org/gettext"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"path"
 	"path/filepath"
-	"fmt"
+
+	"pkg.monsti.org/gettext"
 )
 
 // Context can be used to define a context for Render.
@@ -79,7 +80,7 @@ func getIncludes(roots []string, name string) ([]string, error) {
 	return includes, nil
 }
 
-// Render the named template with given context. 
+// Render the named template with given context.
 //
 // name is the name of the template (e.g. "blocks/sidebar").
 // context is used as template context for rendering.
@@ -100,16 +101,19 @@ func (r Renderer) Render(name string, context interface{},
 	funcs := template.FuncMap{
 		"pathJoin": path.Join,
 		"G":        G,
-		"GN":        GN,
-		"GD":        GD,
-		"GDN":        GDN,
+		"GN":       GN,
+		"GD":       GD,
+		"GDN":      GDN,
+		"RawHTML": func(in interface{}) template.HTML {
+			return template.HTML(fmt.Sprintf("%s", in))
+		},
 	}
 	tmpl.Funcs(funcs)
 	err := parse(name, tmpl, r.Root, siteTemplates)
 	if err != nil {
 		return "", err
 	}
-	includes, err := getIncludes([]string{r.Root, siteTemplates}, name) 
+	includes, err := getIncludes([]string{r.Root, siteTemplates}, name)
 	if err != nil {
 		return "", err
 	}

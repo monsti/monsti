@@ -36,7 +36,7 @@ const (
 
 // Environment/context for the master template.
 type masterTmplEnv struct {
-	Node               *service.NodeFields
+	Node               *service.Node
 	Session            *service.UserSession
 	Title, Description string
 	Flags              masterTmplFlags
@@ -55,12 +55,11 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
-	getNodeFn := func(path string) (*service.NodeFields, error) {
-		var node struct{ service.NodeFields }
-		err := s.Data().ReadNode(site.Name, path, &node, "node")
-		return &node.NodeFields, err
+	getNodeFn := func(path string) (*service.Node, error) {
+		node, err := s.Data().GetNode(site.Name, path)
+		return node, err
 	}
-	getChildrenFn := func(path string) ([]*service.NodeFields, error) {
+	getChildrenFn := func(path string) ([]*service.Node, error) {
 		return s.Data().GetChildren(site.Name, path)
 	}
 	prinav, err := getNav("/", path.Join("/", firstDir), getNodeFn, getChildrenFn)
@@ -76,13 +75,9 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	title := env.Node.Title
+	title := env.Node.Fields["core"].(map[string]interface{})["Title"].(string)
 	if env.Title != "" {
 		title = env.Title
-	}
-	description := env.Node.Description
-	if env.Title != "" {
-		description = env.Description
 	}
 	ret, err := r.Render("master", template.Context{
 		"Site": template.Context{
@@ -94,7 +89,6 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"SecondaryNav":     secnav,
 			"EditView":         env.Flags&EDIT_VIEW != 0,
 			"Title":            title,
-			"Description":      description,
 			"Content":          htmlT.HTML(content),
 			"ShowSecondaryNav": len(secnav) > 0},
 		"Session": env.Session}, locale,

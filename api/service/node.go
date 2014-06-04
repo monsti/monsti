@@ -36,17 +36,48 @@ func NewNodeClient() *NodeClient {
 	return &service_
 }
 
-type NodeFields struct {
-	Path string "-"
+type Node struct {
+	Path string `json:",omitempty"`
 	// Content type of the node.
-	Type        string
-	Title       string
-	ShortTitle  string
-	Description string
-	// Order of the node compared to its siblings.
+	Type  string
 	Order int
 	// Don't show the node in navigations if Hide is true.
-	Hide bool
+	Hide   bool
+	Fields map[string]interface{}
+}
+
+// GetField returns the named field (and true) of the node if present.
+//
+// If there is no such field, it returns nil.
+func (n Node) GetField(id string) interface{} {
+	parts := strings.Split(id, ".")
+	field := interface{}(n.Fields)
+	for _, part := range parts {
+		var ok bool
+		field, ok = field.(map[string]interface{})[part]
+		if !ok {
+			return nil
+		}
+	}
+	return field
+}
+
+// SetField sets the value of the named field.
+func (n *Node) SetField(id string, value interface{}) {
+	parts := strings.Split(id, ".")
+	if n.Fields == nil {
+		n.Fields = make(map[string]interface{})
+	}
+	field := interface{}(n.Fields)
+	for _, part := range parts[:len(parts)-1] {
+		next := field.(map[string]interface{})[part]
+		if next == nil {
+			next = make(map[string]interface{})
+			field.(map[string]interface{})[part] = next
+		}
+		field = next
+	}
+	field.(map[string]interface{})[parts[len(parts)-1]] = value
 }
 
 // PathToID returns an ID for the given node based on it's path.
@@ -57,7 +88,7 @@ type NodeFields struct {
 // PathToID will panic if the path is not set.
 //
 // For example, a node with path "/foo/bar" will get the ID "node-__foo__bar".
-func (n NodeFields) PathToID() string {
+func (n Node) PathToID() string {
 	if len(n.Path) == 0 {
 		panic("Can't calculate ID of node with unset path.")
 	}
@@ -65,7 +96,7 @@ func (n NodeFields) PathToID() string {
 }
 
 // Name returns the name of the node.
-func (n NodeFields) Name() string {
+func (n Node) Name() string {
 	base := path.Base(n.Path)
 	if base == "." || base == "/" {
 		return ""
@@ -113,7 +144,7 @@ type Request struct {
 	// Site name
 	Site string
 	// The requested node.
-	Node NodeFields
+	Node Node
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
@@ -141,7 +172,7 @@ type Response struct {
 	// updated (e.g. modified title).
 	//
 	// If nil, the original node data is used.
-	Node *NodeFields
+	Node *Node
 }
 
 // Write appends the given bytes to the body of the response.
