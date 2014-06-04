@@ -201,7 +201,9 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		c.Req.ParseForm()
+		if err := c.Req.ParseForm(); err != nil {
+			return err
+		}
 		if form.Fill(c.Req.Form) {
 			dataServ, err := h.Info.FindDataService()
 			if err != nil {
@@ -233,6 +235,10 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	if err := c.Req.ParseForm(); err != nil {
+		return err
+	}
 
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
@@ -303,6 +309,12 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.NodeFields) (
 		context["Embed"].(map[string][]byte)[embed.Id] = rendered
 	}
 	context["Node"] = reqNode
+	switch nodeType.Id {
+	case "core.ContactForm":
+		if err := renderContactForm(c, context, h); err != nil {
+			return nil, fmt.Errorf("Could not render contact form: %v", err)
+		}
+	}
 	rendered, err := h.Renderer.Render(reqNode.Type+"/view", context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
