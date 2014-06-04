@@ -41,7 +41,7 @@ dist: monsti bcrypt
 	mkdir -p $(DIST_PATH)/share
 	cp -RL locale static templates $(DIST_PATH)/share
 	mkdir -p $(DIST_PATH)/doc
-	cp CHANGES COPYING LICENSE README $(DIST_PATH)/doc
+	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/doc
 	mkdir -p $(DIST_PATH)/etc
 	cp -R example/config/* $(DIST_PATH)/etc
 	mv $(DIST_PATH)/etc/sites/example $(DIST_PATH)/etc/sites/default
@@ -60,12 +60,12 @@ dist-deb: monsti bcrypt
 	mkdir -p $(DIST_PATH)/usr/share/monsti
 	cp -RL static templates $(DIST_PATH)/usr/share/monsti
 	cp -RL locale $(DIST_PATH)/usr/share
-	rm $(DIST_PATH)/usr/share/locale/*.pot
+	rm -f $(DIST_PATH)/usr/share/locale/*.pot
 	mkdir -p $(DIST_PATH)/usr/share/doc/monsti/examples
 	cp example/start.sh $(DIST_PATH)/usr/share/doc/monsti/examples
 	sed -i 's/\.\.\/go\///' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
 	sed -i 's/config/etc\/monsti/' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
-	cp CHANGES COPYING LICENSE README $(DIST_PATH)/usr/share/doc/monsti
+	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/usr/share/doc/monsti
 	mkdir -p $(DIST_PATH)/etc/monsti/sites
 	cp -R example/config/* $(DIST_PATH)/etc/monsti
 	sed -i 's/\.\.\/share/\/usr\/share\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
