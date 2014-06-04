@@ -36,8 +36,8 @@ func NewNodeClient() *NodeClient {
 	return &service_
 }
 
-type NodeFields struct {
-	Path string `json:"-"`
+type Node struct {
+	Path string `json:",omitempty"`
 	// Content type of the node.
 	Type  string
 	Order int
@@ -49,7 +49,7 @@ type NodeFields struct {
 // GetField returns the named field (and true) of the node if present.
 //
 // If there is no such field, it returns nil.
-func (n NodeFields) GetField(id string) interface{} {
+func (n Node) GetField(id string) interface{} {
 	parts := strings.Split(id, ".")
 	field := interface{}(n.Fields)
 	for _, part := range parts {
@@ -63,7 +63,7 @@ func (n NodeFields) GetField(id string) interface{} {
 }
 
 // SetField sets the value of the named field.
-func (n *NodeFields) SetField(id string, value interface{}) {
+func (n *Node) SetField(id string, value interface{}) {
 	parts := strings.Split(id, ".")
 	if n.Fields == nil {
 		n.Fields = make(map[string]interface{})
@@ -88,7 +88,7 @@ func (n *NodeFields) SetField(id string, value interface{}) {
 // PathToID will panic if the path is not set.
 //
 // For example, a node with path "/foo/bar" will get the ID "node-__foo__bar".
-func (n NodeFields) PathToID() string {
+func (n Node) PathToID() string {
 	if len(n.Path) == 0 {
 		panic("Can't calculate ID of node with unset path.")
 	}
@@ -96,7 +96,7 @@ func (n NodeFields) PathToID() string {
 }
 
 // Name returns the name of the node.
-func (n NodeFields) Name() string {
+func (n Node) Name() string {
 	base := path.Base(n.Path)
 	if base == "." || base == "/" {
 		return ""
@@ -144,7 +144,7 @@ type Request struct {
 	// Site name
 	Site string
 	// The requested node.
-	Node NodeFields
+	Node Node
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
@@ -172,7 +172,7 @@ type Response struct {
 	// updated (e.g. modified title).
 	//
 	// If nil, the original node data is used.
-	Node *NodeFields
+	Node *Node
 }
 
 // Write appends the given bytes to the body of the response.

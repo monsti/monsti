@@ -95,7 +95,7 @@ func main() {
 	// Start own Info service
 	var waitGroup sync.WaitGroup
 	logger.Println("Setting up Info service")
-	infoPath := settings.Monsti.GetServicePath(service.Info.String())
+	infoPath := settings.Monsti.GetServicePath(service.InfoService.String())
 	info := new(InfoService)
 	info.Config = settings.Config
 	provider := service.NewProvider("Info", info)

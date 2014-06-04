@@ -19,7 +19,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -58,8 +57,8 @@ func (n *navigation) Swap(i, j int) {
 	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
 }
 
-type getNodeFunc func(path string) (*service.NodeFields, error)
-type getChildrenFunc func(path string) ([]*service.NodeFields, error)
+type getNodeFunc func(path string) (*service.Node, error)
+type getChildrenFunc func(path string) ([]*service.Node, error)
 
 // getNav returns the navigation for the given node.
 //
@@ -275,7 +274,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 	return nil
 }
 
-func (h *nodeHandler) RenderNode(c *reqContext, embed *service.NodeFields) (
+func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 	[]byte, error) {
 	reqNode := c.Node
 	if embed != nil {
@@ -294,13 +293,12 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.NodeFields) (
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
 		}
-		var node struct{ service.NodeFields }
 		embedPath := path.Join(reqNode.Path, reqURL.Path)
-		err = c.Serv.Data().ReadNode(c.Site.Name, embedPath, &node, "node")
+		node, err := c.Serv.Data().GetNode(c.Site.Name, embedPath)
 		if err != nil || len(node.Type) == 0 {
 			continue
 		}
-		embedNode := &node.NodeFields
+		embedNode := node
 		embedNode.Path = embedPath
 		rendered, err := h.RenderNode(c, embedNode)
 		if err != nil {
@@ -326,7 +324,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.NodeFields) (
 type editFormData struct {
 	NodeType string
 	Name     string
-	Node     service.NodeFields
+	Node     service.Node
 }
 
 // EditNode handles node edits.
@@ -384,7 +382,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				G("Contains	invalid characters."))), nil}
 	}
 
-	log.Println("formdata before fields", formData)
 	nodeType.Fields = append(nodeType.Fields, service.NodeField{
 		Id:       "core.Title",
 		Name:     map[string]string{"en": "Title", "de": "Titel"},
@@ -392,7 +389,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		Type:     "Text"})
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
-		log.Println(field)
 		fullId := "Node.Fields." + field.Id
 		switch field.Type {
 		case "HTMLArea":
@@ -418,25 +414,19 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			return fmt.Errorf("Unknown field type: %q", field.Type)
 		}
 	}
-	log.Println("formdata", formData)
 	form := form.NewForm(&formData, formFields)
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		log.Println("New:", c.Req.FormValue("New"))
-		log.Println("Newlen:", len(c.Req.FormValue("New")))
-		log.Println("fill:", c.Req.Form)
 		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
-			log.Println("valid form")
-			node := struct{ service.NodeFields }{}
-			node.NodeFields = service.NodeFields{
+			node := service.Node{
 				Type: nodeType.Id,
 				Path: c.Node.Path}
 			if newNode {
 				node.Path = path.Join(node.Path, formData.Name)
 			}
 			node.Fields = formData.Node.Fields
-			err := c.Serv.Data().WriteNode(c.Site.Name, node.Path, node, "node")
+			err := c.Serv.Data().WriteNode(c.Site.Name, node.Path, &node)
 			if err != nil {
 				return fmt.Errorf("document: Could not update node: ", err)
 			}
@@ -460,7 +450,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			http.Redirect(c.Res, c.Req, node.Path, http.StatusSeeOther)
 			return nil
 		}
-		log.Println("Formdata after fill:", formData)
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
