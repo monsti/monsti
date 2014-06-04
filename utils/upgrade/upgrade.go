@@ -37,7 +37,7 @@ func main() {
 			return fmt.Errorf("Could not read node.json: %v", err)
 		}
 		var oldNode OldNode
-		var node service.NodeFields
+		var node service.Node
 		err = json.Unmarshal(nodeJSON, &oldNode)
 		if err != nil {
 			return fmt.Errorf("Could not unmarshol node.json: %v", err)
