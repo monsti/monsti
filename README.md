@@ -1,58 +1,32 @@
 Monsti CMS
 ==========
 
-Monsti is a simple CMS designed to efficiently manage multiple small websites.
+Monsti is a simple CMS designed to efficiently manage multiple small
+websites.
 
-It has a simple and concurrent design that makes it highly scalable and
-parallelizable.
 
-Monsti does only have simple access control features and no support for
-workflows at all. It's mainly used for hierarchical private and small business
-sites.  While it has a user friendly web frontend to manage the content of the
-site, some features are only accessible through the command line or via
-configuration files. This makes editing content user friendly, but
-administration and advanced site building web developer friendly.
+Features
+--------
 
-Its written in Go, a statically typed compiled language that feels almost like a
-dynamic language.
+ - Fast; thanks to Go, a statically typed compiled language
+ - Low armortized (i.e. for many hosted sites) resource usage
+ - No database required; configuration and data is stored in human
+   readable files
+ - Internationalization ready
+ - Simple web frontend
+ - Separation of code, configuration and presentation
+ - Developer friendly: Includes a HTTPd; Go templates; use
+   configuration files to build new node types
+ - Administrator friendly: Syslog; init script; Makefile target for
+   basic Debian packaging (via fpm, other distributions should be
+   easy); respecting the filesystem hierarchy
+
 
 Monsti is still under heavy development and unstable. You should not use it for
 critical tasks.
 
-Design goals
-------------
-
- - Simple but concurrent design.
- - Low resource usage, especially memory usage. This goal is more important for
-   multi site instances.
- - Simple access control: Objects are private or public, no groups, only
-   authenticated users which may access private objects.
- - Simple architecture: use flat files instead of a DBMS.
- - Simple and intuitive web user interface.
-
-
-Flat files
-----------
-
-Monsti doesn't use a DBMS but flat files. Sites are organized as trees where
-each node corresponds to a subdirectory in the flat file directory tree. Each
-node's subdirectory contains its data and meta-data. Every subdirectory consists
-of a node.json JSON document describing the node. A typical structure
-might look like this ('/' is the root of the site's data directory):
-
-/about
-/about/body.html
-/about/node.json
-/body.html
-/contact
-/contact/body.html
-/contact/node.json
-/navigation.json
-/node.json
-
-
 Project
 -------
 
-Website: http://www.monsti.org
-Code: http://www.gitorious.org/monsti
+Website: http://www.monsti.org/
+Code: http://www.gitorious.org/monsti | http://github.com/monsti
