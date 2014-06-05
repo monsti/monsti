@@ -135,7 +135,10 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.UserSession.Locale = c.Site.Locale
 	c.Node, err = c.Serv.Data().GetNode(c.Site.Name, nodePath)
 	if err != nil {
-		h.Log.Printf("Node not found: %v", err)
+		serveError("Error getting node: %v", err)
+	}
+	if c.Node == nil {
+		h.Log.Printf("Node not found: %v @ %v", nodePath, c.Site.Name)
 		c.Node = &service.Node{Path: nodePath}
 		http.Error(c.Res, "Document not found", http.StatusNotFound)
 		return

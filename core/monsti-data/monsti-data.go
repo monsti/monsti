@@ -49,6 +49,9 @@ type DataService struct {
 func getNode(root, path string) (node []byte, err error) {
 	node_path := filepath.Join(root, path[1:], "node.json")
 	node, err = ioutil.ReadFile(node_path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
 	if err != nil {
 		return
 	}
@@ -65,6 +68,9 @@ func getChildren(root, path string) (nodes [][]byte, err error) {
 	}
 	for _, file := range files {
 		node, _ := getNode(root, filepath.Join(path, file.Name()))
+		if err != nil {
+			return nil, err
+		}
 		if node != nil {
 			nodes = append(nodes, node)
 		}
@@ -80,6 +86,16 @@ func (i *DataService) GetChildren(args GetChildrenArgs,
 	reply *[][]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getChildren(site, args.Path)
+	*reply = ret
+	return err
+}
+
+type GetNodeArgs struct{ Site, Path string }
+
+func (i *DataService) GetNode(args *GetNodeDataArgs,
+	reply *[]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	ret, err := getNode(site, args.Path)
 	*reply = ret
 	return err
 }

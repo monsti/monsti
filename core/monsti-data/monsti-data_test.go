@@ -37,11 +37,17 @@ func TestGetNode(t *testing.T) {
 	ret, err := getNode(root, "/foo")
 	expected := `{"Path":"/foo","Type":"core.Foo"}`
 	if err != nil {
-		t.Fatalf("Got error: %v", err)
-	}
-	if string(ret) != expected {
+		t.Errorf("Got error: %v", err)
+	} else if string(ret) != expected {
 		t.Fatalf(`getNode(%q, "/foo") = %v, nil, should be %v, nil`,
 			root, string(ret), expected)
+	}
+	ret, err = getNode(root, "/unavailable")
+	if err != nil {
+		t.Errorf("Got error: %v", err)
+	} else if ret != nil {
+		t.Errorf(`getNode(%q, "/unavailable") = %v, nil, should be nil, nil`,
+			root, string(ret))
 	}
 }
 

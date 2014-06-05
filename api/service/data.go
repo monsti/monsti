@@ -82,19 +82,22 @@ func dataToNode(data []byte) (*Node, error) {
 }
 
 // GetNode reads the given node.
+//
+// If the node does not exist, it returns nil, nil.
 func (s *DataClient) GetNode(site, path string) (*Node, error) {
 	if s.Error != nil {
 		return nil, nil
 	}
-	data, err := s.GetNodeData(site, path, "node.json")
+	args := struct{ Site, Path string }{site, path}
+	var reply []byte
+	err := s.RPCClient.Call("Data.GetNode", args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: Could not read node: %v", err)
+		return nil, fmt.Errorf("service: GetNode error: %v", err)
 	}
-	node, err := dataToNode(data)
+	node, err := dataToNode(reply)
 	if err != nil {
 		return nil, fmt.Errorf("service: Could not convert node: %v", err)
 	}
-	node.Path = path
 	return node, nil
 }
 
@@ -111,10 +114,9 @@ func (s *DataClient) GetChildren(site, path string) ([]*Node, error) {
 	}
 	nodes := make([]*Node, 0, len(reply))
 	for _, entry := range reply {
-		node := &Node{}
-		err = json.Unmarshal(entry, node)
+		node, err := dataToNode(entry)
 		if err != nil {
-			return nil, fmt.Errorf("service: Could not decode node: %v", err)
+			return nil, fmt.Errorf("service: Could not convert node: %v", err)
 		}
 		nodes = append(nodes, node)
 	}
