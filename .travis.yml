@@ -2,7 +2,9 @@ language: go
 go:
 - 1.2
 install: make
-script: make test
+script:
+  - make test
+  - make test-browser
 env:
   global:
   - secure: gvTA0b2M7wwZRlTmAfMZIxkVLFkqgpUouyGooZJhJ3dFQI7VMLdWQn6U6bHTmkGWaAvoSaSSaDgbxRebP+4hDVqa3yn9S2RSuyXO2E7v8LIm2l+kC7ZK/nd7zb7h4OmP1JlJdOyIY8FjMDCGz7EyJCIZV294u2+RDWdRCLK/pbk=

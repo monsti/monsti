@@ -2,6 +2,7 @@ package browsertests
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -21,9 +22,20 @@ type Browser struct {
 // setup sets up a clean browser session.
 func setup(t *testing.T) *Browser {
 	if wd == nil {
+		executor := "http://localhost:9515"
+		if len(os.Getenv("SAUCE_USERNAME")) > 0 {
+			executor = fmt.Sprintf(
+				"http://%s:%s@localhost:4445/wd/hub",
+				os.Getenv("SAUCE_USERNAME"),
+				os.Getenv("SAUCE_ACCESS_KEY"),
+			)
+		}
 		caps := selenium.Capabilities{"browserName": "chrome"}
+		if len(os.Getenv("TRAVIS_JOB_NUMBER")) > 0 {
+			caps["tunnel-identifier"] = os.Getenv("TRAVIS_JOB_NUMBER")
+		}
 		var err error
-		wd, err = selenium.NewRemote(caps, "http://localhost:9515")
+		wd, err = selenium.NewRemote(caps, executor)
 		if err != nil {
 			t.Fatal("Could not get new remote: ", err)
 		}
