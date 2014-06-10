@@ -1,11 +1,12 @@
 package browsertests
 
 import (
-	"bitbucket.org/tebeka/selenium"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/tebeka/selenium"
 )
 
 var (
@@ -69,11 +70,14 @@ func (b *Browser) SubmitForm(fields map[string]string) error {
 			return fmt.Errorf("browser: Could not fill field %q: %v", id, err)
 		}
 	}
-	btn, err := b.wd.FindElement(selenium.ByCSSSelector, "button")
+	btn, err := b.wd.FindElements(selenium.ByCSSSelector, "button[type=submit]")
 	if err != nil {
 		return fmt.Errorf("browser: Could not find submit button: %v", err)
 	}
-	if err := btn.Click(); err != nil {
+	if len(btn) != 1 {
+		return fmt.Errorf("browser: Found %d submit button(s)", len(btn))
+	}
+	if err := btn[0].Submit(); err != nil {
 		return fmt.Errorf("browser: Could not click submit button: %v", err)
 	}
 	return nil

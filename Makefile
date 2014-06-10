@@ -101,6 +101,11 @@ test: monsti
 	cd $(GOPATH)/src/pkg.monsti.org/monsti/core && $(GO_TEST) ./...
 	cd $(GOPATH)/src/pkg.monsti.org/monsti/utils && $(GO_TEST) ./...
 
+.PHONY: test-browser
+test-browser: monsti
+	$(GO_GET) github.com/tebeka/selenium
+	cd tests && $(GO_TEST)
+
 .PHONY: clean
 clean:
 	rm go/* -Rf

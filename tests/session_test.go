@@ -2,17 +2,18 @@ package browsertests
 
 import (
 	"testing"
-	"bitbucket.org/tebeka/selenium"
+
+	"github.com/tebeka/selenium"
 )
 
 // Login to Monsti.
 func login(b Browser, t *testing.T) {
 	if err := b.Go(appURL + "/@@login"); err != nil {
-		t.Fatal("Could not visit login formular: ", err);
+		t.Fatal("Could not visit login formular: ", err)
 	}
 	if err := b.SubmitForm(map[string]string{
-		"login": "admin",
-		"password": "foofoo"}); err != nil {
+		"Login":    "admin",
+		"Password": "foofoo"}); err != nil {
 		t.Fatal("Could not fill and submit login form: ", err)
 	}
 	if _, err := b.wd.FindElement(selenium.ById, "admin-bar"); err != nil {
