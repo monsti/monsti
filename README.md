@@ -4,6 +4,7 @@ Monsti CMS
 Monsti is a simple CMS designed to efficiently manage multiple small
 websites.
 
+[![Build Status](https://travis-ci.org/monsti/monsti.svg?branch=master)](https://travis-ci.org/monsti/monsti)
 
 Features
 --------
