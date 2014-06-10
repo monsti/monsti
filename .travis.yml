@@ -1,8 +1,11 @@
 language: go
-
 go:
-  - 1.2
-
+- 1.2
 install: make
-
 script: make test
+env:
+  global:
+  - secure: gvTA0b2M7wwZRlTmAfMZIxkVLFkqgpUouyGooZJhJ3dFQI7VMLdWQn6U6bHTmkGWaAvoSaSSaDgbxRebP+4hDVqa3yn9S2RSuyXO2E7v8LIm2l+kC7ZK/nd7zb7h4OmP1JlJdOyIY8FjMDCGz7EyJCIZV294u2+RDWdRCLK/pbk=
+  - secure: BikjuwDyhE5wKXF77G98YYlQ4+Vz47ckGlpH2UM84pKVirIHTvTCJwTJdKiJS83w+inkGdoRbxk29hkB0B/ShQvZZTIEUlGrhsOJM7TnSfoQGyq7GDuP2zCqgbzOiApNDEqGTTxxiVfasnBo4XpXeBpv62iNV0ixV3C4q4Tnv1Q=
+before_script:
+  - curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
