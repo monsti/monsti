@@ -11,3 +11,5 @@ env:
   - secure: BikjuwDyhE5wKXF77G98YYlQ4+Vz47ckGlpH2UM84pKVirIHTvTCJwTJdKiJS83w+inkGdoRbxk29hkB0B/ShQvZZTIEUlGrhsOJM7TnSfoQGyq7GDuP2zCqgbzOiApNDEqGTTxxiVfasnBo4XpXeBpv62iNV0ixV3C4q4Tnv1Q=
 before_script:
   - curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
+  - cd example; ./start.sh
+  - sleep 3
