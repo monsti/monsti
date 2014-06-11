@@ -7,6 +7,7 @@ env:
   - secure: BikjuwDyhE5wKXF77G98YYlQ4+Vz47ckGlpH2UM84pKVirIHTvTCJwTJdKiJS83w+inkGdoRbxk29hkB0B/ShQvZZTIEUlGrhsOJM7TnSfoQGyq7GDuP2zCqgbzOiApNDEqGTTxxiVfasnBo4XpXeBpv62iNV0ixV3C4q4Tnv1Q=
 addons:
   sauce_connect: true
+install: make
 script:
   - make test
   - make test-browser
