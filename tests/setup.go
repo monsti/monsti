@@ -23,16 +23,14 @@ type Browser struct {
 func setup(t *testing.T) *Browser {
 	if wd == nil {
 		executor := "http://localhost:9515"
-		if len(os.Getenv("SAUCE_USERNAME")) > 0 {
-			executor = fmt.Sprintf(
-				"http://%s:%s@localhost:4445/wd/hub",
-				os.Getenv("SAUCE_USERNAME"),
-				os.Getenv("SAUCE_ACCESS_KEY"),
-			)
-		}
 		caps := selenium.Capabilities{"browserName": "chrome"}
 		if len(os.Getenv("TRAVIS_JOB_NUMBER")) > 0 {
 			caps["tunnel-identifier"] = os.Getenv("TRAVIS_JOB_NUMBER")
+			executor = fmt.Sprintf(
+				"http://%s:%s@ondemand.saucelabs.com/wd/hub",
+				os.Getenv("SAUCE_USERNAME"),
+				os.Getenv("SAUCE_ACCESS_KEY"),
+			)
 		}
 		var err error
 		wd, err = selenium.NewRemote(caps, executor)
