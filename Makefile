@@ -75,6 +75,7 @@ dist-deb: monsti bcrypt
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
 	cp -R example/data/example $(DIST_PATH)/var/lib/monsti/default
+	mv $(DIST_PATH)/etc $(DIST_PATH)/usr/share/doc/monsti/examples/etc
 	find $(DIST_PATH) -type d -exec chmod 755 {} \;
 	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
 	chmod 755 $(DIST_PATH)/usr/bin/*
@@ -84,7 +85,7 @@ dist-deb: monsti bcrypt
 		-n monsti \
 		-p dist/monsti_$(MONSTI_VERSION)-$(DEB_VERSION).deb \
 		--version $(MONSTI_VERSION)-$(DEB_VERSION) \
-		etc usr var
+		usr var
 
 go/src/pkg.monsti.org/monsti:
 	mkdir -p $(GOPATH)/src/pkg.monsti.org
