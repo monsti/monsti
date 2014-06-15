@@ -1,5 +1,4 @@
 {
-  "Path": "/example-file",
   "Type": "core.File",
   "Order": 0,
   "Hide": false,

@@ -1,5 +1,4 @@
 {
-  "Path": "/contact",
   "Type": "core.ContactForm",
   "Order": 0,
   "Hide": false,
