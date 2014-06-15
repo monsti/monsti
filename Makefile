@@ -74,7 +74,7 @@ dist-deb: monsti bcrypt
 	mv $(DIST_PATH)/etc/monsti/sites/example $(DIST_PATH)/etc/monsti/sites/default
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
-	cp -R example/data/example $(DIST_PATH)/var/lib/monsti/default
+	cp -R example/data/example $(DIST_PATH)/usr/share/doc/monsti/examples/default
 	find $(DIST_PATH) -type d -exec chmod 755 {} \;
 	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
 	chmod 755 $(DIST_PATH)/usr/bin/*
