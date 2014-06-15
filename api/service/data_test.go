@@ -40,3 +40,24 @@ func TestGetConfig(t *testing.T) {
 		}
 	}
 }
+
+func TestNodeToData(t *testing.T) {
+	tests := []struct {
+		Node   Node
+		Indent bool
+		Data   string
+	}{
+		{Node{Path: "/foo", Type: "Bar"}, false,
+			`{"Type":"Bar","Order":0,"Hide":false,"Fields":null}`},
+	}
+	for i, test := range tests {
+		ret, err := nodeToData(&test.Node, test.Indent)
+		if err != nil {
+			t.Errorf("Test %d failed, got error: %v", i, err)
+		}
+		if string(ret) != test.Data {
+			t.Errorf("nodeToData(%v,%v) = %v, should be %v", test.Node, test.Indent,
+				string(ret), test.Data)
+		}
+	}
+}

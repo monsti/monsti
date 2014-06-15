@@ -35,9 +35,11 @@ func NewDataClient() *DataClient {
 }
 
 // nodeToData converts the node to a JSON document.
+// The Path field will be omitted.
 func nodeToData(node *Node, indent bool) ([]byte, error) {
 	var data []byte
 	var err error
+	node.Path = ""
 	if indent {
 		data, err = json.MarshalIndent(node, "", "  ")
 	} else {
