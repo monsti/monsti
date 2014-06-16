@@ -1,4 +1,9 @@
-{
-{RawHTML .Node.Fields.core.Body}
-
-}
+{{with .Children}}
+<ul class="node-list">
+{{range .}}
+  <li><a href="{{.Path}}">{{with .Fields.core.Title}}{{ . }}{{end}}</a></li>
+{{end}}
+</ul>
+{{else}}
+{{G "No children found."}}
+{{end}}

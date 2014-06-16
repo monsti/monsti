@@ -1,0 +1,10 @@
+{
+  "Type": "core.NodeList",
+  "Order": 0,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "Title": "Node List"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "Type": "core.Document",
+  "Order": 535353,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "Body": "Another Child\u003cbr class=\"aloha-cleanme\"\u003e",
+      "Title": "Foo Child"
+    }
+  }
+}

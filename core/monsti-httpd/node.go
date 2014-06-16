@@ -312,6 +312,10 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		if err := renderContactForm(c, context, h); err != nil {
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
+	case "core.NodeList":
+		if err := renderNodeList(c, context, h); err != nil {
+			return nil, fmt.Errorf("Could not render node list: %v", err)
+		}
 	}
 	rendered, err := h.Renderer.Render(reqNode.Type+"/view", context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
