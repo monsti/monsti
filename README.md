@@ -23,8 +23,7 @@ Features
    easy); respecting the filesystem hierarchy
 
 
-Monsti is still under heavy development and unstable. You should not use it for
-critical tasks.
+Monsti is still under development and unstable.
 
 Project
 -------
