@@ -367,14 +367,14 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if newNode {
 		formData.NodeType = nodeType.Id
 	} else {
-		formData.Node.Fields = c.Node.Fields
+		formData.Node = *c.Node
 	}
 	formFields := make(form.Fields)
 	formFields["NodeType"] = form.Field{"", "", nil, new(form.HiddenWidget)}
 	formFields["Node.Hide"] = form.Field{
 		G("Hide"), G("Don't show node in navigation."), nil, nil}
 	formFields["Node.Order"] = form.Field{
-		G("Order"), G("Order in navigation (higher numbered entries appear first)."), nil, nil}
+		G("Order"), G("Order in navigation (lower numbered entries appear first)."), nil, nil}
 	if newNode {
 		formFields["Name"] = form.Field{
 			G("Name"), G("The name as it should appear in the URL."),
@@ -419,13 +419,12 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	case "GET":
 	case "POST":
 		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
-			node := service.Node{
-				Type: nodeType.Id,
-				Path: c.Node.Path}
+			node := formData.Node
+			node.Type = nodeType.Id
+			node.Path = c.Node.Path
 			if newNode {
 				node.Path = path.Join(node.Path, formData.Name)
 			}
-			node.Fields = formData.Node.Fields
 			err := c.Serv.Data().WriteNode(c.Site.Name, node.Path, &node)
 			if err != nil {
 				return fmt.Errorf("document: Could not update node: ", err)
