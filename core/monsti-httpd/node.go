@@ -242,7 +242,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
-		if c.Node.Type == "core.File" {
+		if c.Node.Type == "core.File" || c.Node.Type == "core.Image" {
 			content, err := c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
 				"__file_core.File")
 			if err != nil {
