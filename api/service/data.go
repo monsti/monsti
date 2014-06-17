@@ -39,7 +39,11 @@ func NewDataClient() *DataClient {
 func nodeToData(node *Node, indent bool) ([]byte, error) {
 	var data []byte
 	var err error
+	path := node.Path
 	node.Path = ""
+	defer func() {
+		node.Path = path
+	}()
 	if indent {
 		data, err = json.MarshalIndent(node, "", "  ")
 	} else {

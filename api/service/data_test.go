@@ -51,7 +51,11 @@ func TestNodeToData(t *testing.T) {
 			`{"Type":"Bar","Order":0,"Hide":false,"Fields":null}`},
 	}
 	for i, test := range tests {
+		oldPath := test.Node.Path
 		ret, err := nodeToData(&test.Node, test.Indent)
+		if oldPath != test.Node.Path {
+			t.Errorf("nodeToData altered node")
+		}
 		if err != nil {
 			t.Errorf("Test %d failed, got error: %v", i, err)
 		}
