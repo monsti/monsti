@@ -1,0 +1,36 @@
+= Monsti Manual
+
+== Core Node Types
+
+=== Image
+
+The Image node type allows you to upload images to your Monsti
+site. As the File node type, the raw content (i.e. the image itself)
+can be accessed via the node's path without trailing slash.
+
+.Example for raw image access
+If the node's path is `/foo/my_image.jpeg/`, then the raw image data
+can be access via `/foo/my_image.jpeg`.
+
+==== Automatic resizing
+
+Monsti features automatic resizing of images. First, you have to
+register your allowed image sizes in
+`<config_dir>/sites/<your_site>/image.json`.
+
+.Example for image sizes "thumbnail" (200x100) and "icon" (20x20)
+[source,json]
+----
+{
+  "sizes": {
+    "thumbnail": { "Width":200, "Height":100 },
+    "icon": { "Width":20, "Height":20 },
+  }
+}
+----
+
+To access these sizes, add `?size=<size_name>` to the image URL,
+e.g. `/foo/my_image.jpeg?size=thumbnail`.
+
+Monsti will generate the specified size if it has not been generated
+before and saves it in the node's directory.

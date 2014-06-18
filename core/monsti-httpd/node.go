@@ -25,6 +25,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/quirkey/magick"
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
@@ -231,6 +232,12 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	return nil
 }
 
+type imageSize struct{ Width, Height int }
+
+func (s imageSize) String() string {
+	return fmt.Sprintf("%vx%v", s.Width, s.Height)
+}
+
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
@@ -242,7 +249,60 @@ func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
-		if c.Node.Type == "core.File" {
+		if c.Node.Type == "core.Image" {
+			sizeName := c.Req.FormValue("size")
+			var size imageSize
+			var body []byte
+			var err error
+			if sizeName != "" {
+				err = c.Serv.Data().GetConfig(c.Site.Name, "image", "sizes."+sizeName,
+					&size)
+				if err != nil || size.Width == 0 {
+					if err != nil {
+						h.Log.Printf("Could not get size config: %v", err)
+					} else {
+						h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
+							c.Site.Name, err)
+					}
+				} else {
+					sizePath := "__image_" + size.String()
+					body, err = c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
+						sizePath)
+					if err != nil || body == nil {
+						body, err = c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
+							"__file_core.File")
+						if err != nil {
+							return fmt.Errorf("Could not get image data: %v", err)
+						}
+						image, err := magick.NewFromBlob(body, "jpg")
+						if err != nil {
+							return fmt.Errorf("Could not open image data with magick: %v", err)
+						}
+						defer image.Destroy()
+						err = image.Resize(size.String())
+						if err != nil {
+							return fmt.Errorf("Could not resize image: %v", err)
+						}
+						body, err = image.ToBlob("jpg")
+						if err != nil {
+							return fmt.Errorf("Could not dump image: %v", err)
+						}
+						if err := c.Serv.Data().WriteNodeData(c.Site.Name, c.Node.Path,
+							sizePath, body); err != nil {
+							return fmt.Errorf("Could not write resized image data: %v", err)
+						}
+					}
+				}
+			}
+			if body == nil {
+				body, err = c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
+					"__file_core.File")
+				if err != nil {
+					return fmt.Errorf("Could not read image: %v", err)
+				}
+			}
+			c.Res.Write(body)
+		} else if c.Node.Type == "core.File" || c.Node.Type == "core.Image" {
 			content, err := c.Serv.Data().GetNodeData(c.Site.Name, c.Node.Path,
 				"__file_core.File")
 			if err != nil {
