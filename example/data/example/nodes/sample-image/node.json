@@ -1,0 +1,11 @@
+{
+  "Type": "core.Image",
+  "Order": 0,
+  "Hide": false,
+  "Fields": {
+    "core": {
+      "File": "",
+      "Title": "Sample Image"
+    }
+  }
+}
