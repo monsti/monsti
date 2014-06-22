@@ -25,16 +25,19 @@ type Type uint
 
 // Monsti service types.
 const (
-	InfoService Type = iota
-	DataService
-	LoginService
-	NodeService
-	MailService
+	MonstiService Type = iota
+	/*
+		InfoService Type = iota
+		DataService
+		LoginService
+		NodeService
+		MailService
+	*/
 )
 
 func (t Type) String() string {
 	serviceNames := [...]string{
-		"Info", "Data", "Login", "Node", "Mail"}
+		"Monsti"}
 	return serviceNames[t]
 }
 

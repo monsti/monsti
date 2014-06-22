@@ -6,6 +6,7 @@
     "core": {
       "HTMLArea": "\u003cb\u003eHTML\u003c/b\u003e Area\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
       "Text": "Simple Text Field",
+      "Time": "",
       "Title": "The title"
     }
   }

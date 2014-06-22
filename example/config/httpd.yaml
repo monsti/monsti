@@ -1,3 +1,0 @@
-# Listen for HTTP connections on this address and port,
-# e.g. localhost:8080, :8080, yourdomain.com:80
-listen: localhost:8080

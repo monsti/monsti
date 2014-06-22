@@ -18,66 +18,97 @@ package service
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/url"
+	"html/template"
 	"path"
 	"strings"
+	"time"
 )
 
-// NodeClient represents the RPC connection to the Nodes service.
-type NodeClient struct {
-	*Client
+type Field interface {
+	// RenderHTML returns a string or template.HTML
+	RenderHTML() interface{}
+	// String returns a raw string representation
+	String() string
+	Load(interface{}) error
 }
 
-// NewNodeClient returns a new Node Client.
-func NewNodeClient() *NodeClient {
-	var service_ NodeClient
-	service_.Client = new(Client)
-	return &service_
+// TextField is a basic unicode text field
+type TextField string
+
+func (t TextField) String() string {
+	return string(t)
+}
+
+func (t TextField) RenderHTML() interface{} {
+	return t
+}
+
+func (t *TextField) Load(in interface{}) error {
+	*t = TextField(in.(string))
+	return nil
+}
+
+// HTMLField is a text area containing HTML code
+type HTMLField string
+
+func (t HTMLField) String() string {
+	return string(t)
+}
+
+func (t HTMLField) RenderHTML() interface{} {
+	return template.HTML(t)
+}
+
+func (t *HTMLField) Load(in interface{}) error {
+	*t = HTMLField(in.(string))
+	return nil
+}
+
+type FileField string
+
+func (t FileField) String() string {
+	return string(t)
+}
+
+func (t FileField) RenderHTML() interface{} {
+	return template.HTML(t)
+}
+
+func (t *FileField) Load(in interface{}) error {
+	*t = FileField(in.(string))
+	return nil
+}
+
+type DateTimeField struct {
+	Time *time.Time
+}
+
+func (t DateTimeField) String() string {
+	return t.Time.String()
+}
+
+func (t DateTimeField) RenderHTML() interface{} {
+	return t.Time.String()
+}
+
+func (t *DateTimeField) Load(in interface{}) error {
+	val := time.Now()
+	t.Time = &val
+	return nil
 }
 
 type Node struct {
 	Path string `json:",omitempty"`
 	// Content type of the node.
-	Type  string
+	Type  *NodeType `json:"-"`
 	Order int
 	// Don't show the node in navigations if Hide is true.
 	Hide   bool
-	Fields map[string]interface{}
+	Fields map[string]Field `json:"-"`
 }
 
-// GetField returns the named field (and true) of the node if present.
-//
-// If there is no such field, it returns nil.
-func (n Node) GetField(id string) interface{} {
-	parts := strings.Split(id, ".")
-	field := interface{}(n.Fields)
-	for _, part := range parts {
-		var ok bool
-		field, ok = field.(map[string]interface{})[part]
-		if !ok {
-			return nil
-		}
-	}
-	return field
-}
-
-// SetField sets the value of the named field.
-func (n *Node) SetField(id string, value interface{}) {
-	parts := strings.Split(id, ".")
-	if n.Fields == nil {
-		n.Fields = make(map[string]interface{})
-	}
-	field := interface{}(n.Fields)
-	for _, part := range parts[:len(parts)-1] {
-		next := field.(map[string]interface{})[part]
-		if next == nil {
-			next = make(map[string]interface{})
-			field.(map[string]interface{})[part] = next
-		}
-		field = next
-	}
-	field.(map[string]interface{})[parts[len(parts)-1]] = value
+func (n Node) GetField(id string) Field {
+	return n.Fields[id]
 }
 
 // PathToID returns an ID for the given node based on it's path.
@@ -104,6 +135,8 @@ func (n Node) Name() string {
 	return base
 }
 
+/*
+
 // RequestFile stores the path or content of a multipart request's file.
 type RequestFile struct {
 	// TmpFile stores the path to a temporary file with the contents.
@@ -127,6 +160,7 @@ const (
 	GetRequest = iota
 	PostRequest
 )
+*/
 
 type Action uint
 
@@ -139,6 +173,7 @@ const (
 	RemoveAction
 )
 
+/*
 // A request to be processed by a nodes service.
 type Request struct {
 	// Site name
@@ -158,7 +193,9 @@ type Request struct {
 	// Files stores files of multipart requests.
 	Files map[string][]RequestFile
 }
+*/
 
+/*
 // Response to a node request.
 type Response struct {
 	// The html content to be embedded in the root template.
@@ -174,27 +211,32 @@ type Response struct {
 	// If nil, the original node data is used.
 	Node *Node
 }
+*/
 
+/*
 // Write appends the given bytes to the body of the response.
 func (r *Response) Write(p []byte) (n int, err error) {
 	r.Body = append(r.Body, p...)
 	return len(p), nil
 }
+*/
 
+/*
 // Request performs the given request.
-func (s *NodeClient) Request(req *Request) (*Response, error) {
+func (s *MonstiClient) Request(req *Request) (*Response, error) {
 	var res Response
-	err := s.RPCClient.Call("Node.Request", req, &res)
+	err := s.RPCClient.Call("Monsti.Request", req, &res)
 	if err != nil {
 		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
 	}
 	return &res, nil
 }
+*/
 
 // GetNodeType returns all supported node types.
-func (s *NodeClient) GetNodeTypes() ([]string, error) {
+func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 	var res []string
-	err := s.RPCClient.Call("Node.GetNodeTypes", 0, &res)
+	err := s.RPCClient.Call("Monsti.GetNodeTypes", 0, &res)
 	if err != nil {
 		return nil, fmt.Errorf("service: RPC error for GetNodeTypes: %v", err)
 	}

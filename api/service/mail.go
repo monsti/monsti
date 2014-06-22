@@ -18,29 +18,18 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/chrneumann/mimemail"
 )
 
-// MailClient represents a RPC connection to the Mail service.
-type MailClient struct {
-	*Client
-}
-
-// NewMailClient returns a new Mail Client.
-func NewMailClient() *MailClient {
-	var service_ MailClient
-	service_.Client = new(Client)
-	return &service_
-}
-
-// Send given Mail.
-func (s *MailClient) SendMail(m *mimemail.Mail) error {
+// Send given Monsti.
+func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
 	if s.Error != nil {
 		return s.Error
 	}
 	var reply int
-	if err := s.RPCClient.Call("Mail.SendMail", m, &reply); err != nil {
-		return fmt.Errorf("service: Mail.SendMail error: %v", err)
+	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
+		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
 	}
 	return nil
 }

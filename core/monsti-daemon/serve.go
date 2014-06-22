@@ -52,7 +52,7 @@ type nodeHandler struct {
 	// Log is the logger used by the node handler.
 	Log *log.Logger
 	// Info is a connection to an INFO service.
-	Info     *service.InfoClient
+	Monsti   *service.MonstiClient
 	Sessions *service.SessionPool
 }
 
@@ -133,7 +133,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		serveError("Could not get client session: %v", err)
 	}
 	c.UserSession.Locale = c.Site.Locale
-	c.Node, err = c.Serv.Data().GetNode(c.Site.Name, nodePath)
+	c.Node, err = c.Serv.Monsti().GetNode(c.Site.Name, nodePath)
 	if err != nil {
 		serveError("Error getting node: %v", err)
 	}

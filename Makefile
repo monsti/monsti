@@ -5,7 +5,7 @@ GO_GET=$(GO) get $(GO_COMMON_OPTS)
 GO_BUILD=$(GO) build $(GO_COMMON_OPTS)
 GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
-MODULES=daemon httpd data mail
+MODULES=daemon
 
 VCS_REVISION:=$(shell git rev-list HEAD --count)
 VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')

@@ -16,11 +16,7 @@
 
 package service
 
-import (
-	"fmt"
-	"log"
-	"sync"
-)
+/*
 
 // ActionHandler processes incoming requests for some node action.
 type ActionHandler func(req Request, res *Response, s *Session) error
@@ -89,6 +85,7 @@ type nodeService struct {
 	Pool     *SessionPool
 }
 
+/*
 func (i nodeService) Request(req Request, reply *Response) error {
 	nodeType := req.Node.Type
 	var f ActionHandler
@@ -115,3 +112,5 @@ func (i *nodeService) GetNodeTypes(req int,
 	}
 	return nil
 }
+
+*/

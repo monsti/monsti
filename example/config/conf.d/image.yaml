@@ -19,6 +19,9 @@ nodetypes:
   - id: Image
     name: {en: "Image", de: "Bild"}
     fields:
+      - id: Title
+        name: {en: "Title", de: "Titel"}
+        type: Text
       - id: File
         name: {en: "File", de: "Datei"}
         required: yes
