@@ -29,6 +29,7 @@ import (
 	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -385,6 +386,7 @@ type editFormData struct {
 	NodeType string
 	Name     string
 	Node     service.Node
+	Fields   util.NestedMap
 }
 
 // EditNode handles node edits.
@@ -396,7 +398,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		return fmt.Errorf("Could not parse form: %v", err)
 	}
 
-	var nodeType *service.NodeType
+	nodeType := c.Node.Type
 	newNode := len(c.Req.FormValue("NodeType")) > 0
 	if newNode {
 		var err error
@@ -420,8 +422,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	formData := editFormData{}
+	formData.Fields = make(util.NestedMap)
 	if newNode {
 		formData.NodeType = nodeType.Id
+		formData.Node.Type = nodeType
+		formData.Node.InitFields()
 	} else {
 		formData.Node = *c.Node
 	}
@@ -438,47 +443,13 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				G("Contains	invalid characters."))), nil}
 	}
 
-	nodeType.Fields = append(nodeType.Fields, service.NodeField{
-		Id:       "core.Title",
-		Name:     map[string]string{"en": "Title", "de": "Titel"},
-		Required: true,
-		Type:     "Text"})
 	fileFields := make([]string, 0)
-	/*
-		for _, field := range nodeType.Fields {
-			fullId := "Node.Fields." + field.Id
-			switch field.Type {
-			case "DateTime":
-				formFields[fullId] = form.Field{
-					field.Name["en"], "", nil, new(form.DateTimeWidget)}
-				if formData.Node.GetField(field.Id) == nil {
-					formData.Node.SetField(field.Id, "")
-				}
-			case "HTMLArea":
-				formFields[fullId] = form.Field{
-					field.Name["en"], "", form.Required(G("Required.")), new(form.AlohaEditor)}
-				if formData.Node.GetField(field.Id) == nil {
-					formData.Node.SetField(field.Id, "")
-				}
-			case "File":
-				formFields[fullId] = form.Field{
-					field.Name["en"], "", nil, new(form.FileWidget)}
-				if formData.Node.GetField(field.Id) == nil {
-					formData.Node.SetField(field.Id, "")
-				}
-				fileFields = append(fileFields, field.Id)
-			case "Text":
-				formFields[fullId] = form.Field{
-					field.Name["en"], "", form.Required(G("Required.")), nil}
-				if formData.Node.GetField(field.Id) == nil {
-					formData.Node.SetField(field.Id, "")
-				}
-			default:
-				return fmt.Errorf("Unknown field type: %q", field.Type)
-			}
-		}
-	*/
+	for _, field := range nodeType.Fields {
+		formData.Node.GetField(field.Id).ToFormField(formFields, formData.Fields, &field)
+	}
+
 	form := form.NewForm(&formData, formFields)
+
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
@@ -487,7 +458,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			node.Type = nodeType
 			node.Path = c.Node.Path
 			if newNode {
+				node.InitFields()
 				node.Path = path.Join(node.Path, formData.Name)
+			}
+			for _, field := range nodeType.Fields {
+				node.GetField(field.Id).FromFormField(formData.Fields, &field)
 			}
 			err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 			if err != nil {

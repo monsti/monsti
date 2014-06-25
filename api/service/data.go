@@ -20,7 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
+
+	"pkg.monsti.org/monsti/api/util"
 )
 
 // nodeToData converts the node to a JSON document.
@@ -33,10 +34,20 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	defer func() {
 		node.Path = path
 	}()
+
+	var outNode nodeJSON
+	outNode.Node = *node
+	outNode.Type = node.Type.Id
+	outNode.Fields = make(util.NestedMap)
+
+	for _, field := range node.Type.Fields {
+		outNode.Fields.Set(field.Id, node.Fields[field.Id].Dump())
+	}
+
 	if indent {
-		data, err = json.MarshalIndent(node, "", "  ")
+		data, err = json.MarshalIndent(outNode, "", "  ")
 	} else {
-		data, err = json.Marshal(node)
+		data, err = json.Marshal(outNode)
 	}
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -65,7 +76,7 @@ func (s *MonstiClient) WriteNode(site, path string, node *Node) error {
 type nodeJSON struct {
 	Node
 	Type   string
-	Fields nodeFieldData
+	Fields util.NestedMap
 }
 
 // dataToNode unmarshals given data
@@ -87,58 +98,11 @@ func dataToNode(data []byte, s *MonstiClient) (*Node, error) {
 			node.Type)
 	}
 
-	ret.Fields = make(map[string]Field)
+	ret.InitFields()
 	for _, field := range ret.Type.Fields {
-		var val Field
-		switch field.Type {
-		case "DateTime":
-			val = new(DateTimeField)
-		case "File":
-			val = new(FileField)
-		case "Text":
-			val = new(TextField)
-		case "HTMLArea":
-			val = new(HTMLField)
-		default:
-			return nil, fmt.Errorf("Unknown field type %v", field.Type)
-		}
-		val.Load(node.Fields.get(field.Id))
-		ret.Fields[field.Id] = val
+		ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
 	}
 	return &ret, nil
-}
-
-type nodeFieldData map[string]interface{}
-
-// getFieldData returns the named data (and true) of the node if present.
-//
-// If there is no such field, it returns nil.
-func (n nodeFieldData) get(id string) interface{} {
-	parts := strings.Split(id, ".")
-	field := interface{}(map[string]interface{}(n))
-	for _, part := range parts {
-		var ok bool
-		field, ok = field.(map[string]interface{})[part]
-		if !ok {
-			return nil
-		}
-	}
-	return field
-}
-
-// SetFieldData sets the data of the named field.
-func (n nodeFieldData) set(id string, value interface{}) {
-	parts := strings.Split(id, ".")
-	field := interface{}(map[string]interface{}(n))
-	for _, part := range parts[:len(parts)-1] {
-		next := field.(map[string]interface{})[part]
-		if next == nil {
-			next = make(map[string]interface{})
-			field.(map[string]interface{})[part] = next
-		}
-		field = next
-	}
-	field.(map[string]interface{})[parts[len(parts)-1]] = value
 }
 
 // GetNode reads the given node.

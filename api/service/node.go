@@ -22,6 +22,9 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"pkg.monsti.org/form"
+	"pkg.monsti.org/monsti/api/util"
 )
 
 type Field interface {
@@ -30,6 +33,9 @@ type Field interface {
 	// String returns a raw string representation
 	String() string
 	Load(interface{}) error
+	Dump() interface{}
+	ToFormField(form.Fields, util.NestedMap, *NodeField)
+	FromFormField(util.NestedMap, *NodeField)
 }
 
 // TextField is a basic unicode text field
@@ -48,6 +54,21 @@ func (t *TextField) Load(in interface{}) error {
 	return nil
 }
 
+func (t TextField) Dump() interface{} {
+	return string(t)
+}
+
+func (t TextField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+	data.Set(field.Id, string(t))
+	fields["Fields."+field.Id] = form.Field{
+		field.Name["en"], "", form.Required("Required."), nil}
+}
+
+func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
+	*t = TextField(data.Get(field.Id).(string))
+}
+
 // HTMLField is a text area containing HTML code
 type HTMLField string
 
@@ -64,6 +85,21 @@ func (t *HTMLField) Load(in interface{}) error {
 	return nil
 }
 
+func (t HTMLField) Dump() interface{} {
+	return string(t)
+}
+
+func (t HTMLField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+	data.Set(field.Id, string(t))
+	fields["Fields."+field.Id] = form.Field{
+		field.Name["en"], "", form.Required("Required."), new(form.AlohaEditor)}
+}
+
+func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
+	*t = HTMLField(data.Get(field.Id).(string))
+}
+
 type FileField string
 
 func (t FileField) String() string {
@@ -77,6 +113,18 @@ func (t FileField) RenderHTML() interface{} {
 func (t *FileField) Load(in interface{}) error {
 	*t = FileField(in.(string))
 	return nil
+}
+
+func (t FileField) Dump() interface{} {
+	return nil
+}
+
+func (t FileField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+
+}
+
+func (t *FileField) FromFormField(util.NestedMap, *NodeField) {
 }
 
 type DateTimeField struct {
@@ -97,6 +145,18 @@ func (t *DateTimeField) Load(in interface{}) error {
 	return nil
 }
 
+func (t DateTimeField) Dump() interface{} {
+	return nil
+}
+
+func (t DateTimeField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+
+}
+
+func (t *DateTimeField) FromFormField(util.NestedMap, *NodeField) {
+}
+
 type Node struct {
 	Path string `json:",omitempty"`
 	// Content type of the node.
@@ -105,6 +165,26 @@ type Node struct {
 	// Don't show the node in navigations if Hide is true.
 	Hide   bool
 	Fields map[string]Field `json:"-"`
+}
+
+func (n *Node) InitFields() {
+	n.Fields = make(map[string]Field)
+	for _, field := range n.Type.Fields {
+		var val Field
+		switch field.Type {
+		case "DateTime":
+			val = new(DateTimeField)
+		case "File":
+			val = new(FileField)
+		case "Text":
+			val = new(TextField)
+		case "HTMLArea":
+			val = new(HTMLField)
+		default:
+			panic(fmt.Sprintf("Unknown field type %v", field.Type))
+		}
+		n.Fields[field.Id] = val
+	}
 }
 
 func (n Node) GetField(id string) Field {
