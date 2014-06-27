@@ -18,3 +18,7 @@ namespace: core
 nodetypes:
   - id: NodeList
     name: {en: "Node list", de: "Node-Liste"}
+    fields:
+      - id: Title
+        name: {en: "Title", de: "Titel"}
+        type: Text

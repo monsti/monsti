@@ -20,29 +20,6 @@ import (
 	"fmt"
 )
 
-type NodeField struct {
-	Id       string
-	Name     map[string]string
-	Required bool
-	Type     string
-}
-
-type EmbedNode struct {
-	Id  string
-	URI string
-}
-
-type NodeType struct {
-	Id     string
-	Name   map[string]string
-	Fields []NodeField
-	Embed  []EmbedNode
-}
-
-type InfoClient struct {
-	Client
-}
-
 // PublishServiceArgs are the arguments provided by the caller of
 // PublishService.
 type PublishServiceArgs struct {
@@ -55,20 +32,21 @@ type PublishServiceArgs struct {
 // path is the path to the unix domain socket of the service
 //
 // If the data does not exist, return null length []byte.
-func (s *InfoClient) PublishService(service, path string) error {
+func (s *MonstiClient) PublishService(service, path string) error {
 	args := PublishServiceArgs{service, path}
 	var reply int
-	err := s.RPCClient.Call("Info.PublishService", args, &reply)
+	err := s.RPCClient.Call("Monsti.PublishService", args, &reply)
 	if err != nil {
 		return fmt.Errorf("service: Error calling PublishService: %v", err)
 	}
 	return nil
 }
 
+/*
 // FindDataService requests a data client.
-func (s *InfoClient) FindDataService() (*DataClient, error) {
+func (s *MonstiClient) FindDataService() (*MonstiClient, error) {
 	var path string
-	err := s.RPCClient.Call("Info.FindDataService", 0, &path)
+	err := s.RPCClient.Call("Monsti.FindDataService", 0, &path)
 	if err != nil {
 		return nil, fmt.Errorf("service: Error calling FindDataService: %v", err)
 	}
@@ -80,76 +58,4 @@ func (s *InfoClient) FindDataService() (*DataClient, error) {
 	}
 	return service_, nil
 }
-
-// FindMailService requests a mail client.
-func (s *InfoClient) FindMailService() (*MailClient, error) {
-	var path string
-	err := s.RPCClient.Call("Info.FindMailService", 0, &path)
-	if err != nil {
-		return nil, fmt.Errorf("service: Error calling FindMailService: %v", err)
-	}
-	service_ := NewMailClient()
-	if err := service_.Connect(path); err != nil {
-		return nil,
-			fmt.Errorf("service: Could not establish connection to mail service: %v",
-				err)
-	}
-	return service_, nil
-}
-
-// FindNodeType requests information about the given node type.
-func (s *InfoClient) GetNodeType(nodeTypeID string) (*NodeType,
-	error) {
-	var nodeType NodeType
-	err := s.RPCClient.Call("Info.GetNodeType", nodeTypeID, &nodeType)
-	if err != nil {
-		return nil, fmt.Errorf("service: Error calling GetNodeType: %v", err)
-	}
-	return &nodeType, nil
-}
-
-// FindNodeService requests a node client for the given node type.
-func (s *InfoClient) FindNodeService(nodeType string) (*NodeClient,
-	error) {
-	var path string
-	err := s.RPCClient.Call("Info.FindNodeService", nodeType, &path)
-	if err != nil {
-		return nil, fmt.Errorf("service: Error calling FindNodeService: %v", err)
-	}
-	service_ := NewNodeClient()
-	if err := service_.Connect(path); err != nil {
-		return nil,
-			fmt.Errorf("service: Could not establish connection to node service: %v",
-				err)
-	}
-	return service_, nil
-}
-
-// GetAddableNodeTypes returns the node types that may be added as child nodes
-// to the given node type at the given website.
-func (s *InfoClient) GetAddableNodeTypes(site, nodeType string) (types []string,
-	err error) {
-	args := struct{ Site, NodeType string }{site, nodeType}
-	err = s.RPCClient.Call("Info.GetAddableNodeTypes", args, &types)
-	if err != nil {
-		err = fmt.Errorf("service: Error calling GetAddableNodeTypes: %v", err)
-	}
-	return
-}
-
-// NewInfoConnection establishes a new RPC connection to an INFO service.
-//
-// path is the unix domain socket path to the service.
-func NewInfoConnection(path string) (*InfoClient, error) {
-	var service InfoClient
-	if err := service.Connect(path); err != nil {
-		return nil,
-			fmt.Errorf("service: Could not establish connection to info service: %v",
-				err)
-	}
-	return &service, nil
-}
-
-func connectService() {
-
-}
+*/

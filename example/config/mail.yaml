@@ -1,4 +1,0 @@
-# SMTP settings for outgoing mail.
-host: localhost
-username: user
-password: password

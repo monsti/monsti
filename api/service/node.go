@@ -18,66 +18,217 @@ package service
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/url"
+	"html/template"
 	"path"
 	"strings"
+	"time"
+
+	"pkg.monsti.org/form"
+	"pkg.monsti.org/monsti/api/util"
 )
 
-// NodeClient represents the RPC connection to the Nodes service.
-type NodeClient struct {
-	*Client
+type Field interface {
+	// RenderHTML returns a string or template.HTML to be used in a html
+	// template.
+	RenderHTML() interface{}
+	// String returns a raw string representation of the field.
+	String() string
+	// Load loads the field data (also see Dump).
+	Load(interface{}) error
+	// Dump dumps the field data.
+	//
+	// The dumped value must be something that can be marshalled into
+	// JSON by encoding/json.
+	Dump() interface{}
+	// Adds a form field to the node edit form.
+	ToFormField(form.Fields, util.NestedMap, *NodeField)
+	// Load values from the form submission
+	FromFormField(util.NestedMap, *NodeField)
 }
 
-// NewNodeClient returns a new Node Client.
-func NewNodeClient() *NodeClient {
-	var service_ NodeClient
-	service_.Client = new(Client)
-	return &service_
+// TextField is a basic unicode text field
+type TextField string
+
+func (t TextField) String() string {
+	return string(t)
+}
+
+func (t TextField) RenderHTML() interface{} {
+	return t
+}
+
+func (t *TextField) Load(in interface{}) error {
+	*t = TextField(in.(string))
+	return nil
+}
+
+func (t TextField) Dump() interface{} {
+	return string(t)
+}
+
+func (t TextField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+	data.Set(field.Id, string(t))
+	fields["Fields."+field.Id] = form.Field{
+		field.Name["en"], "", form.Required("Required."), nil}
+}
+
+func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
+	*t = TextField(data.Get(field.Id).(string))
+}
+
+// HTMLField is a text area containing HTML code
+type HTMLField string
+
+func (t HTMLField) String() string {
+	return string(t)
+}
+
+func (t HTMLField) RenderHTML() interface{} {
+	return template.HTML(t)
+}
+
+func (t *HTMLField) Load(in interface{}) error {
+	*t = HTMLField(in.(string))
+	return nil
+}
+
+func (t HTMLField) Dump() interface{} {
+	return string(t)
+}
+
+func (t HTMLField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+	data.Set(field.Id, string(t))
+	fields["Fields."+field.Id] = form.Field{
+		field.Name["en"], "", form.Required("Required."), new(form.AlohaEditor)}
+}
+
+func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
+	*t = HTMLField(data.Get(field.Id).(string))
+}
+
+type FileField string
+
+func (t FileField) String() string {
+	return string(t)
+}
+
+func (t FileField) RenderHTML() interface{} {
+	return template.HTML(t)
+}
+
+func (t *FileField) Load(in interface{}) error {
+	*t = FileField(in.(string))
+	return nil
+}
+
+func (t FileField) Dump() interface{} {
+	return nil
+}
+
+func (t FileField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+
+}
+
+func (t *FileField) FromFormField(util.NestedMap, *NodeField) {
+}
+
+type DateTimeField struct {
+	Time *time.Time
+}
+
+func (t DateTimeField) String() string {
+	return t.Time.String()
+}
+
+func (t DateTimeField) RenderHTML() interface{} {
+	if t.Time != nil {
+		return t.Time.String()
+	}
+	return ""
+}
+
+func (t *DateTimeField) Load(in interface{}) error {
+	date, ok := in.(string)
+	if !ok {
+		return fmt.Errorf("Data is not string")
+	}
+	if date == "" {
+		t.Time = nil
+	} else {
+		val, err := time.Parse(time.RFC3339, date)
+		if err != nil {
+			return fmt.Errorf("Could not parse the date value: %v", err)
+		}
+		t.Time = &val
+	}
+	return nil
+}
+
+func (t DateTimeField) Dump() interface{} {
+	if t.Time == nil {
+		return ""
+	} else {
+		return t.Time.Format(time.RFC3339)
+	}
+}
+
+func (t DateTimeField) ToFormField(fields form.Fields, data util.NestedMap,
+	field *NodeField) {
+	if t.Time != nil {
+		data.Set(field.Id+".Date", t.Time.Format("2.1.2006"))
+		data.Set(field.Id+".Time", t.Time.Format("15:04"))
+	} else {
+		data.Set(field.Id+".Date", "waz nil")
+		data.Set(field.Id+".Time", "waz nil")
+	}
+	fields["Fields."+field.Id+".Date"] = form.Field{
+		field.Name["en"] + "Date", "", form.Required("Required."), nil}
+	fields["Fields."+field.Id+".Time"] = form.Field{
+		field.Name["en"] + "Time", "", form.Required("Required."), nil}
+}
+
+func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
+	timeDate := data.Get(field.Id + ".Date").(string)
+	timeTime := data.Get(field.Id + ".Time").(string)
+	val, _ := time.Parse("2.1.2006T15:04", timeDate+"T"+timeTime)
+	t.Time = &val
 }
 
 type Node struct {
 	Path string `json:",omitempty"`
 	// Content type of the node.
-	Type  string
+	Type  *NodeType `json:"-"`
 	Order int
 	// Don't show the node in navigations if Hide is true.
 	Hide   bool
-	Fields map[string]interface{}
+	Fields map[string]Field `json:"-"`
 }
 
-// GetField returns the named field (and true) of the node if present.
-//
-// If there is no such field, it returns nil.
-func (n Node) GetField(id string) interface{} {
-	parts := strings.Split(id, ".")
-	field := interface{}(n.Fields)
-	for _, part := range parts {
-		var ok bool
-		field, ok = field.(map[string]interface{})[part]
-		if !ok {
-			return nil
+func (n *Node) InitFields() {
+	n.Fields = make(map[string]Field)
+	for _, field := range n.Type.Fields {
+		var val Field
+		switch field.Type {
+		case "DateTime":
+			val = new(DateTimeField)
+		case "File":
+			val = new(FileField)
+		case "Text":
+			val = new(TextField)
+		case "HTMLArea":
+			val = new(HTMLField)
+		default:
+			panic(fmt.Sprintf("Unknown field type %v", field.Type))
 		}
+		n.Fields[field.Id] = val
 	}
-	return field
 }
 
-// SetField sets the value of the named field.
-func (n *Node) SetField(id string, value interface{}) {
-	parts := strings.Split(id, ".")
-	if n.Fields == nil {
-		n.Fields = make(map[string]interface{})
-	}
-	field := interface{}(n.Fields)
-	for _, part := range parts[:len(parts)-1] {
-		next := field.(map[string]interface{})[part]
-		if next == nil {
-			next = make(map[string]interface{})
-			field.(map[string]interface{})[part] = next
-		}
-		field = next
-	}
-	field.(map[string]interface{})[parts[len(parts)-1]] = value
+func (n Node) GetField(id string) Field {
+	return n.Fields[id]
 }
 
 // PathToID returns an ID for the given node based on it's path.
@@ -104,6 +255,8 @@ func (n Node) Name() string {
 	return base
 }
 
+/*
+
 // RequestFile stores the path or content of a multipart request's file.
 type RequestFile struct {
 	// TmpFile stores the path to a temporary file with the contents.
@@ -127,6 +280,7 @@ const (
 	GetRequest = iota
 	PostRequest
 )
+*/
 
 type Action uint
 
@@ -139,6 +293,7 @@ const (
 	RemoveAction
 )
 
+/*
 // A request to be processed by a nodes service.
 type Request struct {
 	// Site name
@@ -158,7 +313,9 @@ type Request struct {
 	// Files stores files of multipart requests.
 	Files map[string][]RequestFile
 }
+*/
 
+/*
 // Response to a node request.
 type Response struct {
 	// The html content to be embedded in the root template.
@@ -174,27 +331,32 @@ type Response struct {
 	// If nil, the original node data is used.
 	Node *Node
 }
+*/
 
+/*
 // Write appends the given bytes to the body of the response.
 func (r *Response) Write(p []byte) (n int, err error) {
 	r.Body = append(r.Body, p...)
 	return len(p), nil
 }
+*/
 
+/*
 // Request performs the given request.
-func (s *NodeClient) Request(req *Request) (*Response, error) {
+func (s *MonstiClient) Request(req *Request) (*Response, error) {
 	var res Response
-	err := s.RPCClient.Call("Node.Request", req, &res)
+	err := s.RPCClient.Call("Monsti.Request", req, &res)
 	if err != nil {
 		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
 	}
 	return &res, nil
 }
+*/
 
 // GetNodeType returns all supported node types.
-func (s *NodeClient) GetNodeTypes() ([]string, error) {
+func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 	var res []string
-	err := s.RPCClient.Call("Node.GetNodeTypes", 0, &res)
+	err := s.RPCClient.Call("Monsti.GetNodeTypes", 0, &res)
 	if err != nil {
 		return nil, fmt.Errorf("service: RPC error for GetNodeTypes: %v", err)
 	}

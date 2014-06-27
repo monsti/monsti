@@ -24,19 +24,20 @@ import (
 type SessionPool struct {
 	// Size is the maximum number of sessions to cache.
 	Size int
-	// InfoPath is the path to the Info service to be used.
-	InfoPath string
-	data     chan *DataClient
-	info     chan *InfoClient
-	mail     chan *MailClient
+	// MonstiPath is the path to the Monsti service to be used.
+	MonstiPath string
+	monsti     chan *MonstiClient
 }
 
 // NewSessionPool returns a new session pool.
-func NewSessionPool(size int, infoPath string) *SessionPool {
-	pool := &SessionPool{Size: size, InfoPath: infoPath}
-	pool.data = make(chan *DataClient, size)
-	pool.info = make(chan *InfoClient, size)
-	pool.mail = make(chan *MailClient, size)
+func NewSessionPool(size int, monstiPath string) *SessionPool {
+	pool := &SessionPool{Size: size, MonstiPath: monstiPath}
+	pool.monsti = make(chan *MonstiClient, size)
+	/*
+		pool.data = make(chan *DataClient, size)
+		pool.info = make(chan *InfoClient, size)
+		pool.mail = make(chan *MailClient, size)
+	*/
 	return pool
 }
 
@@ -44,55 +45,45 @@ func NewSessionPool(size int, infoPath string) *SessionPool {
 func (s *SessionPool) New() (*Session, error) {
 	session := &Session{pool: s}
 	select {
-	case session.info = <-s.info:
+	case session.monsti = <-s.monsti:
 	default:
-		info, err := NewInfoConnection(s.InfoPath)
+		monsti, err := NewMonstiConnection(s.MonstiPath)
 		if err != nil {
 			return nil, fmt.Errorf("service: Could not create Info client: %v", err)
 		}
-		session.info = info
+		session.monsti = monsti
 	}
 	return session, nil
 }
 
 // Free puts a session back to the pool.
 func (s *SessionPool) Free(session *Session) {
-	if session.data != nil {
+	if session.monsti != nil {
 		select {
-		case s.data <- session.data:
+		case s.monsti <- session.monsti:
 		default:
-			session.data.Close()
-		}
-	}
-	if session.info != nil {
-		select {
-		case s.info <- session.info:
-		default:
-			session.info.Close()
-		}
-	}
-	if session.mail != nil {
-		select {
-		case s.mail <- session.mail:
-		default:
-			session.mail.Close()
+			session.monsti.Close()
 		}
 	}
 }
 
 // Session holds connections to the services.
 type Session struct {
-	info *InfoClient
-	data *DataClient
-	mail *MailClient
+	monsti *MonstiClient
+	/*
+		info *InfoClient
+		data *DataClient
+		mail *MailClient
+	*/
 	pool *SessionPool
 }
 
 // Info returns an InfoClient.
-func (s *Session) Info() *InfoClient {
-	return s.info
+func (s *Session) Monsti() *MonstiClient {
+	return s.monsti
 }
 
+/*
 // Data returns a DataClient.
 func (s *Session) Data() *DataClient {
 	if s.data != nil {
@@ -110,21 +101,4 @@ func (s *Session) Data() *DataClient {
 	}
 	return s.data
 }
-
-// Mail returns a MailClient.
-func (s *Session) Mail() *MailClient {
-	if s.mail != nil {
-		return s.mail
-	}
-	select {
-	case s.mail = <-s.pool.mail:
-	default:
-		mail, err := s.info.FindMailService()
-		s.mail = mail
-		if err != nil {
-			s.mail = NewMailClient()
-			s.mail.Error = err
-		}
-	}
-	return s.mail
-}
+*/

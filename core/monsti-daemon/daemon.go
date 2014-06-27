@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"log"
 	"log/syslog"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,13 +35,24 @@ import (
 
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
+
+	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/monsti/api/util/template"
 )
 
+// Settings for the application and the sites.
 type settings struct {
 	Monsti util.MonstiSettings
+	// Listen is the host and port to listen for incoming HTTP connections.
+	Listen string
 	// List of modules to be activated.
 	Modules []string
 	Config  *Config
+	Mail    struct {
+		Host     string
+		Username string
+		Password string
+	}
 }
 
 // moduleLog is a Writer used to log module messages on stderr.
@@ -61,6 +73,7 @@ func (s moduleLog) Write(p []byte) (int, error) {
 
 func main() {
 	useSyslog := flag.Bool("syslog", false, "use syslog")
+
 	flag.Parse()
 
 	var logger *log.Logger
@@ -86,28 +99,35 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	configsPath := filepath.Join(cfgPath, "conf.d")
 	var err error
-	if settings.Config, err = loadConfig(configsPath); err != nil {
+	if settings.Config, err = loadConfig(filepath.Join(cfgPath, "conf.d")); err != nil {
 		logger.Fatalf("Could not load application configuration: %v", err)
 	}
 
-	// Start own Info service
+	if err := (&settings).Monsti.LoadSiteSettings(); err != nil {
+		logger.Fatal("Could not load site settings: ", err)
+	}
+
+	gettext.DefaultLocales.Domain = "monsti-daemon"
+	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
+
 	var waitGroup sync.WaitGroup
-	logger.Println("Setting up Info service")
-	infoPath := settings.Monsti.GetServicePath(service.InfoService.String())
-	info := new(InfoService)
-	info.Config = settings.Config
-	provider := service.NewProvider("Info", info)
+
+	// Start service handler
+	logger.Println("Setting up service")
+	monstiPath := settings.Monsti.GetServicePath(service.MonstiService.String())
+	monsti := new(MonstiService)
+	monsti.Settings = &settings
+	provider := service.NewProvider("Monsti", monsti)
 	provider.Logger = logger
-	if err := provider.Listen(infoPath); err != nil {
-		logger.Fatalf("service: Could not start Info service: %v", err)
+	if err := provider.Listen(monstiPath); err != nil {
+		logger.Fatalf("service: Could not start service: %v", err)
 	}
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
 		if err := provider.Accept(); err != nil {
-			logger.Fatalf("Could not accept at Info service: %v", err)
+			logger.Fatalf("Could not accept at service: %v", err)
 		}
 	}()
 
@@ -124,7 +144,33 @@ func main() {
 		}()
 	}
 
-	logger.Println("Monsti is up and running!")
+	// Setup up httpd
+	handler := nodeHandler{
+		Renderer: template.Renderer{Root: settings.Monsti.GetTemplatesPath()},
+		Settings: &settings,
+		Log:      logger,
+		Sessions: service.NewSessionPool(1, monstiPath),
+	}
+	http.Handle("/static/", http.FileServer(http.Dir(
+		filepath.Dir(settings.Monsti.GetStaticsPath()))))
+	handler.Hosts = make(map[string]string)
+	for site_title, site := range settings.Monsti.Sites {
+		for _, host := range site.Hosts {
+			handler.Hosts[host] = site_title
+			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
+				filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
+		}
+	}
+	http.Handle("/", &handler)
+	waitGroup.Add(1)
+	go func() {
+		if err := http.ListenAndServe(settings.Listen, nil); err != nil {
+			logger.Fatal("HTTP Listener failed: ", err)
+		}
+		waitGroup.Done()
+	}()
+
+	logger.Printf("Monsti is up and running, listening on %q", settings.Listen)
 	waitGroup.Wait()
 	logger.Println("Monsti is shutting down.")
 }

@@ -1,7 +1,7 @@
 {{with .Children}}
 <ul class="node-list">
 {{range .}}
-  <li><a href="{{.Path}}">{{with .Fields.core.Title}}{{ . }}{{end}}</a></li>
+  <li><a href="{{.Path}}">{{with .GetField ".core.Title"}}{{ .RenderHTML }}{{end}}</a></li>
 {{end}}
 </ul>
 {{else}}

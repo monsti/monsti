@@ -24,24 +24,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
-	"sync"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
 )
-
-// DataService implements RPC methods for the Data service.
-type DataService struct {
-	Settings settings
-}
 
 // getNode looks up the given node.
 // If no such node exists, return nil.
@@ -82,7 +73,7 @@ type GetChildrenArgs struct {
 	Site, Path string
 }
 
-func (i *DataService) GetChildren(args GetChildrenArgs,
+func (i *MonstiService) GetChildren(args GetChildrenArgs,
 	reply *[][]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getChildren(site, args.Path)
@@ -92,7 +83,7 @@ func (i *DataService) GetChildren(args GetChildrenArgs,
 
 type GetNodeArgs struct{ Site, Path string }
 
-func (i *DataService) GetNode(args *GetNodeDataArgs,
+func (i *MonstiService) GetNode(args *GetNodeDataArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getNode(site, args.Path)
@@ -102,7 +93,7 @@ func (i *DataService) GetNode(args *GetNodeDataArgs,
 
 type GetNodeDataArgs struct{ Site, Path, File string }
 
-func (i *DataService) GetNodeData(args *GetNodeDataArgs,
+func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
@@ -120,7 +111,7 @@ type WriteNodeDataArgs struct {
 	Content          []byte
 }
 
-func (i *DataService) WriteNodeData(args *WriteNodeDataArgs,
+func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], args.File)
@@ -139,7 +130,7 @@ type RemoveNodeArgs struct {
 	Site, Node string
 }
 
-func (i *DataService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
+func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	nodePath := filepath.Join(root, args.Node[1:])
 	if err := os.RemoveAll(nodePath); err != nil {
@@ -185,7 +176,7 @@ func getConfig(path, name string) ([]byte, error) {
 
 type GetConfigArgs struct{ Site, Module, Name string }
 
-func (i *DataService) GetConfig(args *GetConfigArgs,
+func (i *MonstiService) GetConfig(args *GetConfigArgs,
 	reply *[]byte) error {
 	configPath := i.Settings.Monsti.GetSiteConfigPath(args.Site)
 	config, err := getConfig(filepath.Join(configPath, args.Module+".json"),
@@ -198,50 +189,26 @@ func (i *DataService) GetConfig(args *GetConfigArgs,
 	return nil
 }
 
-type settings struct {
-	Monsti util.MonstiSettings
+type GetAddableNodeTypesArgs struct{ Site, NodeType string }
+
+func (i *MonstiService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
+	types *[]string) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	*types = make([]string, 0)
+	for nodeType, _ := range i.Settings.Config.NodeTypes {
+		*types = append(*types, nodeType)
+	}
+	return nil
 }
 
-func main() {
-	logger := log.New(os.Stderr, "", 0)
-
-	// Load configuration
-	flag.Parse()
-	cfgPath := util.GetConfigPath(flag.Arg(0))
-	var settings settings
-	if err := util.LoadModuleSettings("data", cfgPath, &settings); err != nil {
-		logger.Fatal("Could not load settings: ", err)
+func (i *MonstiService) GetNodeType(nodeTypeID string,
+	ret *service.NodeType) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	if nodeType, ok := i.Settings.Config.NodeTypes[nodeTypeID]; ok {
+		*ret = nodeType
+		return nil
 	}
-
-	// Connect to Info service
-	info, err := service.NewInfoConnection(settings.Monsti.GetServicePath(
-		service.InfoService.String()))
-	if err != nil {
-		logger.Fatalf("Could not connect to Info service: %v", err)
-	}
-
-	// Start own Data service
-	var waitGroup sync.WaitGroup
-	logger.Println("Setting up Data service")
-	waitGroup.Add(1)
-	dataPath := settings.Monsti.GetServicePath(service.DataService.String())
-	go func() {
-		defer waitGroup.Done()
-		var data_ DataService
-		data_.Settings = settings
-		provider := service.NewProvider("Data", &data_)
-		provider.Logger = logger
-		if err := provider.Listen(dataPath); err != nil {
-			logger.Fatalf("Could not start Data service: %v", err)
-		}
-		if err := provider.Accept(); err != nil {
-			logger.Fatalf("Could not accept at Data service: %v", err)
-		}
-	}()
-
-	if err := info.PublishService("Data", dataPath); err != nil {
-		logger.Fatalf("Could not publish Data service: %v", err)
-	}
-
-	waitGroup.Wait()
+	return fmt.Errorf("Unknown node type %q", nodeTypeID)
 }

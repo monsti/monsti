@@ -55,7 +55,7 @@ func renderContactForm(c *reqContext, context template.Context,
 			site := h.Settings.Monsti.Sites[c.Site.Name]
 			owner := mimemail.Address{site.Owner.Name, site.Owner.Email}
 			mail.To = []mimemail.Address{owner}
-			err := c.Serv.Mail().SendMail(&mail)
+			err := c.Serv.Monsti().SendMail(&mail)
 			if err != nil {
 				return fmt.Errorf("Could not send mail: %v", err)
 			}

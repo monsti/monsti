@@ -1,5 +1,10 @@
 // Tool to upgrade the node files
+
 package main
+
+func main() {}
+
+/*
 
 import (
 	"bytes"
@@ -72,3 +77,5 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+*/

@@ -19,6 +19,9 @@ nodetypes:
   - id: Document
     name: {en: "Document", de: "Dokument"}
     fields:
+      - id: Title
+        name: {en: "Title", de: "Titel"}
+        type: Text
       - id: Body
         name: {en: "Body", de: "Rumpf"}
         type: HTMLArea

@@ -2,5 +2,16 @@
 
 # Modules to be started.
 # monsti-daemon expects the module binaries to be in $PATH and named
-# monsti-<modulename>, e.g. $PATH/monsti-document
-modules: [httpd, data, mail]
+# monsti-<modulename>, e.g. $PATH/monsti-my-addon
+modules: []
+
+# Listen for HTTP connections on this address and port,
+# e.g. localhost:8080, :8080, yourdomain.com:80
+listen: localhost:8080
+
+
+mail: 
+    # SMTP settings for outgoing mail.
+    host: localhost
+    username: user
+    password: password

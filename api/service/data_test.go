@@ -41,6 +41,7 @@ func TestGetConfig(t *testing.T) {
 	}
 }
 
+/*
 func TestNodeToData(t *testing.T) {
 	tests := []struct {
 		Node   Node
@@ -65,3 +66,4 @@ func TestNodeToData(t *testing.T) {
 		}
 	}
 }
+*/

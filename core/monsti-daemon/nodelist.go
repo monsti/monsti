@@ -43,7 +43,7 @@ func (s *nodeSort) Less(i, j int) bool {
 
 func renderNodeList(c *reqContext, context template.Context,
 	h *nodeHandler) error {
-	nodes, err := c.Serv.Data().GetChildren(c.Site.Name, c.Node.Path)
+	nodes, err := c.Serv.Monsti().GetChildren(c.Site.Name, c.Node.Path)
 	if err != nil {
 		return fmt.Errorf("Could not get children of node: %v", err)
 	}

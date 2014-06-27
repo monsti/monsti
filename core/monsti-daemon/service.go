@@ -18,20 +18,24 @@ package main
 
 import (
 	"fmt"
+	"net/smtp"
+	"strings"
 	"sync"
 
 	"pkg.monsti.org/monsti/api/service"
+
+	"github.com/chrneumann/mimemail"
 )
 
-type InfoService struct {
+type MonstiService struct {
 	// Services maps service names to service paths
 	Services map[string][]string
 	// Mutex to syncronize data access
-	mutex  sync.RWMutex
-	Config *Config
+	mutex    sync.RWMutex
+	Settings *settings
 }
 
-func (i *InfoService) PublishService(args service.PublishServiceArgs,
+func (i *MonstiService) PublishService(args service.PublishServiceArgs,
 	reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -53,31 +57,8 @@ func (i *InfoService) PublishService(args service.PublishServiceArgs,
 	return nil
 }
 
-type GetAddableNodeTypesArgs struct{ Site, NodeType string }
-
-func (i *InfoService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
-	types *[]string) error {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	*types = make([]string, 0)
-	for nodeType, _ := range i.Config.NodeTypes {
-		*types = append(*types, nodeType)
-	}
-	return nil
-}
-
-func (i *InfoService) GetNodeType(nodeTypeID string,
-	ret *service.NodeType) error {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	if nodeType, ok := i.Config.NodeTypes[nodeTypeID]; ok {
-		*ret = nodeType
-		return nil
-	}
-	return fmt.Errorf("Unknown node type %q", nodeTypeID)
-}
-
-func (i *InfoService) FindDataService(arg int, path *string) error {
+/*
+func (i *MonstiService) FindDataService(arg int, path *string) error {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	if len(i.Services["Data"]) == 0 {
@@ -86,13 +67,14 @@ func (i *InfoService) FindDataService(arg int, path *string) error {
 	*path = i.Services["Data"][0]
 	return nil
 }
+*/
 
-func (i *InfoService) FindMailService(arg int, path *string) error {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	if len(i.Services["Mail"]) == 0 {
-		return fmt.Errorf("Could not find any mail services")
+func (m *MonstiService) SendMail(mail mimemail.Mail, reply *int) error {
+	auth := smtp.PlainAuth("", m.Settings.Mail.Username,
+		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
+	if err := smtp.SendMail(m.Settings.Mail.Host, auth,
+		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
+		return fmt.Errorf("monsti: Could not send email: %v", err)
 	}
-	*path = i.Services["Mail"][0]
 	return nil
 }

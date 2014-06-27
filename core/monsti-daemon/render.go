@@ -56,11 +56,11 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	s *service.Session) string {
 	firstDir := splitFirstDir(env.Node.Path)
 	getNodeFn := func(path string) (*service.Node, error) {
-		node, err := s.Data().GetNode(site.Name, path)
+		node, err := s.Monsti().GetNode(site.Name, path)
 		return node, err
 	}
 	getChildrenFn := func(path string) ([]*service.Node, error) {
-		return s.Data().GetChildren(site.Name, path)
+		return s.Monsti().GetChildren(site.Name, path)
 	}
 	prinav, err := getNav("/", path.Join("/", firstDir), getNodeFn, getChildrenFn)
 	if err != nil {
@@ -75,7 +75,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	title := env.Node.Fields["core"].(map[string]interface{})["Title"].(string)
+	title := env.Node.Fields["core.Title"].String()
 	if env.Title != "" {
 		title = env.Title
 	}

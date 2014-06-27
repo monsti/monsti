@@ -23,9 +23,11 @@ package util
 import (
 	"fmt"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"launchpad.net/goyaml"
 )
 
 // ParseYAML loads the given YAML file and unmarshals it into the given
@@ -63,4 +65,33 @@ func GetConfigPath(arg string) (cfgPath string) {
 		cfgPath = filepath.Join(wd, cfgPath)
 	}
 	return
+}
+
+type NestedMap map[string]interface{}
+
+func (n NestedMap) Get(id string) interface{} {
+	parts := strings.Split(id, ".")
+	field := interface{}(map[string]interface{}(n))
+	for _, part := range parts {
+		var ok bool
+		field, ok = field.(map[string]interface{})[part]
+		if !ok {
+			return nil
+		}
+	}
+	return field
+}
+
+func (n NestedMap) Set(id string, value interface{}) {
+	parts := strings.Split(id, ".")
+	field := interface{}(map[string]interface{}(n))
+	for _, part := range parts[:len(parts)-1] {
+		next := field.(map[string]interface{})[part]
+		if next == nil {
+			next = make(map[string]interface{})
+			field.(map[string]interface{})[part] = next
+		}
+		field = next
+	}
+	field.(map[string]interface{})[parts[len(parts)-1]] = value
 }

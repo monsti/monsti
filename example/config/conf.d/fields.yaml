@@ -19,9 +19,15 @@ nodetypes:
   - id: FieldsExample
     name: {en: "Fields Example", de: "Felder-Beispiel"}
     fields:
+      - id: Title
+        name: {en: "Title", de: "Titel"}
+        type: Text
       - id: HTMLArea
         name: {en: "HTMLArea", de: "HTMLArea"}
         type: HTMLArea
       - id: Text
         name: {en: "Text", de: "Text"}
         type: Text
+      - id: DateTime
+        name: {en: "DateTime", de: "DateTime"}
+        type: DateTime

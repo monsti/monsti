@@ -19,6 +19,9 @@ nodetypes:
   - id: ContactForm
     name: {en: "Contact form", de: "Kontaktformular"}
     fields:
+      - id: Title
+        name: {en: "Title", de: "Titel"}
+        type: Text
       - id: Body
         name: {en: "Body", de: "Rumpf"}
         type: HTMLArea

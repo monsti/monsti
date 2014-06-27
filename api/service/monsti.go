@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2014 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -16,20 +16,22 @@
 
 package service
 
-import (
-	"fmt"
+import "fmt"
 
-	"github.com/chrneumann/mimemail"
-)
+// MonstiClient represents the RPC connection to the Monsti service.
+type MonstiClient struct {
+	Client
+}
 
-// Send given Monsti.
-func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
-	if s.Error != nil {
-		return s.Error
+// NewMonstiConnection establishes a new RPC connection to a Monsti service.
+//
+// path is the unix domain socket path to the service.
+func NewMonstiConnection(path string) (*MonstiClient, error) {
+	var service MonstiClient
+	if err := service.Connect(path); err != nil {
+		return nil,
+			fmt.Errorf("service: Could not establish connection to Monsti service: %v",
+				err)
 	}
-	var reply int
-	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
-		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
-	}
-	return nil
+	return &service, nil
 }
