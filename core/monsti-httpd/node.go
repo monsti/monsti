@@ -397,7 +397,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	if err := c.Req.ParseMultipartForm(1024 * 1024); err != nil {
-		return fmt.Errorf("Could not parse form: %v", err)
+		if err != http.ErrNotMultipart {
+			return fmt.Errorf("Could not parse form: %v", err)
+		}
 	}
 
 	nodeType, err := h.Info.GetNodeType(c.Node.Type)
