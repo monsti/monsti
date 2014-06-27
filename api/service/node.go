@@ -28,13 +28,21 @@ import (
 )
 
 type Field interface {
-	// RenderHTML returns a string or template.HTML
+	// RenderHTML returns a string or template.HTML to be used in a html
+	// template.
 	RenderHTML() interface{}
-	// String returns a raw string representation
+	// String returns a raw string representation of the field.
 	String() string
+	// Load loads the field data (also see Dump).
 	Load(interface{}) error
+	// Dump dumps the field data.
+	//
+	// The dumped value must be something that can be marshalled into
+	// JSON by encoding/json.
 	Dump() interface{}
+	// Adds a form field to the node edit form.
 	ToFormField(form.Fields, util.NestedMap, *NodeField)
+	// Load values from the form submission
 	FromFormField(util.NestedMap, *NodeField)
 }
 
@@ -136,25 +144,57 @@ func (t DateTimeField) String() string {
 }
 
 func (t DateTimeField) RenderHTML() interface{} {
-	return t.Time.String()
+	if t.Time != nil {
+		return t.Time.String()
+	}
+	return ""
 }
 
 func (t *DateTimeField) Load(in interface{}) error {
-	val := time.Now()
-	t.Time = &val
+	date, ok := in.(string)
+	if !ok {
+		return fmt.Errorf("Data is not string")
+	}
+	if date == "" {
+		t.Time = nil
+	} else {
+		val, err := time.Parse(time.RFC3339, date)
+		if err != nil {
+			return fmt.Errorf("Could not parse the date value: %v", err)
+		}
+		t.Time = &val
+	}
 	return nil
 }
 
 func (t DateTimeField) Dump() interface{} {
-	return nil
+	if t.Time == nil {
+		return ""
+	} else {
+		return t.Time.Format(time.RFC3339)
+	}
 }
 
 func (t DateTimeField) ToFormField(fields form.Fields, data util.NestedMap,
 	field *NodeField) {
-
+	if t.Time != nil {
+		data.Set(field.Id+".Date", t.Time.Format("2.1.2006"))
+		data.Set(field.Id+".Time", t.Time.Format("15:04"))
+	} else {
+		data.Set(field.Id+".Date", "waz nil")
+		data.Set(field.Id+".Time", "waz nil")
+	}
+	fields["Fields."+field.Id+".Date"] = form.Field{
+		field.Name["en"] + "Date", "", form.Required("Required."), nil}
+	fields["Fields."+field.Id+".Time"] = form.Field{
+		field.Name["en"] + "Time", "", form.Required("Required."), nil}
 }
 
-func (t *DateTimeField) FromFormField(util.NestedMap, *NodeField) {
+func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
+	timeDate := data.Get(field.Id + ".Date").(string)
+	timeTime := data.Get(field.Id + ".Time").(string)
+	val, _ := time.Parse("2.1.2006T15:04", timeDate+"T"+timeTime)
+	t.Time = &val
 }
 
 type Node struct {
