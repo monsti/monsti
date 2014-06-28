@@ -1,8 +1,9 @@
 # Configuration for monsti-daemon.
 
 # Modules to be started.
-# monsti-daemon expects the module binaries to be in $PATH and named
+# Monsti expects the module binaries to be in $PATH and named
 # monsti-<modulename>, e.g. $PATH/monsti-my-addon
+# modules: [my-addon, another-addon]
 modules: []
 
 # Listen for HTTP connections on this address and port,
