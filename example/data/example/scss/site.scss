@@ -1,4 +1,14 @@
-@import "bourbon/bourbon";
+@import "compass";
+
+html {
+  font-family: sans-serif;
+}
+
+#site-wrap {
+  margin: 0 auto;
+  max-width: 800px;
+  padding: 0 20px;
+}
 
 #bottom-wrap {
   margin-top:3em;
@@ -12,14 +22,14 @@
   margin-top:3em;
 }
 
+
 #site-title a {
   display:block;
   width:301px;
   height:71px;
-  text-indent:-999999999em;
+  text-indent: -999999em;
   background:url("/static/img/logo.png");
 }
-
 
 #primary-nav {
   ul {
@@ -29,7 +39,25 @@
     @include box-shadow(0 0 2px 0 rgba(0,0,0,0.5));
   }
   a {
+    @include border-radius(5px);
+    color: #555;
     border-right:thin solid gray;
     border-left:thin solid white;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
+}
+
+h1, h2, h3, h4 {
+  color: #444;
+}
+
+strong, b {
+  color: #444;
+}
+
+a {
+  color: #DD8403;
 }
