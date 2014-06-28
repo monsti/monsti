@@ -235,6 +235,10 @@ func (n Node) GetField(id string) Field {
 	return n.Fields[id]
 }
 
+func (n Node) GetValue(id string) interface{} {
+	return n.Fields[id]
+}
+
 // PathToID returns an ID for the given node based on it's path.
 //
 // The ID is simply the path of the node with all slashes replaced by two
