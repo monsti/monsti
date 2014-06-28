@@ -48,7 +48,11 @@ func setup(t *testing.T) *Browser {
 			t.Fatal("Could not delete cookies: ", err)
 		}
 	}
-	return &Browser{wd}
+	b := &Browser{wd}
+	if err := b.Go(appURL); err != nil {
+		t.Fatal("Could not visit homepage: ", err)
+	}
+	return b
 }
 
 func (b *Browser) Quit() {
