@@ -489,7 +489,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					}
 				}
 			}
-			http.Redirect(c.Res, c.Req, node.Path, http.StatusSeeOther)
+			http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
 			return nil
 		}
 	default:
