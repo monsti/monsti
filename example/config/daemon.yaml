@@ -7,11 +7,14 @@ modules: []
 
 # Listen for HTTP connections on this address and port,
 # e.g. localhost:8080, :8080, yourdomain.com:80
+#
+# You should use a reverse proxy like Nginx and keep Monsti listening
+# only on localhost (i.e. the loopback interface).
 listen: localhost:8080
 
-
-mail: 
-    # SMTP settings for outgoing mail.
-    host: localhost
-    username: user
-    password: password
+# SMTP settings for outgoing mail.
+mail:
+  # host:port
+  host: localhost:25
+  #username: user
+  #password: password
