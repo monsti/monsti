@@ -111,28 +111,32 @@ func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
 type FileField string
 
 func (t FileField) String() string {
-	return string(t)
+	return "" //string(t)
 }
 
 func (t FileField) RenderHTML() interface{} {
-	return template.HTML(t)
+	return "" //template.HTML(t)
 }
 
 func (t *FileField) Load(in interface{}) error {
-	*t = FileField(in.(string))
+	//*t = FileField(in.(string))
 	return nil
 }
 
 func (t FileField) Dump() interface{} {
-	return nil
+	return ""
 }
 
 func (t FileField) ToFormField(fields form.Fields, data util.NestedMap,
 	field *NodeField) {
-
+	data.Set(field.Id, "")
+	fields["Fields."+field.Id] = form.Field{
+		field.Name["en"], "", nil, new(form.FileWidget)}
+	//field.Name["en"], "", form.Required("Required."), new(form.FileWidget)}
 }
 
-func (t *FileField) FromFormField(util.NestedMap, *NodeField) {
+func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
+	*t = FileField(data.Get(field.Id).(string))
 }
 
 type DateTimeField struct {

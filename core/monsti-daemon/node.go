@@ -448,6 +448,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
 		formData.Node.GetField(field.Id).ToFormField(formFields, formData.Fields, &field)
+		if field.Type == "File" {
+			fileFields = append(fileFields, field.Id)
+		}
 	}
 
 	form := form.NewForm(&formData, formFields)
@@ -473,17 +476,16 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 			if len(fileFields) > 0 && c.Req.MultipartForm != nil {
 				for _, name := range fileFields {
-					file, _, err := c.Req.FormFile("Node.Fields." + name)
-					if err != nil {
-						return fmt.Errorf("Could not get form file: %v", err)
-					}
-					content, err := ioutil.ReadAll(file)
-					if err != nil {
-						return fmt.Errorf("Could not read multipart file: %v", err)
-					}
-					if err = c.Serv.Monsti().WriteNodeData(c.Site.Name, node.Path,
-						"__file_"+name, content); err != nil {
-						return fmt.Errorf("Could not save file: %v", err)
+					file, _, err := c.Req.FormFile("Fields." + name)
+					if err == nil {
+						content, err := ioutil.ReadAll(file)
+						if err != nil {
+							return fmt.Errorf("Could not read multipart file: %v", err)
+						}
+						if err = c.Serv.Monsti().WriteNodeData(c.Site.Name, node.Path,
+							"__file_"+name, content); err != nil {
+							return fmt.Errorf("Could not save file: %v", err)
+						}
 					}
 				}
 			}
