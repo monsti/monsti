@@ -86,6 +86,11 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestPasswordEqual(t *testing.T) {
+	if !passwordEqual(
+		"$2a$10$1x90nccptYh/OtXQiFaom.xCisdPD7qCMoEcJa41XEnewk3NdMfGq",
+		"foobar") {
+		t.Errorf("passwordEqual is false for existing hash")
+	}
 	tests := []struct {
 		ToHash, Password string
 		Equal            bool
