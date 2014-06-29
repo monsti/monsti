@@ -2,28 +2,33 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
-	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
+
+	"code.google.com/p/go.crypto/bcrypt"
+	"code.google.com/p/gopass"
 )
 
+func error(args ...interface{}) {
+	fmt.Println(args...)
+	os.Exit(1)
+}
+
 func main() {
-	flag.Parse()
-	if flag.NArg() != 0 {
-		fmt.Println("%v does not expect any command line arguments")
-		os.Exit(1)
-	}
-	password, err := ioutil.ReadAll(os.Stdin)
+	password, err := gopass.GetPass("Enter password to be hashed: ")
 	if err != nil {
-		fmt.Println("Could not read password from standard input: %v", err)
-		os.Exit(1)
+		error("Could not read password:", err)
 	}
-	hash, err := bcrypt.GenerateFromPassword(password, 0)
+	confirmation, err := gopass.GetPass("Repeat password: ")
 	if err != nil {
-		fmt.Println("Could not hash password: %v", err)
-		os.Exit(1)
+		error("Could not read password:", err)
+	}
+	if password != confirmation {
+		error("Passwords do not match.")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 0)
+	if err != nil {
+		error("Could not hash password:", err)
 	}
 	fmt.Printf("%s\n", hash)
 }
