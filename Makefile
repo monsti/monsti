@@ -35,7 +35,7 @@ modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
 
 dist: monsti bcrypt
-	rm -R $(DIST_PATH)
+	rm -Rf $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/bin
 	cp go/bin/* $(DIST_PATH)/bin
 	mkdir -p $(DIST_PATH)/share
