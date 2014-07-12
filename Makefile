@@ -7,6 +7,8 @@ GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
 MODULES=daemon
 
+LOCALES=de
+
 VCS_REVISION:=$(shell git rev-list HEAD --count)
 VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')
 MONSTI_VERSION=0.7.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
@@ -129,3 +131,23 @@ dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
 	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
 	mv jquery-1.8.2.min.js static/js/jquery.min.js
+
+locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
+
+.PHONY: locale/monsti-daemon.pot
+locale/monsti-daemon.pot:
+	find templates/ core/ -name "*.html" -o -name "*.go"| xargs cat \
+	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
+	  | xgettext -d monsti-daemon -L C -p locale/ -kG -kGN:1,2 \
+	      -o monsti-daemon.pot -
+
+%.mo: %.po
+	  msgfmt -c -v -o $@ $<
+
+%.po: locale/monsti-daemon.pot
+	  msgmerge -s -U $@ $<
+
+doc: doc/manual.html doc/developer.html
+
+doc/%.html: doc/%.adoc
+	asciidoc $<

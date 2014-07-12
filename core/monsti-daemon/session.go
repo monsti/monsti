@@ -38,7 +38,7 @@ type loginFormData struct {
 
 // Login handles login requests.
 func (h *nodeHandler) Login(c *reqContext) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := loginFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),

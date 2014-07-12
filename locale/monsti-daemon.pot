@@ -1,0 +1,149 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-07-12 12:03+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: Standardeingabe:34
+msgid "Edit"
+msgstr ""
+
+#: Standardeingabe:37
+msgid "Add"
+msgstr ""
+
+#: Standardeingabe:40
+msgid "Remove"
+msgstr ""
+
+#: Standardeingabe:44
+msgid "Logout"
+msgstr ""
+
+#: Standardeingabe:73
+msgid "Submit"
+msgstr ""
+
+#: Standardeingabe:86
+msgid "Thanks for your message!"
+msgstr ""
+
+#: Standardeingabe:244
+msgid "WARNING: You are about to remove this content and all content below."
+msgstr ""
+
+#: Standardeingabe:245
+msgid "The removed content will be lost, so be careful!"
+msgstr ""
+
+#: Standardeingabe:249
+msgid "Proceed"
+msgstr ""
+
+#: Standardeingabe:250
+msgid "Abort"
+msgstr ""
+
+#: Standardeingabe:283
+msgid "No children found."
+msgstr ""
+
+#: Standardeingabe:331 Standardeingabe:363
+msgid "Login"
+msgstr ""
+
+#: Standardeingabe:331 Standardeingabe:333 Standardeingabe:2068
+#: Standardeingabe:2095 Standardeingabe:2346 Standardeingabe:2594
+#: Standardeingabe:2595 Standardeingabe:2596 Standardeingabe:2597
+msgid "Required."
+msgstr ""
+
+#: Standardeingabe:333
+msgid "Password"
+msgstr ""
+
+#: Standardeingabe:351
+msgid "Wrong login or password."
+msgstr ""
+
+#: Standardeingabe:364
+msgid "Login with your site account."
+msgstr ""
+
+#: Standardeingabe:2068
+msgid "Content type"
+msgstr ""
+
+#: Standardeingabe:2080
+msgid "Add content"
+msgstr ""
+
+#: Standardeingabe:2095
+msgid "Confirm"
+msgstr ""
+
+#: Standardeingabe:2121
+msgid "Remove \"%v\""
+msgstr ""
+
+#: Standardeingabe:2321
+msgid "Add %q to \"%s\""
+msgstr ""
+
+#: Standardeingabe:2323
+#, c-format
+msgid "Edit \"%s\""
+msgstr ""
+
+#: Standardeingabe:2340
+msgid "Hide"
+msgstr ""
+
+#: Standardeingabe:2340
+msgid "Don't show node in navigation."
+msgstr ""
+
+#: Standardeingabe:2342
+msgid "Order"
+msgstr ""
+
+#: Standardeingabe:2342
+msgid "Order in navigation (lower numbered entries appear first)."
+msgstr ""
+
+#: Standardeingabe:2345 Standardeingabe:2594
+msgid "Name"
+msgstr ""
+
+#: Standardeingabe:2345
+msgid "The name as it should appear in the URL."
+msgstr ""
+
+#: Standardeingabe:2347
+msgid "Contains\tinvalid characters."
+msgstr ""
+
+#: Standardeingabe:2595
+msgid "Email"
+msgstr ""
+
+#: Standardeingabe:2596
+msgid "Subject"
+msgstr ""
+
+#: Standardeingabe:2597
+msgid "Message"
+msgstr ""

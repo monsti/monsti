@@ -1,4 +1,9 @@
-= Monsti Manual
+= Monsti User Manual
+:imagesdir: static/img
+:data-uri:
+:icons:
+:toc:
+:homepage: http://www.monsti.org
 
 == Core Node Types
 
@@ -19,7 +24,7 @@ register your allowed image sizes in
 `<config_dir>/sites/<your_site>/image.json`.
 
 .Example for image sizes "thumbnail" (200x100) and "icon" (20x20)
-[source,json]
+[source,javascript]
 ----
 {
   "sizes": {

@@ -13,7 +13,7 @@ Features
  - Low armortized (i.e. for many hosted sites) resource usage
  - No database required; configuration and data is stored in human
    readable files
- - Internationalization ready
+ - Internationalization ready (Included languages: de, en)
  - Simple web frontend
  - Separation of code, configuration and presentation
  - Developer friendly: Includes a HTTPd; Go templates; use

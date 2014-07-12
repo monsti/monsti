@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.9" />
-<title>Monsti User Manual</title>
+<title>Monsti Developer Manual</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -733,7 +733,7 @@ asciidoc.install(2);
 </head>
 <body class="article">
 <div id="header">
-<h1>Monsti User Manual</h1>
+<h1>Monsti Developer Manual</h1>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -741,37 +741,161 @@ asciidoc.install(2);
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_core_node_types">Core Node Types</h2>
+<h2 id="_bulding_monsti">Bulding Monsti</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_image">Image</h3>
-<div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
-site. As the File node type, the raw content (i.e. the image itself)
-can be accessed via the node&#8217;s path without trailing slash.</p></div>
-<div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
-can be access via <code>/foo/my_image.jpeg</code>.</p></div>
-<div class="sect3">
-<h4 id="_automatic_resizing">Automatic resizing</h4>
-<div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
-register your allowed image sizes in
-<code>&lt;config_dir&gt;/sites/&lt;your_site&gt;/image.json</code>.</p></div>
-<div class="listingblock">
-<div class="title">Example for image sizes "thumbnail" (200x100) and "icon" (20x20)</div>
-<div class="content"><!-- Generator: GNU source-highlight 3.1.7
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span>
-  <span style="color: #FF0000">"sizes"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span>
-    <span style="color: #FF0000">"thumbnail"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">200</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">100</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-    <span style="color: #FF0000">"icon"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">20</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">20</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-  <span style="color: #FF0000">}</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
-<div class="paragraph"><p>To access these sizes, add <code>?size=&lt;size_name&gt;</code> to the image URL,
-e.g. <code>/foo/my_image.jpeg?size=thumbnail</code>.</p></div>
-<div class="paragraph"><p>Monsti will generate the specified size if it has not been generated
-before and saves it in the node&#8217;s directory.</p></div>
+<h3 id="_get_monsti">Get Monsti</h3>
+<div class="paragraph"><p>Get the latest sources:<br />
+<a href="https://gitorious.org/monsti/monsti/">https://gitorious.org/monsti/monsti/</a></p></div>
 </div>
+<div class="sect2">
+<h3 id="_dependencies">Dependencies</h3>
+<div class="ulist"><ul>
+<li>
+<p>
+make
+</p>
+</li>
+<li>
+<p>
+C compiler, pkg-config
+</p>
+</li>
+<li>
+<p>
+Git, Bazaar, Mercurial (to fetch Go packages)
+</p>
+</li>
+<li>
+<p>
+MagickCore library and development files
+</p>
+</li>
+<li>
+<p>
+Latest Go compiler and tools
+</p>
+</li>
+</ul></div>
+</div>
+<div class="sect2">
+<h3 id="_build">Build</h3>
+<div class="paragraph"><p><code>$ make</code></p></div>
+</div>
+<div class="sect2">
+<h3 id="_tests">Tests</h3>
+<div class="paragraph"><p><code>$ make test</code></p></div>
+<div class="paragraph"><p>For Selenium tests, have a look at <code>tests/README</code></p></div>
+</div>
+<div class="sect2">
+<h3 id="_run">Run</h3>
+<div class="paragraph"><p><code>$ go/bin/monsti-daemon &lt;configuration directory&gt;</code></p></div>
+<div class="paragraph"><p>To run the example site, go to the example site directory (example/)
+and run the start script:<br />
+<code>$ ./start.sh</code><br />
+Monsti will be listening on <a href="http://localhost:8080">http://localhost:8080</a></p></div>
+</div>
+<div class="sect2">
+<h3 id="_deployment">Deployment</h3>
+<div class="paragraph"><p>Create packages to deploy (if you like):</p></div>
+<div class="paragraph"><p>tar:<br />
+<code>$ make dist</code></p></div>
+<div class="paragraph"><p>Debian archive (using <a href="https://github.com/jordansissel/fpm">fpm</a>):<br />
+<code>$ make dist-deb</code></p></div>
+</div>
+<div class="sect2">
+<h3 id="_documentation">Documentation</h3>
+<div class="paragraph"><p>Makefile rule: <code>doc</code></p></div>
+<div class="paragraph"><p>You will need following tools to build the documentation:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+<a href="http://www.methods.co.nz/asciidoc/">AsciiDoc</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.gnu.org/software/src-highlite/">source-highlight</a>
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_translating_monsti">Translating Monsti</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Monsti uses <a href="https://www.gnu.org/software/gettext/">gettext</a> to
+translate it&#8217;s web interface. An exception are node type names and
+descriptions, which are translated in their configuration files.</p></div>
+<div class="paragraph"><p>You can find the gettext files below <code>locale/</code> in the project&#8217;s root
+directory. Also have a look at the <code>locales</code> rule in the Makefile.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Tip" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="title">Tips for beginners</div>Use the <a href="http://littlesvr.ca/ostd/translatepot.php">Open Source
+Translation Database</a> if you want to create a new basic
+translation. After that, you can use a user friendly tool like
+<a href="https://wiki.gnome.org/Apps/Gtranslator">Gtranslator</a> to tweak the
+translation.
+You will need the file <code>locale/monsti-daemon.pot</code> and
+produce a file <code>monsti-daemon.po</code>, wich will be placed into
+<code>locale/&lt;language_code&gt;/LC_MESSAGES/</code>. You will find any existing
+translations in this directory.
+To help improving an existing translation, get in touch with the
+author(s) of the translation (the authors are noted in the <code>.po</code> files).</td>
+</tr></table>
 </div>
 </div>
 </div>
@@ -779,7 +903,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-12 10:40:41 CEST
+Last updated 2014-07-12 10:43:28 CEST
 </div>
 </div>
 </body>

@@ -161,7 +161,7 @@ type addFormData struct {
 
 // Add handles add requests.
 func (h *nodeHandler) Add(c *reqContext) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := addFormData{New: "1"}
 	nodeTypeOptions := []form.Option{}
 	nodeTypes, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site.Name,
@@ -199,7 +199,7 @@ type removeFormData struct {
 
 // Remove handles remove requests.
 func (h *nodeHandler) Remove(c *reqContext) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := removeFormData{}
 	form := form.NewForm(&data, form.Fields{
 		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),
@@ -391,7 +391,7 @@ type editFormData struct {
 
 // EditNode handles node edits.
 func (h *nodeHandler) Edit(c *reqContext) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("monsti-httpd", c.UserSession.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	if err := c.Req.ParseMultipartForm(1024 * 1024); err != nil {
@@ -447,7 +447,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
-		formData.Node.GetField(field.Id).ToFormField(formFields, formData.Fields, &field)
+		formData.Node.GetField(field.Id).ToFormField(formFields, formData.Fields,
+			&field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)
 		}

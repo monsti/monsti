@@ -1,0 +1,84 @@
+= Monsti Developer Manual
+:imagesdir: static/img
+:data-uri:
+:icons:
+:toc:
+:homepage: http://www.monsti.org
+
+== Bulding Monsti
+
+=== Get Monsti
+
+Get the latest sources: +
+https://gitorious.org/monsti/monsti/
+
+=== Dependencies
+
+- make
+- C compiler, pkg-config
+- Git, Bazaar, Mercurial (to fetch Go packages)
+- MagickCore library and development files
+- Latest Go compiler and tools
+
+
+=== Build
+
+`$ make`
+
+
+=== Tests
+
+`$ make test`
+
+For Selenium tests, have a look at `tests/README`
+
+=== Run
+
+`$ go/bin/monsti-daemon <configuration directory>`
+
+To run the example site, go to the example site directory (example/)
+and run the start script: +
+`$ ./start.sh` +
+Monsti will be listening on http://localhost:8080
+
+=== Deployment
+
+Create packages to deploy (if you like):
+
+tar: +
+`$ make dist`
+
+Debian archive (using https://github.com/jordansissel/fpm[fpm]): +
+`$ make dist-deb`
+
+=== Documentation
+
+Makefile rule: `doc`
+
+You will need following tools to build the documentation:
+
+- http://www.methods.co.nz/asciidoc/[AsciiDoc]
+- http://www.gnu.org/software/src-highlite/[source-highlight]
+
+== Translating Monsti
+
+Monsti uses https://www.gnu.org/software/gettext/[gettext] to
+translate it's web interface. An exception are node type names and
+descriptions, which are translated in their configuration files.
+
+You can find the gettext files below `locale/` in the project's root
+directory. Also have a look at the `locales` rule in the Makefile.
+
+.Tips for beginners
+[TIP]
+Use the http://littlesvr.ca/ostd/translatepot.php[Open Source
+Translation Database] if you want to create a new basic
+translation. After that, you can use a user friendly tool like
+https://wiki.gnome.org/Apps/Gtranslator[Gtranslator] to tweak the
+translation.
+You will need the file `locale/monsti-daemon.pot` and
+produce a file `monsti-daemon.po`, wich will be placed into
+`locale/<language_code>/LC_MESSAGES/`. You will find any existing
+translations in this directory.
+To help improving an existing translation, get in touch with the
+author(s) of the translation (the authors are noted in the `.po` files).
