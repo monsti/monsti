@@ -121,6 +121,9 @@ func loadSiteSettings(sitesDir string) (map[string]SiteSettings, error) {
 			return nil, fmt.Errorf("Could not load settings for site %q: %v",
 				siteName, err)
 		}
+		if len(siteSettings.Locale) == 0 {
+			siteSettings.Locale = "en"
+		}
 		sites[siteName] = siteSettings
 	}
 	return sites, nil

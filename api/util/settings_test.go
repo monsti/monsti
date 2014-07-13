@@ -57,6 +57,9 @@ title: "Linked Example Site"
 		t.Errorf("settings.Sites[\"Example\"] should be "+
 			`"Monsti CMS Example Site", but is %q`, entry.Title)
 	}
+	if entry.Locale != "en" {
+		t.Errorf(`Default locale is not "en"`)
+	}
 	if len(entry.Hosts) != 1 || entry.Hosts[0] != "localhost:8080" {
 		entry := sites["example"]
 		if entry.Title != "Monsti CMS Example Site" {
