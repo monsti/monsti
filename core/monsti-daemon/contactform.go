@@ -35,11 +35,11 @@ func renderContactForm(c *reqContext, context template.Context,
 	h *nodeHandler) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.Site.Locale)
 	data := contactFormData{}
-	form := form.NewForm(&data, form.Fields{
-		"Name":    form.Field{G("Name"), "", form.Required(G("Required.")), nil},
-		"Email":   form.Field{G("Email"), "", form.Required(G("Required.")), nil},
-		"Subject": form.Field{G("Subject"), "", form.Required(G("Required.")), nil},
-		"Message": form.Field{G("Message"), "", form.Required(G("Required.")),
+	form := form.NewForm(&data, []form.Field{
+		form.Field{"Name", G("Name"), "", form.Required(G("Required.")), nil},
+		form.Field{"Email", G("Email"), "", form.Required(G("Required.")), nil},
+		form.Field{"Subject", G("Subject"), "", form.Required(G("Required.")), nil},
+		form.Field{"Message", G("Message"), "", form.Required(G("Required.")),
 			new(form.TextArea)}})
 	switch c.Req.Method {
 	case "GET":

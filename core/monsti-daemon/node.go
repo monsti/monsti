@@ -174,10 +174,10 @@ func (h *nodeHandler) Add(c *reqContext) error {
 			form.Option{nodeType, nodeType})
 	}
 	selectWidget := form.SelectWidget{nodeTypeOptions}
-	form := form.NewForm(&data, form.Fields{
-		"NodeType": form.Field{G("Content type"), "", form.Required(G("Required.")),
+	form := form.NewForm(&data, []form.Field{
+		form.Field{"NodeType", G("Content type"), "", form.Required(G("Required.")),
 			selectWidget},
-		"New": form.Field{"", "", nil, new(form.HiddenWidget)},
+		form.Field{"New", "", "", nil, new(form.HiddenWidget)},
 	})
 	form.Action = path.Join(c.Node.Path, "@@edit")
 	body, err := h.Renderer.Render("actions/addform", mtemplate.Context{
@@ -201,8 +201,8 @@ type removeFormData struct {
 func (h *nodeHandler) Remove(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := removeFormData{}
-	form := form.NewForm(&data, form.Fields{
-		"Confirm": form.Field{G("Confirm"), "", form.Required(G("Required.")),
+	form := form.NewForm(&data, []form.Field{
+		form.Field{"Confirm", G("Confirm"), "", form.Required(G("Required.")),
 			new(form.HiddenWidget)}})
 	switch c.Req.Method {
 	case "GET":
@@ -432,22 +432,23 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	} else {
 		formData.Node = *c.Node
 	}
-	formFields := make(form.Fields)
-	formFields["NodeType"] = form.Field{"", "", nil, new(form.HiddenWidget)}
-	formFields["Node.Hide"] = form.Field{
-		G("Hide"), G("Don't show node in navigation."), nil, nil}
-	formFields["Node.Order"] = form.Field{
-		G("Order"), G("Order in navigation (lower numbered entries appear first)."), nil, nil}
+	formFields := []form.Field{
+		form.Field{"NodeType", "", "", nil, new(form.HiddenWidget)},
+		form.Field{"Node.Hide",
+			G("Hide"), G("Don't show node in navigation."), nil, nil},
+		form.Field{"Node.Order",
+			G("Order"), G("Order in navigation (lower numbered entries appear first)."), nil, nil},
+	}
 	if newNode {
-		formFields["Name"] = form.Field{
+		formFields = append(formFields, form.Field{"Name",
 			G("Name"), G("The name as it should appear in the URL."),
 			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
-				G("Contains	invalid characters."))), nil}
+				G("Contains	invalid characters."))), nil})
 	}
 
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
-		formData.Node.GetField(field.Id).ToFormField(formFields, formData.Fields,
+		formData.Node.GetField(field.Id).ToFormField(&formFields, formData.Fields,
 			&field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)

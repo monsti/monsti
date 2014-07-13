@@ -40,10 +40,10 @@ type loginFormData struct {
 func (h *nodeHandler) Login(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := loginFormData{}
-	form := form.NewForm(&data, form.Fields{
-		"Login": form.Field{G("Login"), "", form.Required(G("Required.")),
+	form := form.NewForm(&data, []form.Field{
+		form.Field{"Login", G("Login"), "", form.Required(G("Required.")),
 			nil},
-		"Password": form.Field{G("Password"), "", form.Required(G("Required.")),
+		form.Field{"Password", G("Password"), "", form.Required(G("Required.")),
 			new(form.PasswordWidget)}})
 	switch c.Req.Method {
 	case "GET":
