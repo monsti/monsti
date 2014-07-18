@@ -60,6 +60,36 @@ You will need following tools to build the documentation:
 - http://www.methods.co.nz/asciidoc/[AsciiDoc]
 - http://www.gnu.org/software/src-highlite/[source-highlight]
 
+== Node types
+
+=== Modifying node types
+
+You have to be careful if you want to modify node types which have
+existing instances in one of your Monsti sites.
+
+WARNING: Keep a backup of the sites' node data before changing node
+types!
+
+Never change the namespace or id, as this basically removes the old
+and creates a new node type. If you really want to do this, you have
+to change the namespace or type id of the existing instances as well.
+
+It's no problem to change the name of the node types (or fields) or
+add or remove translations of them.
+
+If one of the field ids is changed, it's the same as removing the old
+and creating a new field.
+
+You may add and remove new fields at any time, the node type instances
+will get fixed the next time you save the instance. Existing data of
+removed fields will get purged.
+
+Don't change the types of the fields without changing the id if you're
+not sure if the field types are compatible. This will result in
+undefined behaviour. If you want to keep the id you could remove the
+old field data before adding the new field.
+
+
 == Translating Monsti
 
 Monsti uses https://www.gnu.org/software/gettext/[gettext] to

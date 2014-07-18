@@ -80,7 +80,9 @@ type nodeJSON struct {
 }
 
 // dataToNode unmarshals given data
-func dataToNode(data []byte, s *MonstiClient) (*Node, error) {
+func dataToNode(data []byte,
+	getNodeType func(id string) (*NodeType, error)) (
+	*Node, error) {
 	if len(data) == 0 {
 		return nil, nil
 	}
@@ -91,8 +93,7 @@ func dataToNode(data []byte, s *MonstiClient) (*Node, error) {
 			"service: Could not unmarshal node: %v", err)
 	}
 	ret := node.Node
-
-	ret.Type, err = s.GetNodeType(node.Type)
+	ret.Type, err = getNodeType(node.Type)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get node type %q: %v",
 			node.Type)
@@ -100,7 +101,10 @@ func dataToNode(data []byte, s *MonstiClient) (*Node, error) {
 
 	ret.InitFields()
 	for _, field := range ret.Type.Fields {
-		ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
+		value := node.Fields.Get(field.Id)
+		if value != nil {
+			ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
+		}
 	}
 	return &ret, nil
 }
@@ -118,7 +122,7 @@ func (s *MonstiClient) GetNode(site, path string) (*Node, error) {
 	if err != nil {
 		return nil, fmt.Errorf("service: GetNode error: %v", err)
 	}
-	node, err := dataToNode(reply, s)
+	node, err := dataToNode(reply, s.GetNodeType)
 	if err != nil {
 		return nil, fmt.Errorf("service: Could not convert node: %v", err)
 	}
@@ -138,7 +142,8 @@ func (s *MonstiClient) GetChildren(site, path string) ([]*Node, error) {
 	}
 	nodes := make([]*Node, 0, len(reply))
 	for _, entry := range reply {
-		node, err := dataToNode(entry, s)
+
+		node, err := dataToNode(entry, s.GetNodeType)
 		if err != nil {
 			return nil, fmt.Errorf("service: Could not convert node: %v", err)
 		}

@@ -36,3 +36,20 @@ func TestNodeName(t *testing.T) {
 		}
 	}
 }
+
+func TestFields(t *testing.T) {
+	fields := []Field{
+		new(TextField),
+		new(HTMLField),
+		new(FileField),
+		new(DateTimeField),
+	}
+	for _, field := range fields {
+		out := field.Dump()
+		field.Load(out)
+		out2 := field.Dump()
+		if out != out2 {
+			t.Errorf("Dump/Load/Dump: %q != %q", out, out2)
+		}
+	}
+}
