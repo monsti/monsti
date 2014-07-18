@@ -41,6 +41,38 @@ func TestGetConfig(t *testing.T) {
 	}
 }
 
+func TestDataToNode(t *testing.T) {
+	nodeType := NodeType{
+		Id:   "foo.Bar",
+		Name: map[string]string{"en": "A Bar"},
+		Fields: []NodeField{
+			{"foo.FooField", map[string]string{"en": "A FooField"}, false, "Text"},
+			{"foo.BarField", map[string]string{"en": "A BarField"}, false, "Text"},
+		},
+		Embed: nil}
+	data := []byte(`
+{ "Type": "foo.Bar",
+  "Fields": {
+    "foo": {
+      "FooField": "Foo Value"
+    }
+  }
+}`)
+	getNodeType := func(id string) (*NodeType, error) { return &nodeType, nil }
+	node, err := dataToNode(data, getNodeType)
+	if err != nil {
+		t.Fatalf("dataToNode returns error: %v", err)
+	}
+	ret := node.GetField("foo.FooField").String()
+	if ret != "Foo Value" {
+		t.Errorf(`node.GetField(foo.FooField) = %q, should be "Foo Value"`, ret)
+	}
+	ret = node.GetField("foo.BarField").String()
+	if ret != "" {
+		t.Errorf(`node.GetField(foo.BarField) = %q, should be ""`, ret)
+	}
+}
+
 /*
 func TestNodeToData(t *testing.T) {
 	tests := []struct {
