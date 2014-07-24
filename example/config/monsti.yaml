@@ -9,3 +9,5 @@ directories:
   data: ../data
   # Run time data like process ids or socket files.
   run: ../run
+  # Locale directory
+  locale: ../../locale

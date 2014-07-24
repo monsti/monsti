@@ -62,6 +62,7 @@ dist-deb: monsti bcrypt
 	mkdir -p $(DIST_PATH)/usr/share/monsti
 	cp -RL static templates $(DIST_PATH)/usr/share/monsti
 	cp -RL locale $(DIST_PATH)/usr/share
+	find $(DIST_PATH)/usr/share/locale/ -not -name "*.mo" -exec rm {} \;
 	rm -f $(DIST_PATH)/usr/share/locale/*.pot
 	mkdir -p $(DIST_PATH)/usr/share/doc/monsti/examples
 	cp example/start.sh $(DIST_PATH)/usr/share/doc/monsti/examples

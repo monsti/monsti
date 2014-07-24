@@ -40,6 +40,8 @@ type MonstiSettings struct {
 		Data string
 		// Shared data directory
 		Share string
+		// Locale directory
+		Locale string
 		// Runtime data directory
 		Run string
 	}
@@ -58,11 +60,6 @@ func (s MonstiSettings) GetServicePath(service string) string {
 // directory.
 func (s MonstiSettings) GetSiteConfigPath(site string) string {
 	return filepath.Join(s.Directories.Config, "sites", site)
-}
-
-// GetLocalePath returns the path to the locale directory.
-func (s MonstiSettings) GetLocalePath() string {
-	return filepath.Join(s.Directories.Share, "locale")
 }
 
 // GetSiteNodesPath returns the path to the given site's node directory.
@@ -178,6 +175,7 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 	monstiValue.Directories.Config = cfgPath
 	MakeAbsolute(&monstiValue.Directories.Data, cfgPath)
 	MakeAbsolute(&monstiValue.Directories.Share, cfgPath)
+	MakeAbsolute(&monstiValue.Directories.Locale, cfgPath)
 	MakeAbsolute(&monstiValue.Directories.Run, cfgPath)
 	return nil
 }

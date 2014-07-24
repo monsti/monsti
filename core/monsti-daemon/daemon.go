@@ -109,7 +109,7 @@ func main() {
 	}
 
 	gettext.DefaultLocales.Domain = "monsti-daemon"
-	gettext.DefaultLocales.LocaleDir = settings.Monsti.GetLocalePath()
+	gettext.DefaultLocales.LocaleDir = settings.Monsti.Directories.Locale
 
 	var waitGroup sync.WaitGroup
 

@@ -5,6 +5,24 @@
 :toc:
 :homepage: http://www.monsti.org
 
+== Configuration
+
+=== `monsti.yaml`
+
+This file contains common Monsti settings used by all modules.
+
+----
+include::../example/config/monsti.yaml[]
+----
+
+=== `daemon.yaml`
+
+The master daemon's (`monsti-daemon`) configuration.
+
+----
+include::../example/config/daemon.yaml[]
+----
+
 == Core Node Types
 
 === Image

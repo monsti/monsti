@@ -741,6 +741,59 @@ asciidoc.install(2);
 </div>
 <div id="content">
 <div class="sect1">
+<h2 id="_configuration">Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_code_monsti_yaml_code"><code>monsti.yaml</code></h3>
+<div class="paragraph"><p>This file contains common Monsti settings used by all modules.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code># Main configuration used by all modules.
+
+# Common directories. Specify absolute or configuration directory relative paths.
+directories:
+  # Files used by all sites like Monsti's default templates, locales, and
+  # static web files.
+  share: ../share
+  # Site specific data like node content, stylesheets, and custom templates.
+  data: ../data
+  # Run time data like process ids or socket files.
+  run: ../run
+  # Locale directory
+  locale: ../../locale</code></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_code_daemon_yaml_code"><code>daemon.yaml</code></h3>
+<div class="paragraph"><p>The master daemon&#8217;s (<code>monsti-daemon</code>) configuration.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code># Configuration for monsti-daemon.
+
+# Modules to be started.
+# Monsti expects the module binaries to be in $PATH and named
+# monsti-&lt;modulename&gt;, e.g. $PATH/monsti-my-addon
+# modules: [my-addon, another-addon]
+modules: []
+
+# Listen for HTTP connections on this address and port,
+# e.g. localhost:8080, :8080, yourdomain.com:80
+#
+# You should use a reverse proxy like Nginx and keep Monsti listening
+# only on localhost (i.e. the loopback interface).
+listen: localhost:8080
+
+# SMTP settings for outgoing mail.
+mail:
+  # host:port
+  host: localhost:25
+  #username: user
+  #password: password</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_core_node_types">Core Node Types</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -779,7 +832,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-12 10:40:41 CEST
+Last updated 2014-07-24 13:21:02 CEST
 </div>
 </div>
 </body>
