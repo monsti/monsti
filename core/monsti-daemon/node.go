@@ -59,6 +59,15 @@ func (n *navigation) Swap(i, j int) {
 	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
 }
 
+// getNodeTitle tries to get a title of a node
+func getNodeTitle(node *service.Node) string {
+	title := "Untitled"
+	if node.Fields["core.Title"] != nil {
+		title = node.Fields["core.Title"].String()
+	}
+	return title
+}
+
 type getNodeFunc func(path string) (*service.Node, error)
 type getChildrenFunc func(path string) ([]*service.Node, error)
 
@@ -69,6 +78,7 @@ type getChildrenFunc func(path string) ([]*service.Node, error)
 func getNav(nodePath, active string,
 	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
 	navLinks navigation, err error) {
+
 	// Search children
 	children, err := getChildrenFn(nodePath)
 	if err != nil {
@@ -79,12 +89,8 @@ func getNav(nodePath, active string,
 		if child.Hide {
 			continue
 		}
-		title := "Untitled"
-		if child.Fields["core.Title"] != nil {
-			title = child.Fields["core.Title"].String()
-		}
 		childrenNavLinks = append(childrenNavLinks, navLink{
-			Name:   title,
+			Name:   getNodeTitle(child),
 			Target: path.Join(nodePath, child.Name()),
 			Child:  true, Order: child.Order})
 	}
@@ -103,7 +109,7 @@ func getNav(nodePath, active string,
 			return nil, fmt.Errorf("Could not get node: %v", err)
 		}
 		siblingsNavLinks = append(siblingsNavLinks, navLink{
-			Name:   node.Fields["core.Title"].String(),
+			Name:   getNodeTitle(node),
 			Target: nodePath, Order: node.Order})
 	} else if nodePath != "/" {
 		parent := path.Dir(nodePath)
@@ -116,7 +122,7 @@ func getNav(nodePath, active string,
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
-				Name:   sibling.Fields["core.Title"].String(),
+				Name:   getNodeTitle(sibling),
 				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
 		}
 	}
