@@ -17,42 +17,40 @@
 package main
 
 import (
+	"path"
 	"reflect"
 	"testing"
+
+	"pkg.monsti.org/monsti/api/service"
 )
 
-/*
 func TestGetNav(t *testing.T) {
 	nodes := map[string]struct {
-		Node     service.NodeFields
+		Node     service.Node
 		Children []string
 	}{
-		"/": {service.NodeFields{Title: "Root"},
-			[]string{"foo", "bar", "hideme", "cruz"}},
-		"/foo": {service.NodeFields{Title: "Node Foo", ShortTitle: "Foo"},
-			[]string{"child1", "child2"}},
+		"/": {
+			Children: []string{"foo", "bar", "hideme", "cruz"}},
+		"/foo": {
+			Children: []string{"child1", "child2"}},
 		"/foo/child1": {
-			service.NodeFields{Title: "Node Foo Child 1",
-				ShortTitle: "Foo Child 1"}, []string{}},
+			Children: []string{}},
 		"/foo/child2": {
-			service.NodeFields{Title: "Node Foo Child 2",
-				ShortTitle: "Foo Child 2"}, []string{"child1"}},
+			Children: []string{"child1"}},
 		"/foo/child2/child1": {
-			service.NodeFields{Title: "Node Foo Child 2 Child 1",
-				ShortTitle: "Foo Child 2 Child 1"}, []string{}},
+			Children: []string{}},
 		"/bar": {
-			service.NodeFields{Title: "Node Bar", Order: 2,
-				ShortTitle: "Bar"}, []string{}},
+			Node:     service.Node{Order: 2},
+			Children: []string{}},
 		"/hideme": {
-			service.NodeFields{Title: "Node Hide me!", Hide: true,
-				ShortTitle: "Hide me!"}, []string{}},
+			Node:     service.Node{Hide: true},
+			Children: []string{}},
 		"/cruz": {
-			service.NodeFields{Title: "Node Cruz", Order: -2,
-				ShortTitle: "Cruz"}, []string{"child1"}},
+			Node:     service.Node{Order: -2},
+			Children: []string{"child1"}},
 		"/cruz/child1": {
-			service.NodeFields{Title: "Node Cruz Child 1",
-				ShortTitle: "Cruz Child 1"}, []string{}}}
-	getNodeFn := func(nodePath string) (*service.NodeFields, error) {
+			Children: []string{}}}
+	getNodeFn := func(nodePath string) (*service.Node, error) {
 		if val, ok := nodes[nodePath]; ok {
 			val.Node.Path = nodePath
 			return &val.Node, nil
@@ -61,8 +59,8 @@ func TestGetNav(t *testing.T) {
 		}
 		return nil, nil
 	}
-	getChildrenFn := func(nodePath string) ([]*service.NodeFields, error) {
-		children := make([]*service.NodeFields, 0)
+	getChildrenFn := func(nodePath string) ([]*service.Node, error) {
+		children := make([]*service.Node, 0)
 		for _, child := range nodes[nodePath].Children {
 			node, _ := getNodeFn(path.Join(nodePath, child))
 			children = append(children, node)
@@ -74,34 +72,37 @@ func TestGetNav(t *testing.T) {
 		Expected     navigation
 	}{
 		{"/", "/", navigation{
-			{Name: "Cruz", Target: "/cruz", Child: true, Order: -2},
-			{Name: "Foo", Target: "/foo", Child: true},
-			{Name: "Bar", Target: "/bar", Child: true, Order: 2}}},
+			{Target: "/cruz", Child: true, Order: -2},
+			{Target: "/foo", Child: true},
+			{Target: "/bar", Child: true, Order: 2}}},
 		{"/", "/foo/child1/child2", navigation{
-			{Name: "Cruz", Target: "/cruz", Child: true, Order: -2},
-			{Name: "Foo", Target: "/foo", Child: true, Active: true},
-			{Name: "Bar", Target: "/bar", Child: true, Order: 2}}},
+			{Target: "/cruz", Child: true, Order: -2},
+			{Target: "/foo", Child: true, Active: true},
+			{Target: "/bar", Child: true, Order: 2}}},
 		{"/foo", "/foo", navigation{
-			{Name: "Foo", Target: "/foo", Active: true},
-			{Name: "Foo Child 1", Target: "/foo/child1", Child: true},
-			{Name: "Foo Child 2", Target: "/foo/child2", Child: true}}},
+			{Target: "/foo", Active: true},
+			{Target: "/foo/child1", Child: true},
+			{Target: "/foo/child2", Child: true}}},
 		{"/foo/child1", "/foo/child1", navigation{
-			{Name: "Foo", Target: "/foo"},
-			{Name: "Foo Child 1", Target: "/foo/child1", Child: true, Active: true},
-			{Name: "Foo Child 2", Target: "/foo/child2", Child: true}}},
+			{Target: "/foo"},
+			{Target: "/foo/child1", Child: true, Active: true},
+			{Target: "/foo/child2", Child: true}}},
 		{"/foo/child2", "/foo/child2", navigation{
-			{Name: "Foo Child 1", Target: "/foo/child1"},
-			{Name: "Foo Child 2", Target: "/foo/child2", Active: true},
-			{Name: "Foo Child 2 Child 1", Target: "/foo/child2/child1", Child: true}}},
+			{Target: "/foo/child1"},
+			{Target: "/foo/child2", Active: true},
+			{Target: "/foo/child2/child1", Child: true}}},
 		{"/foo/child2/child1", "/foo/child2/child1", navigation{
-			{Name: "Foo Child 1", Target: "/foo/child1"},
-			{Name: "Foo Child 2", Target: "/foo/child2"},
-			{Name: "Foo Child 2 Child 1", Target: "/foo/child2/child1", Active: true, Child: true}}},
+			{Target: "/foo/child1"},
+			{Target: "/foo/child2"},
+			{Target: "/foo/child2/child1", Active: true, Child: true}}},
 		{"/bar", "/bar", navigation{}},
 		{"/cruz", "/cruz", navigation{
-			{Name: "Cruz", Target: "/cruz", Active: true, Order: -2},
-			{Name: "Cruz Child 1", Target: "/cruz/child1", Child: true}}}}
+			{Target: "/cruz", Active: true, Order: -2},
+			{Target: "/cruz/child1", Child: true}}}}
 	for _, test := range tests {
+		for i, _ := range test.Expected {
+			test.Expected[i].Name = "Untitled"
+		}
 		ret, err := getNav(test.Path, test.Active, getNodeFn, getChildrenFn)
 		if err != nil || !(len(ret) == 0 && len(test.Expected) == 0 || reflect.DeepEqual(ret, test.Expected)) {
 			t.Errorf(`getNav(%q, %q, _) = %v, %v, should be %v, nil`,
@@ -109,7 +110,6 @@ func TestGetNav(t *testing.T) {
 		}
 	}
 }
-*/
 
 func TestNavigationMakeAbsolute(t *testing.T) {
 	nav := navigation{
