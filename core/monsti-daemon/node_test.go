@@ -72,19 +72,21 @@ func TestGetNav(t *testing.T) {
 		Expected     navigation
 	}{
 		{"/", "/", navigation{
+			{Target: "/", Child: false, Active: true},
 			{Target: "/cruz", Child: true, Order: -2},
 			{Target: "/foo", Child: true},
 			{Target: "/bar", Child: true, Order: 2}}},
-		{"/", "/foo/child1/child2", navigation{
+		{"/", "/foo/child2/child1", navigation{
+			{Target: "/", Child: false, Active: false, ActiveBelow: true},
 			{Target: "/cruz", Child: true, Order: -2},
-			{Target: "/foo", Child: true, Active: true},
+			{Target: "/foo", Child: true, ActiveBelow: true},
 			{Target: "/bar", Child: true, Order: 2}}},
 		{"/foo", "/foo", navigation{
 			{Target: "/foo", Active: true},
 			{Target: "/foo/child1", Child: true},
 			{Target: "/foo/child2", Child: true}}},
 		{"/foo/child1", "/foo/child1", navigation{
-			{Target: "/foo"},
+			{Target: "/foo", Active: false, ActiveBelow: true},
 			{Target: "/foo/child1", Child: true, Active: true},
 			{Target: "/foo/child2", Child: true}}},
 		{"/foo/child2", "/foo/child2", navigation{
@@ -93,7 +95,7 @@ func TestGetNav(t *testing.T) {
 			{Target: "/foo/child2/child1", Child: true}}},
 		{"/foo/child2/child1", "/foo/child2/child1", navigation{
 			{Target: "/foo/child1"},
-			{Target: "/foo/child2"},
+			{Target: "/foo/child2", Active: false, ActiveBelow: true},
 			{Target: "/foo/child2/child1", Active: true, Child: true}}},
 		{"/bar", "/bar", navigation{}},
 		{"/cruz", "/cruz", navigation{
@@ -105,7 +107,7 @@ func TestGetNav(t *testing.T) {
 		}
 		ret, err := getNav(test.Path, test.Active, getNodeFn, getChildrenFn)
 		if err != nil || !(len(ret) == 0 && len(test.Expected) == 0 || reflect.DeepEqual(ret, test.Expected)) {
-			t.Errorf(`getNav(%q, %q, _) = %v, %v, should be %v, nil`,
+			t.Errorf("getNav(%q, %q, _) is\n%v, %v\nshould be\n%v, nil",
 				test.Path, test.Active, ret, err, test.Expected)
 		}
 	}
@@ -113,16 +115,18 @@ func TestGetNav(t *testing.T) {
 
 func TestNavigationMakeAbsolute(t *testing.T) {
 	nav := navigation{
+		{Target: "/"},
 		{Target: "foo"},
 		{Target: "."},
 		{Target: "../bar"}}
 	nav.MakeAbsolute("/root")
 	expected := navigation{
+		{Target: "/"},
 		{Target: "/root/foo/"},
 		{Target: "/root/"},
 		{Target: "/bar/"}}
 	if !(reflect.DeepEqual(nav, expected)) {
-		t.Errorf(`navigation.MakeAbsolute("/root") = %q, should be %q`,
+		t.Errorf(`navigation.MakeAbsolute("/root") = %v, should be %v`,
 			nav, expected)
 	}
 }

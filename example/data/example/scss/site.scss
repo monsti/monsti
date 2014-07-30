@@ -37,9 +37,15 @@ html {
     border:thin solid #777;
     border-radius:5px;
     @include box-shadow(0 0 2px 0 rgba(0,0,0,0.5));
+    li {
+      &.active-below.child, &.active {
+        background:#ddd;
+      }
+    }
+    @include border-radius(5px);
+    overflow: hidden;
   }
   a {
-    @include border-radius(5px);
     color: #555;
     border-right:thin solid gray;
     border-left:thin solid white;

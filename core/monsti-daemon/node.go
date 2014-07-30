@@ -35,9 +35,9 @@ import (
 
 // navLink represents a link in the navigation.
 type navLink struct {
-	Name, Target  string
-	Active, Child bool
-	Order         int
+	Name, Target               string
+	Active, ActiveBelow, Child bool
+	Order                      int
 }
 
 type navigation []navLink
@@ -103,7 +103,7 @@ func getNav(nodePath, active string,
 	sort.Sort(&childrenNavLinks)
 	siblingsNavLinks := navLinks[:]
 	// Search siblings
-	if nodePath != "/" && path.Dir(nodePath) == "/" {
+	if path.Dir(nodePath) == "/" {
 		node, err := getNodeFn(nodePath)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get node: %v", err)
@@ -142,8 +142,10 @@ func getNav(nodePath, active string,
 	// Compute node paths relative to active node and search and set the Active
 	// link
 	for i, link := range navLinks {
-		if strings.Contains(active, link.Target) && path.Dir(active) != link.Target {
+		if active == link.Target {
 			navLinks[i].Active = true
+		} else if strings.HasPrefix(active, link.Target) {
+			navLinks[i].ActiveBelow = true
 		}
 	}
 	return
@@ -156,7 +158,9 @@ func (nav *navigation) MakeAbsolute(root string) {
 		if (*nav)[i].Target[0] != '/' {
 			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
 		}
-		(*nav)[i].Target = (*nav)[i].Target + "/"
+		if !strings.HasSuffix((*nav)[i].Target, "/") {
+			(*nav)[i].Target = (*nav)[i].Target + "/"
+		}
 	}
 }
 
