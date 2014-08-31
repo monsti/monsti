@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"pkg.monsti.org/form"
+	"github.com/chrneumann/htmlwidgets"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util"
 )
@@ -42,7 +42,7 @@ type Field interface {
 	// JSON by encoding/json.
 	Dump() interface{}
 	// Adds a form field to the node edit form.
-	ToFormField(*[]form.Field, util.NestedMap, *NodeField, string)
+	ToFormField(*htmlwidgets.Form, util.NestedMap, *NodeField, string)
 	// Load values from the form submission
 	FromFormField(util.NestedMap, *NodeField)
 }
@@ -67,12 +67,13 @@ func (t TextField) Dump() interface{} {
 	return string(t)
 }
 
-func (t TextField) ToFormField(fields *[]form.Field, data util.NestedMap,
+func (t TextField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, string(t))
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	*fields = append(*fields, form.Field{"Fields." + field.Id,
-		field.Name[locale], "", form.Required(G("Required.")), nil})
+	form.AddWidget(&htmlwidgets.TextWidget{
+		MinLength: 1, ValidationError: G("Required.")}, "Fields."+field.Id,
+		field.Name[locale], "")
 }
 
 func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -99,12 +100,12 @@ func (t HTMLField) Dump() interface{} {
 	return string(t)
 }
 
-func (t HTMLField) ToFormField(fields *[]form.Field, data util.NestedMap,
+func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
-	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
+	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	data.Set(field.Id, string(t))
-	*fields = append(*fields, form.Field{"Fields." + field.Id,
-		field.Name[locale], "", form.Required(G("Required.")), new(form.AlohaEditor)})
+	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id,
+		field.Name[locale], "")
 }
 
 func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -130,11 +131,13 @@ func (t FileField) Dump() interface{} {
 	return ""
 }
 
-func (t FileField) ToFormField(fields *[]form.Field, data util.NestedMap,
+func (t FileField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, "")
-	*fields = append(*fields, form.Field{"Fields." + field.Id,
-		field.Name[locale], "", nil, new(form.FileWidget)})
+	/*
+		form.AddWidget(*fields, form.Field{"Fields." + field.Id,
+			field.Name[locale], "", nil, new(form.FileWidget)})
+	*/
 }
 
 func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -181,9 +184,9 @@ func (t DateTimeField) Dump() interface{} {
 	}
 }
 
-func (t DateTimeField) ToFormField(fields *[]form.Field, data util.NestedMap,
+func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
-	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
+	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	if t.Time != nil {
 		data.Set(field.Id+".Date", t.Time.Format("2.1.2006"))
 		data.Set(field.Id+".Time", t.Time.Format("15:04"))
@@ -191,10 +194,10 @@ func (t DateTimeField) ToFormField(fields *[]form.Field, data util.NestedMap,
 		data.Set(field.Id+".Date", "waz nil")
 		data.Set(field.Id+".Time", "waz nil")
 	}
-	*fields = append(*fields, form.Field{"Fields." + field.Id + ".Date",
-		field.Name[locale] + "Date", "", form.Required(G("Required.")), nil})
-	*fields = append(*fields, form.Field{"Fields." + field.Id + ".Time",
-		field.Name[locale] + "Time", "", form.Required(G("Required.")), nil})
+	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id+".Date",
+		field.Name[locale]+"Date", "")
+	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id+".Time",
+		field.Name[locale]+"Time", "")
 }
 
 func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
