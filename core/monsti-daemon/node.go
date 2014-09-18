@@ -442,7 +442,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	form := htmlwidgets.NewForm(&formData)
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
-	form.AddWidget(new(htmlwidgets.TextWidget), "Node.Order", G("Order"), G("Order in navigation (lower numbered entries appear first)."))
+	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation (lower numbered entries appear first)."))
 	if newNode {
 		form.AddWidget(&htmlwidgets.TextWidget{
 			Regexp:          `^[-\w]+$`,
