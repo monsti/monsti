@@ -24,8 +24,8 @@ import (
 	"path/filepath"
 
 	"code.google.com/p/go.crypto/bcrypt"
+	"github.com/chrneumann/htmlwidgets"
 	"github.com/gorilla/sessions"
-	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -40,11 +40,11 @@ type loginFormData struct {
 func (h *nodeHandler) Login(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := loginFormData{}
-	form := form.NewForm(&data, []form.Field{
-		form.Field{"Login", G("Login"), "", form.Required(G("Required.")),
-			nil},
-		form.Field{"Password", G("Password"), "", form.Required(G("Required.")),
-			new(form.PasswordWidget)}})
+
+	form := htmlwidgets.NewForm(&data)
+	form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("Login"), "")
+	form.AddWidget(new(htmlwidgets.PasswordWidget), "Password", G("Password"), "")
+
 	switch c.Req.Method {
 	case "GET":
 	case "POST":

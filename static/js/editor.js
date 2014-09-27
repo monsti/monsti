@@ -41,7 +41,7 @@
 
   $(document).ready(function () {
     Aloha.ready( function() {
-      $('textarea.editor').each(function() { AddEditor(this); });
+      $('.html-field textarea').each(function() { AddEditor(this); });
     });
   });
 

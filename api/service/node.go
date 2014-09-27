@@ -104,8 +104,9 @@ func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	data.Set(field.Id, string(t))
-	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id,
+	widget := form.AddWidget(new(htmlwidgets.TextAreaWidget), "Fields."+field.Id,
 		field.Name[locale], "")
+	widget.Base().Classes = []string{"html-field"}
 }
 
 func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -115,15 +116,15 @@ func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
 type FileField string
 
 func (t FileField) String() string {
-	return "" //string(t)
+	return string(t)
 }
 
 func (t FileField) RenderHTML() interface{} {
-	return "" //template.HTML(t)
+	return template.HTML(t)
 }
 
 func (t *FileField) Load(in interface{}) error {
-	//*t = FileField(in.(string))
+	*t = FileField(in.(string))
 	return nil
 }
 
@@ -134,29 +135,22 @@ func (t FileField) Dump() interface{} {
 func (t FileField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, "")
-	/*
-		form.AddWidget(*fields, form.Field{"Fields." + field.Id,
-			field.Name[locale], "", nil, new(form.FileWidget)})
-	*/
+	form.AddWidget(new(htmlwidgets.FileWidget), "Fields."+field.Id,
+		field.Name[locale], "")
 }
 
 func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
 	*t = FileField(data.Get(field.Id).(string))
 }
 
-type DateTimeField struct {
-	Time *time.Time
-}
+type DateTimeField time.Time
 
 func (t DateTimeField) String() string {
-	return t.Time.String()
+	return time.Time(t).String()
 }
 
 func (t DateTimeField) RenderHTML() interface{} {
-	if t.Time != nil {
-		return t.Time.String()
-	}
-	return ""
+	return t.String()
 }
 
 func (t *DateTimeField) Load(in interface{}) error {
@@ -164,47 +158,27 @@ func (t *DateTimeField) Load(in interface{}) error {
 	if !ok {
 		return fmt.Errorf("Data is not string")
 	}
-	if date == "" {
-		t.Time = nil
-	} else {
-		val, err := time.Parse(time.RFC3339, date)
-		if err != nil {
-			return fmt.Errorf("Could not parse the date value: %v", err)
-		}
-		t.Time = &val
+	val, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return fmt.Errorf("Could not parse the date value: %v", err)
 	}
+	*t = DateTimeField(val)
 	return nil
 }
 
 func (t DateTimeField) Dump() interface{} {
-	if t.Time == nil {
-		return ""
-	} else {
-		return t.Time.Format(time.RFC3339)
-	}
+	return time.Time(t).Format(time.RFC3339)
 }
 
 func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
-	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	if t.Time != nil {
-		data.Set(field.Id+".Date", t.Time.Format("2.1.2006"))
-		data.Set(field.Id+".Time", t.Time.Format("15:04"))
-	} else {
-		data.Set(field.Id+".Date", "waz nil")
-		data.Set(field.Id+".Time", "waz nil")
-	}
-	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id+".Date",
-		field.Name[locale]+"Date", "")
-	form.AddWidget(new(htmlwidgets.TextWidget), "Fields."+field.Id+".Time",
-		field.Name[locale]+"Time", "")
+	data.Set(field.Id, time.Time(t))
+	form.AddWidget(&htmlwidgets.TimeWidget{}, "Fields."+field.Id,
+		field.Name[locale], "")
 }
 
 func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
-	timeDate := data.Get(field.Id + ".Date").(string)
-	timeTime := data.Get(field.Id + ".Time").(string)
-	val, _ := time.Parse("2.1.2006T15:04", timeDate+"T"+timeTime)
-	t.Time = &val
+	*t = DateTimeField(data.Get(field.Id).(time.Time))
 }
 
 type Node struct {

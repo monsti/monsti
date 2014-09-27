@@ -1,17 +1,65 @@
-<form class="form" action="" method="POST" accept-charset="utf-8">
-    <fieldset>
-        {{range .Form.Fields}}
-		{{.Input}}
-        {{end}}
-        <div class="control-group">
-			<p class="alert alert-error">{{G "WARNING: You are about to remove this content and all content below."}}
+{{with .Form}}
+<form class="form" action="{{.Action}}" method="POST"
+      accept-charset="utf-8" {{.EncTypeAttr}}>
+
+  <div class="control-group">
+		<p class="alert alert-error">{{G "WARNING: You are about to remove this content and all content below."}}
 			{{G "The removed content will be lost, so be careful!"}}</p>
-		</div>
-        <div class="control-group">
-            <div class="controls">
-                <button type="submit" class="btn btn-danger">{{G "Proceed"}}</button>
-                <a href="{{.Node.Path}}" class="btn btn-abort">{{G "Abort"}}</a>
-            </div>
-        </div>
-    </fieldset>
+	</div>
+  <fieldset>
+    {{with .Errors}}
+    <ul class="errors">
+      {{range .}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+    {{range .Widgets}}
+    <div class="field {{if .Errors}}error{{end}}">
+      <label for="{{.Id}}">{{.Label}}</label>
+      {{if eq .Template "hidden"}}
+      <input type="hidden" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+      {{else if eq .Template "select"}}
+      <select id="{{.Id}}" name="{{.Id}}">
+        {{range .Data}}
+        <option value="{{.Value}}"
+                {{if .Selected}}selected{{end}}
+                >{{.Description}}</option>
+        {{end}}
+      </select>
+
+      {{else if eq .Template "checkbox"}}
+      <input type="checkbox" id="{{.Id}}" name="{{.Id}}"
+             value="true"
+             {{if .Data}}checked{{end}}
+             >
+
+      {{else if eq .Template "text"}}
+      <input type="text" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+      {{else if eq .Template "password"}}
+      <input type="password" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+      {{else}}
+      Unknown widget template: {{.Template}}
+      {{end}}
+
+      <span class="help">{{.Description}}</span>
+
+      {{with .Errors}}
+      <ul class="errors">
+        {{range .}}
+        <li>{{.}}</li>
+        {{end}}
+      </ul>
+      {{end}}
+    </div>
+    {{end}}
+    <div class="buttons">
+      <button type="submit" class="btn btn-danger">{{G "Proceed"}}</button>
+      <a href="." class="btn btn-abort">{{G "Abort"}}</a>
+    </div>
+  </fieldset>
 </form>
+{{end}}

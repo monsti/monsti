@@ -9,7 +9,7 @@
     </ul>
     {{end}}
     {{range .Widgets}}
-    <div class="field {{if .Errors}}error{{end}}">
+    <div class="field {{if .Errors}}error{{end}} {{range .Classes}}{{.}}{{end}}">
       <label for="{{.Id}}">{{.Label}}</label>
       {{if eq .Template "hidden"}}
       <input type="hidden" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
@@ -31,6 +31,18 @@
 
       {{else if eq .Template "text"}}
       <input type="text" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+      {{else if eq .Template "textarea"}}
+      <textarea id="{{.Id}}" name="{{.Id}}">{{.Data}}</textarea>
+
+      {{else if eq .Template "password"}}
+      <input type="password" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+      {{else if eq .Template "file"}}
+      <input type="file" id="{{.Id}}" name="{{.Id}}">
+
+      {{else if eq .Template "time"}}
+      <input type="datetime-local" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
 
       {{else}}
       Unknown widget template: {{.Template}}
