@@ -25,8 +25,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/chrneumann/htmlwidgets"
 	"github.com/quirkey/magick"
-	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -173,7 +173,7 @@ type addFormData struct {
 func (h *nodeHandler) Add(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := addFormData{New: "1"}
-	nodeTypeOptions := []form.Option{}
+	nodeTypeOptions := []htmlwidgets.SelectOption{}
 	nodeTypes, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site.Name,
 		c.Node.Type.Id)
 	if err != nil {
@@ -181,14 +181,12 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	}
 	for _, nodeType := range nodeTypes {
 		nodeTypeOptions = append(nodeTypeOptions,
-			form.Option{nodeType, nodeType})
+			htmlwidgets.SelectOption{nodeType, nodeType, false})
 	}
-	selectWidget := form.SelectWidget{nodeTypeOptions}
-	form := form.NewForm(&data, []form.Field{
-		form.Field{"NodeType", G("Content type"), "", form.Required(G("Required.")),
-			selectWidget},
-		form.Field{"New", "", "", nil, new(form.HiddenWidget)},
-	})
+	form := htmlwidgets.NewForm(&data)
+	form.AddWidget(&htmlwidgets.SelectWidget{Options: nodeTypeOptions},
+		"NodeType", G("Content type"), "")
+	form.AddWidget(new(htmlwidgets.HiddenWidget), "New", "", "")
 	form.Action = path.Join(c.Node.Path, "@@edit")
 	body, err := h.Renderer.Render("actions/addform", mtemplate.Context{
 		"Form": form.RenderData()}, c.UserSession.Locale,
@@ -211,9 +209,8 @@ type removeFormData struct {
 func (h *nodeHandler) Remove(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	data := removeFormData{}
-	form := form.NewForm(&data, []form.Field{
-		form.Field{"Confirm", G("Confirm"), "", form.Required(G("Required.")),
-			new(form.HiddenWidget)}})
+	form := htmlwidgets.NewForm(&data)
+	form.AddWidget(new(htmlwidgets.HiddenWidget), "Confirm", G("Confirm"), "")
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
@@ -442,30 +439,25 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	} else {
 		formData.Node = *c.Node
 	}
-	formFields := []form.Field{
-		form.Field{"NodeType", "", "", nil, new(form.HiddenWidget)},
-		form.Field{"Node.Hide",
-			G("Hide"), G("Don't show node in navigation."), nil, nil},
-		form.Field{"Node.Order",
-			G("Order"), G("Order in navigation (lower numbered entries appear first)."), nil, nil},
-	}
+	form := htmlwidgets.NewForm(&formData)
+	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
+	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
+	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation (lower numbered entries appear first)."))
 	if newNode {
-		formFields = append(formFields, form.Field{"Name",
-			G("Name"), G("The name as it should appear in the URL."),
-			form.And(form.Required(G("Required.")), form.Regex(`^[-\w]*$`,
-				G("Contains	invalid characters."))), nil})
+		form.AddWidget(&htmlwidgets.TextWidget{
+			Regexp:          `^[-\w]+$`,
+			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'")},
+			"Name", G("Name"), G("The name as it should appear in the URL."))
 	}
 
 	fileFields := make([]string, 0)
 	for _, field := range nodeType.Fields {
-		formData.Node.GetField(field.Id).ToFormField(&formFields, formData.Fields,
+		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
 			&field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)
 		}
 	}
-
-	form := form.NewForm(&formData, formFields)
 
 	switch c.Req.Method {
 	case "GET":

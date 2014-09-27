@@ -21,8 +21,8 @@ import (
 	"net/http"
 
 	"path"
+	"github.com/chrneumann/htmlwidgets"
 	"github.com/chrneumann/mimemail"
-	"pkg.monsti.org/form"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/template"
 )
@@ -35,12 +35,16 @@ func renderContactForm(c *reqContext, context template.Context,
 	h *nodeHandler) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.Site.Locale)
 	data := contactFormData{}
-	form := form.NewForm(&data, []form.Field{
-		form.Field{"Name", G("Name"), "", form.Required(G("Required.")), nil},
-		form.Field{"Email", G("Email"), "", form.Required(G("Required.")), nil},
-		form.Field{"Subject", G("Subject"), "", form.Required(G("Required.")), nil},
-		form.Field{"Message", G("Message"), "", form.Required(G("Required.")),
-			new(form.TextArea)}})
+	form := htmlwidgets.NewForm(&data)
+	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+		ValidationError: G("Required.")}, "Name", G("Name"), "")
+	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+		ValidationError: G("Required.")}, "Email", G("Email"), "")
+	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+		ValidationError: G("Required.")}, "Subject", G("Subject"), "")
+	form.AddWidget(&htmlwidgets.TextAreaWidget{MinLength: 1,
+		ValidationError: G("Required.")}, "Message", G("Message"), "")
+
 	switch c.Req.Method {
 	case "GET":
 		if _, submitted := c.Req.Form["submitted"]; submitted {
