@@ -89,6 +89,47 @@ not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.
 
+=== Configuration
+
+==== Directives
+
+namespace (string)::
+  Sets the namespace for configured node types.
+
+nodetypes ([...])::
+  List of node types to be configured.
+
+nodetypes > id (string)::
+  ID of the configured node type (without namespace, this will be set
+  using the `namespace` directive).
+
+nodetypes > name ({language-code -> string})::
+  The name of the node type as shown in the web interface, specified
+  as a translation map.
+
+nodetypes > addable_to ([string])::
+  Per default, nodes may be added to any other node. This behaviour
+  can be overwritten for one node type with the `addable_to`
+  option. Nodes of this type may only be added to nodes of the
+  specified types. If you specify an empty array, the node can't be
+  added to any other node.
+  It's still possible to add nodes to any other node by directly
+  manipulating the node data on the file system. This option merely
+  affects the web interface.
+
+nodetypes > fields ([...])::
+  List of the node type's fields.
+
+nodetypes > fields > id (string)::
+  ID of the node type field (without namespace, this will be set using
+  the `namespace` directive).
+
+nodetypes > fields > name ({language-code -> string})::
+  The name of the node type field as shown in the web interface,
+  specified as a translation map.
+
+nodetypes > fields > type (string})::
+  The type of the field.
 
 == Translating Monsti
 
