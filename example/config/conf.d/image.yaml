@@ -17,6 +17,7 @@
 namespace: core
 nodetypes:
   - id: Image
+    addable_to: [core.Document]
     name: {en: "Image", de: "Bild"}
     fields:
       - id: Title

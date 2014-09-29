@@ -17,6 +17,7 @@
 namespace: core
 nodetypes:
   - id: File
+    addable_to: [core.Document]
     name: {en: "File", de: "Datei"}
     fields:
       - id: Title
