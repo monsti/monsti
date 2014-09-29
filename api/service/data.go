@@ -252,6 +252,20 @@ type NodeType struct {
 	Embed     []EmbedNode
 }
 
+// GetLocalName returns the name of the node type in the given language.
+//
+// Fall backs to to the "en" locale or the id of the node type.
+func (n NodeType) GetLocalName(locale string) string {
+	name, ok := n.Name[locale]
+	if !ok {
+		name, ok = n.Name["en"]
+	}
+	if !ok {
+		name = n.Id
+	}
+	return name
+}
+
 // GetNodeType requests information about the given node type.
 func (s *MonstiClient) GetNodeType(nodeTypeID string) (*NodeType,
 	error) {

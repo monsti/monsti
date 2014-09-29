@@ -184,15 +184,9 @@ func (h *nodeHandler) Add(c *reqContext) error {
 		if err != nil {
 			return fmt.Errorf("Could not get node type: %v", err)
 		}
-		name, ok := nodeType.Name[c.UserSession.Locale]
-		if !ok {
-			name, ok = nodeType.Name["en"]
-		}
-		if !ok {
-			name = nodeType.Id
-		}
 		nodeTypeOptions = append(nodeTypeOptions,
-			htmlwidgets.SelectOption{nodeType.Id, name, false})
+			htmlwidgets.SelectOption{nodeType.Id,
+				nodeType.GetLocalName(c.UserSession.Locale), false})
 	}
 	form := htmlwidgets.NewForm(&data)
 	form.AddWidget(&htmlwidgets.SelectWidget{Options: nodeTypeOptions},
@@ -434,7 +428,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 	if c.Action == service.EditAction {
 		if newNode {
-			env.Title = fmt.Sprintf(G("Add %q to \"%s\""), nodeType.Id, c.Node.Path)
+			env.Title = fmt.Sprintf(G("Add %v to \"%s\""),
+				nodeType.GetLocalName(c.UserSession.Locale), c.Node.Path)
 		} else {
 			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Path)
 		}
