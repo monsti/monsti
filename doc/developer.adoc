@@ -112,7 +112,9 @@ nodetypes > addable_to ([string])::
   can be overwritten for one node type with the `addable_to`
   option. Nodes of this type may only be added to nodes of the
   specified types. If you specify an empty array, the node can't be
-  added to any other node.
+  added to any other node. You may specify individual node types with
+  their full id `namespace.id` or all node types of a namespace using
+  `namespace.` (i.e. the namespace followed by a single dot).
   It's still possible to add nodes to any other node by directly
   manipulating the node data on the file system. This option merely
   affects the web interface.
