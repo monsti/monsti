@@ -245,10 +245,11 @@ type EmbedNode struct {
 }
 
 type NodeType struct {
-	Id     string
-	Name   map[string]string
-	Fields []NodeField
-	Embed  []EmbedNode
+	Id        string
+	AddableTo []string `yaml:"addable_to"`
+	Name      map[string]string
+	Fields    []NodeField
+	Embed     []EmbedNode
 }
 
 // GetNodeType requests information about the given node type.

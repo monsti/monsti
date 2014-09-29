@@ -196,8 +196,19 @@ func (i *MonstiService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	*types = make([]string, 0)
-	for nodeType, _ := range i.Settings.Config.NodeTypes {
-		*types = append(*types, nodeType)
+	for _, nodeType := range i.Settings.Config.NodeTypes {
+		isAddable := false
+		for _, addableTo := range nodeType.AddableTo {
+			if addableTo == "." ||
+				addableTo == args.NodeType || (addableTo[len(addableTo)-1] == '.' &&
+				args.NodeType[0:len(addableTo)] == addableTo) {
+				isAddable = true
+				break
+			}
+		}
+		if isAddable {
+			*types = append(*types, nodeType.Id)
+		}
 	}
 	return nil
 }
