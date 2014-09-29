@@ -179,9 +179,14 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	if err != nil {
 		return fmt.Errorf("Could not get addable node types: %v", err)
 	}
-	for _, nodeType := range nodeTypes {
+	for _, id := range nodeTypes {
+		nodeType, err := c.Serv.Monsti().GetNodeType(id)
+		if err != nil {
+			return fmt.Errorf("Could not get node type: %v", err)
+		}
 		nodeTypeOptions = append(nodeTypeOptions,
-			htmlwidgets.SelectOption{nodeType, nodeType, false})
+			htmlwidgets.SelectOption{nodeType.Id,
+				nodeType.GetLocalName(c.UserSession.Locale), false})
 	}
 	form := htmlwidgets.NewForm(&data)
 	form.AddWidget(&htmlwidgets.SelectWidget{Options: nodeTypeOptions},
@@ -423,7 +428,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 	if c.Action == service.EditAction {
 		if newNode {
-			env.Title = fmt.Sprintf(G("Add %q to \"%s\""), nodeType.Id, c.Node.Path)
+			env.Title = fmt.Sprintf(G("Add %v to \"%s\""),
+				nodeType.GetLocalName(c.UserSession.Locale), c.Node.Path)
 		} else {
 			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Path)
 		}

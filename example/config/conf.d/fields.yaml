@@ -17,6 +17,7 @@
 namespace: core
 nodetypes:
   - id: FieldsExample
+    addable_to: []
     name: {en: "Fields Example", de: "Felder-Beispiel"}
     fields:
       - id: Title

@@ -17,6 +17,7 @@
 namespace: core
 nodetypes:
   - id: ContactForm
+    addable_to: [.]
     name: {en: "Contact form", de: "Kontaktformular"}
     fields:
       - id: Title

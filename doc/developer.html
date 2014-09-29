@@ -910,6 +910,100 @@ not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.</p></div>
 </div>
+<div class="sect2">
+<h3 id="_configuration">Configuration</h3>
+<div class="sect3">
+<h4 id="_directives">Directives</h4>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+namespace (string)
+</dt>
+<dd>
+<p>
+  Sets the namespace for configured node types.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes ([&#8230;])
+</dt>
+<dd>
+<p>
+  List of node types to be configured.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; id (string)
+</dt>
+<dd>
+<p>
+  ID of the configured node type (without namespace, this will be set
+  using the <code>namespace</code> directive).
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; name ({language-code &#8594; string})
+</dt>
+<dd>
+<p>
+  The name of the node type as shown in the web interface, specified
+  as a translation map.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; addable_to ([string])
+</dt>
+<dd>
+<p>
+  Per default, nodes may be added to any other node. This behaviour
+  can be overwritten for one node type with the <code>addable_to</code>
+  option. Nodes of this type may only be added to nodes of the
+  specified types. If you specify an empty array, the node can&#8217;t be
+  added to any other node. You may specify individual node types with
+  their full id <code>namespace.id</code> or all node types of a namespace using
+  <code>namespace.</code> (i.e. the namespace followed by a single dot). To
+  specify all available node types, use the single dot <code>.</code>.
+  It&#8217;s still possible to add nodes to any other node by directly
+  manipulating the node data on the file system. This option merely
+  affects the web interface.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; fields ([&#8230;])
+</dt>
+<dd>
+<p>
+  List of the node type&#8217;s fields.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; fields &gt; id (string)
+</dt>
+<dd>
+<p>
+  ID of the node type field (without namespace, this will be set using
+  the <code>namespace</code> directive).
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; fields &gt; name ({language-code &#8594; string})
+</dt>
+<dd>
+<p>
+  The name of the node type field as shown in the web interface,
+  specified as a translation map.
+</p>
+</dd>
+<dt class="hdlist1">
+nodetypes &gt; fields &gt; type (string})
+</dt>
+<dd>
+<p>
+  The type of the field.
+</p>
+</dd>
+</dl></div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -993,7 +1087,7 @@ author(s) of the translation (the authors are noted in the <code>.po</code> file
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-07-18 09:47:25 CEST
+Last updated 2014-09-29 21:06:20 CEST
 </div>
 </div>
 </body>
