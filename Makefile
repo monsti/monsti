@@ -16,7 +16,7 @@ DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
-ALOHA_VERSION=1.1.0
+ALOHA_VERSION=1.1.2
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
@@ -118,7 +118,7 @@ clean:
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
-	wget -nv http://aloha-editor.org/builds/stable/alohaeditor-$(ALOHA_VERSION).zip
+	wget -nv https://maven.gentics.com/maven2/org/alohaeditor/alohaeditor/$(ALOHA_VERSION)/alohaeditor-$(ALOHA_VERSION).zip
 	unzip -q alohaeditor-$(ALOHA_VERSION).zip
 	mkdir static/aloha
 	mv alohaeditor-$(ALOHA_VERSION)/aloha/lib static/aloha
