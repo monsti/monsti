@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"reflect"
 
 	"pkg.monsti.org/gettext"
 )
@@ -106,6 +107,9 @@ func (r Renderer) Render(name string, context interface{},
 		"GDN":      GDN,
 		"RawHTML": func(in interface{}) template.HTML {
 			return template.HTML(fmt.Sprintf("%s", in))
+		},
+		"mapGet": func(in interface{}, key interface{}) interface{} {
+			return reflect.ValueOf(in).MapIndex(reflect.ValueOf(key)).Interface()
 		},
 	}
 	tmpl.Funcs(funcs)

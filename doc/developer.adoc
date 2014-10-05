@@ -134,6 +134,23 @@ nodetypes > fields > name ({language-code -> string})::
 nodetypes > fields > type (string})::
   The type of the field.
 
+nodetypes > queries ([...])::
+  List of queries to be used.
+
+nodetypes > queries > id (string)::
+  ID of the query to be used.
+
+queries ([...])::
+  List of queries to be configured.
+
+queries > id (string)::
+  ID of the configured query (without namespace, this will be set
+  using the `namespace` directive).
+
+queries > order ([string])::
+  Order of the returned nodes. Currently, only "random" is
+  implemented.
+
 == Translating Monsti
 
 Monsti uses https://www.gnu.org/software/gettext/[gettext] to

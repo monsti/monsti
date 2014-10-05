@@ -244,12 +244,17 @@ type EmbedNode struct {
 	URI string
 }
 
+type NodeQuery struct {
+	Id string
+}
+
 type NodeType struct {
 	Id        string
 	AddableTo []string `yaml:"addable_to"`
 	Name      map[string]string
 	Fields    []NodeField
 	Embed     []EmbedNode
+	Queries   []NodeQuery
 }
 
 // GetLocalName returns the name of the node type in the given language.

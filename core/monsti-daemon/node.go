@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -381,17 +382,63 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		if err := renderContactForm(c, context, h); err != nil {
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
-	case "core.NodeList":
-		if err := renderNodeList(c, context, h); err != nil {
-			return nil, fmt.Errorf("Could not render node list: %v", err)
+	}
+	queries := make(map[string][]*service.Node)
+	for _, query := range reqNode.Type.Queries {
+		var err error
+		queries[query.Id], err = h.QueryNodes(c, &query)
+		if err != nil {
+			return nil, fmt.Errorf("Cound not execute query %q: %v", query.Id, err)
 		}
 	}
+	context["Queries"] = queries
 	rendered, err := h.Renderer.Render(reqNode.Type.Id+"/view", context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		return nil, fmt.Errorf("Could not render template: %v", err)
 	}
 	return []byte(rendered), nil
+}
+
+type nodeSort struct {
+	Nodes  []*service.Node
+	Sorter func(left, right *service.Node) bool
+}
+
+func (s *nodeSort) Len() int {
+	return len(s.Nodes)
+}
+
+func (s *nodeSort) Swap(i, j int) {
+	s.Nodes[i], s.Nodes[j] = s.Nodes[j], s.Nodes[i]
+}
+
+func (s *nodeSort) Less(i, j int) bool {
+	return s.Sorter(s.Nodes[i], s.Nodes[j])
+}
+
+func (h *nodeHandler) QueryNodes(c *reqContext, query *service.NodeQuery) (
+	[]*service.Node, error) {
+	nodes, err := c.Serv.Monsti().GetChildren(c.Site.Name, c.Node.Path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get children of node: %v", err)
+	}
+	queryCfg := h.Settings.Config.Queries[query.Id]
+	if len(queryCfg.Order) == 1 && queryCfg.Order[0] == "random" {
+		randOrder := make(map[string]int)
+		order := func(left, right *service.Node) bool {
+			if _, ok := randOrder[left.Path]; !ok {
+				randOrder[left.Path] = rand.Int()
+			}
+			if _, ok := randOrder[right.Path]; !ok {
+				randOrder[right.Path] = rand.Int()
+			}
+			return randOrder[left.Path] < randOrder[right.Path]
+		}
+		sorter := nodeSort{nodes, order}
+		sort.Sort(&sorter)
+	}
+	return nodes, nil
 }
 
 type editFormData struct {
