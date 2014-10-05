@@ -17,7 +17,7 @@ Features
  - Simple web frontend
  - Separation of code, configuration and presentation
  - Developer friendly: Includes a HTTPd; Go templates; use
-   configuration files to build new node types
+   configuration files to build new node types and queries
  - Administrator friendly: Syslog; init script; Makefile target for
    basic Debian packaging (via fpm, other distributions should be
    easy); respecting the filesystem hierarchy
