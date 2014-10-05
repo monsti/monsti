@@ -1,7 +1,7 @@
-{{with .Children}}
+{{with mapGet .Queries "core.NodeList"}}
 <ul class="node-list">
 {{range .}}
-  <li><a href="{{.Path}}">{{with .GetField ".core.Title"}}{{ .RenderHTML }}{{end}}</a></li>
+  <li><a href="{{.Path}}">{{with .GetField "core.Title"}}{{ .RenderHTML }}{{end}}</a></li>
 {{end}}
 </ul>
 {{else}}

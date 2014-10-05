@@ -15,6 +15,11 @@
 # along with Monsti.  If not, see <http:#www.gnu.org/licenses/>.
 
 namespace: core
+
+queries:
+  - id: NodeList
+    order: [random]
+
 nodetypes:
   - id: NodeList
     addable_to: []
@@ -23,3 +28,5 @@ nodetypes:
       - id: Title
         name: {en: "Title", de: "Titel"}
         type: Text
+    queries:
+      - id: core.NodeList

@@ -26,13 +26,26 @@ import (
 	"pkg.monsti.org/monsti/api/util"
 )
 
-type SingleConfig struct {
-	Namespace string
-	NodeTypes []service.NodeType
+// Query represents a query configuration
+type Query struct {
+	Id    string
+	Order []string
 }
 
+// SingleConfigFile represents a single configuration file.
+type SingleConfigFile struct {
+	Namespace string
+	NodeTypes []service.NodeType
+	Queries   []struct {
+		Id    string
+		Order []string
+	}
+}
+
+// Config is the internally used configuration structure.
 type Config struct {
 	NodeTypes map[string]service.NodeType
+	Queries   map[string]Query
 }
 
 // loadConfig parses all configuration files in the given directory
@@ -45,6 +58,7 @@ func loadConfig(configDir string) (*Config, error) {
 	}
 	var config Config
 	config.NodeTypes = make(map[string]service.NodeType, 0)
+	config.Queries = make(map[string]Query, 0)
 	for _, configFile := range configFiles {
 		configName := configFile.Name()
 		configPath := filepath.Join(configPath, configName)
@@ -52,7 +66,7 @@ func loadConfig(configDir string) (*Config, error) {
 		if err != nil {
 			continue
 		}
-		var singleConfig SingleConfig
+		var singleConfig SingleConfigFile
 		err = util.ParseYAML(configPath, &singleConfig)
 		if err != nil {
 			return nil, fmt.Errorf("Could not load config %q: %v", configName, err)
@@ -63,6 +77,10 @@ func loadConfig(configDir string) (*Config, error) {
 				node.Fields[i].Id = singleConfig.Namespace + "." + field.Id
 			}
 			config.NodeTypes[node.Id] = node
+		}
+		for _, query := range singleConfig.Queries {
+			query.Id = singleConfig.Namespace + "." + query.Id
+			config.Queries[query.Id] = query
 		}
 	}
 	return &config, nil
