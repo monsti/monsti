@@ -519,35 +519,46 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			node := formData.Node
 			node.Type = nodeType
 			node.Path = c.Node.Path
+			writeNode := true
 			if newNode {
 				node.InitFields()
 				node.Path = path.Join(node.Path, formData.Name)
+				existing, err := c.Serv.Monsti().GetNode(c.Site.Name, node.Path)
+				if err != nil {
+					return fmt.Errorf("Could not fetch possibly existing node: %v", err)
+				}
+				if existing != nil {
+					form.AddError("Name", G("A node with this name does already exist"))
+					writeNode = false
+				}
 			}
-			for _, field := range nodeType.Fields {
-				node.GetField(field.Id).FromFormField(formData.Fields, &field)
-			}
-			err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
-			if err != nil {
-				return fmt.Errorf("document: Could not update node: ", err)
-			}
+			if writeNode {
+				for _, field := range nodeType.Fields {
+					node.GetField(field.Id).FromFormField(formData.Fields, &field)
+				}
+				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
+				if err != nil {
+					return fmt.Errorf("Could not update node: ", err)
+				}
 
-			if len(fileFields) > 0 && c.Req.MultipartForm != nil {
-				for _, name := range fileFields {
-					file, _, err := c.Req.FormFile("Fields." + name)
-					if err == nil {
-						content, err := ioutil.ReadAll(file)
-						if err != nil {
-							return fmt.Errorf("Could not read multipart file: %v", err)
-						}
-						if err = c.Serv.Monsti().WriteNodeData(c.Site.Name, node.Path,
-							"__file_"+name, content); err != nil {
-							return fmt.Errorf("Could not save file: %v", err)
+				if len(fileFields) > 0 && c.Req.MultipartForm != nil {
+					for _, name := range fileFields {
+						file, _, err := c.Req.FormFile("Fields." + name)
+						if err == nil {
+							content, err := ioutil.ReadAll(file)
+							if err != nil {
+								return fmt.Errorf("Could not read multipart file: %v", err)
+							}
+							if err = c.Serv.Monsti().WriteNodeData(c.Site.Name, node.Path,
+								"__file_"+name, content); err != nil {
+								return fmt.Errorf("Could not save file: %v", err)
+							}
 						}
 					}
 				}
+				http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
+				return nil
 			}
-			http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
-			return nil
 		}
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
