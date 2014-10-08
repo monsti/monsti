@@ -143,10 +143,8 @@ func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
 	*t = FileField(data.Get(field.Id).(string))
 }
 
-type DateTimeField time.Time
-
-func (t DateTimeField) String() string {
-	return time.Time(t).String()
+type DateTimeField struct {
+	time.Time
 }
 
 func (t DateTimeField) RenderHTML() interface{} {
@@ -162,23 +160,23 @@ func (t *DateTimeField) Load(in interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Could not parse the date value: %v", err)
 	}
-	*t = DateTimeField(val)
+	*t = DateTimeField{Time: val}
 	return nil
 }
 
 func (t DateTimeField) Dump() interface{} {
-	return time.Time(t).Format(time.RFC3339)
+	return t.Format(time.RFC3339)
 }
 
 func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
-	data.Set(field.Id, time.Time(t))
+	data.Set(field.Id, t.Time)
 	form.AddWidget(&htmlwidgets.TimeWidget{}, "Fields."+field.Id,
 		field.Name[locale], "")
 }
 
 func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
-	*t = DateTimeField(data.Get(field.Id).(time.Time))
+	*t = DateTimeField{Time: data.Get(field.Id).(time.Time)}
 }
 
 type Node struct {
