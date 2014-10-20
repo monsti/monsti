@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"path/filepath"
+	"pkg.monsti.org/monsti/api/service"
 	utesting "pkg.monsti.org/monsti/api/util/testing"
 )
 
@@ -124,6 +125,50 @@ func TestGetConfig(t *testing.T) {
 		case !reflect.DeepEqual(unmarshal(ret), unmarshal([]byte(test.Value))):
 			t.Errorf("getConfig(_, %q) = `%s`, _ should be `%s`", test.Name, ret,
 				test.Value)
+		}
+	}
+}
+
+func TestFindAddableNodeTypes(t *testing.T) {
+	tests := []struct {
+		NodeTypes map[string]service.NodeType
+		NodeType  string
+		Expected  []string
+	}{
+		{
+			NodeTypes: map[string]service.NodeType{
+				"A": service.NodeType{Id: "A", AddableTo: []string{"B"}},
+				"B": service.NodeType{Id: "B", AddableTo: []string{}},
+				"C": service.NodeType{Id: "C", AddableTo: []string{"B"}},
+			},
+			NodeType: "B",
+			Expected: []string{"A", "C"},
+		},
+		{
+			NodeTypes: map[string]service.NodeType{
+				"Foo.A": service.NodeType{Id: "Foo.A", AddableTo: nil},
+				"Foo.B": service.NodeType{Id: "Foo.B", AddableTo: []string{"Foo.B"}},
+				"Foo.C": service.NodeType{Id: "Foo.C", AddableTo: []string{}},
+				"Foo.D": service.NodeType{Id: "Foo.D", AddableTo: []string{"."}},
+				"Foo.E": service.NodeType{Id: "Foo.E", AddableTo: []string{"Foo."}},
+			},
+			NodeType: "Foo.B",
+			Expected: []string{"Foo.A", "Foo.B", "Foo.D", "Foo.E"},
+		},
+	}
+	for i, test := range tests {
+		ret := findAddableNodeTypes(test.NodeType, test.NodeTypes)
+		for _, retType := range test.Expected {
+			found := false
+			for _, expectedType := range ret {
+				if retType == expectedType {
+					found = true
+				}
+			}
+			if !found || len(ret) != len(test.Expected) {
+				t.Fatalf("findAddableNodeTypes#%v returned %v, expected %v",
+					i, ret, test.Expected)
+			}
 		}
 	}
 }

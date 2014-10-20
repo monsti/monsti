@@ -115,10 +115,11 @@ nodetypes > addable_to ([string])::
   added to any other node. You may specify individual node types with
   their full id `namespace.id` or all node types of a namespace using
   `namespace.` (i.e. the namespace followed by a single dot). To
-  specify all available node types, use the single dot `.`.
-  It's still possible to add nodes to any other node by directly
-  manipulating the node data on the file system. This option merely
-  affects the web interface.
+  specify all available node types, use the single dot, e.g.`[.]`. To
+  specify that the node may not be added to any other node, use a non
+  existing namespace like `[null.]` It's still possible to add nodes
+  to any other node by directly manipulating the node data on the file
+  system. This option merely affects the web interface.
 
 nodetypes > fields ([...])::
   List of the node type's fields.

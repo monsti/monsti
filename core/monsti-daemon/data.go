@@ -189,27 +189,33 @@ func (i *MonstiService) GetConfig(args *GetConfigArgs,
 	return nil
 }
 
+func findAddableNodeTypes(nodeType string, nodeTypes map[string]service.NodeType,
+) []string {
+	types := make([]string, 0)
+	for _, otherNodeType := range nodeTypes {
+		isAddable := false
+		for _, addableTo := range otherNodeType.AddableTo {
+			if addableTo == "." ||
+				addableTo == nodeType || (addableTo[len(addableTo)-1] == '.' &&
+				nodeType[0:len(addableTo)] == addableTo) {
+				isAddable = true
+				break
+			}
+		}
+		if otherNodeType.AddableTo == nil || isAddable {
+			types = append(types, otherNodeType.Id)
+		}
+	}
+	return types
+}
+
 type GetAddableNodeTypesArgs struct{ Site, NodeType string }
 
 func (i *MonstiService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
 	types *[]string) error {
 	i.mutex.RLock()
+	*types = findAddableNodeTypes(args.NodeType, i.Settings.Config.NodeTypes)
 	defer i.mutex.RUnlock()
-	*types = make([]string, 0)
-	for _, nodeType := range i.Settings.Config.NodeTypes {
-		isAddable := false
-		for _, addableTo := range nodeType.AddableTo {
-			if addableTo == "." ||
-				addableTo == args.NodeType || (addableTo[len(addableTo)-1] == '.' &&
-				args.NodeType[0:len(addableTo)] == addableTo) {
-				isAddable = true
-				break
-			}
-		}
-		if isAddable {
-			*types = append(*types, nodeType.Id)
-		}
-	}
 	return nil
 }
 

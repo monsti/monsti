@@ -31,6 +31,7 @@ namespace: core
 nodetypes:
   - id: document
     name: {en: "Document", de: "Dokument"}
+    addable_to: ["null."]
     fields:
       - id: body
         name: {en: "Body", de: "Rumpf"}
@@ -77,5 +78,11 @@ nodetypes:
 	if nodeType.Fields[0].Id != "core.file" {
 		t.Fatalf("Id of node field should be %q, is %q",
 			"core.file", nodeType.Fields[0].Id)
+	}
+	if config.NodeTypes["core.document"].AddableTo == nil {
+		t.Errorf("AddableTo of core.document should not be nil")
+	}
+	if nodeType.AddableTo != nil {
+		t.Errorf("AddableTo of core.image should be nil")
 	}
 }
