@@ -914,59 +914,36 @@ old field data before adding the new field.</p></div>
 <h3 id="_configuration">Configuration</h3>
 <div class="sect3">
 <h4 id="_directives">Directives</h4>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-namespace (string)
-</dt>
-<dd>
-<p>
-  Sets the namespace for configured node types.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes ([&#8230;])
-</dt>
-<dd>
-<p>
-  List of node types to be configured.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; id (string)
-</dt>
-<dd>
-<p>
-  ID of the configured node type (without namespace, this will be set
-  using the <code>namespace</code> directive).
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; name ({language-code &#8594; string})
-</dt>
-<dd>
-<p>
-  The name of the node type as shown in the web interface, specified
-  as a translation map.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; addable_to ([string])
-</dt>
-<dd>
-<p>
-  Per default, nodes may be added to any other node. This behaviour
-  can be overwritten for one node type with the <code>addable_to</code>
-  option. Nodes of this type may only be added to nodes of the
-  specified types. You may specify individual node types with their
-  full id <code>namespace.id</code> or all node types of a namespace using
-  <code>namespace.</code> (i.e. the namespace followed by a single dot). To
-  specify all available node types, use the single dot, i.e.<code>[.]</code>. To
-  specify that the node may not be added to any other node, use a non
-  existing namespace like <code>[null.]</code> (it&#8217;s currently not possible to
-  specify an empty array).
-</p>
-</dd>
-</dl></div>
+<div class="sect4">
+<h5 id="_namespace_string">namespace (string)</h5>
+<div class="paragraph"><p>Sets the namespace for configured node types.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_8230">nodetypes ([&#8230;])</h5>
+<div class="paragraph"><p>List of node types to be configured.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_id_string">nodetypes &gt; id (string)</h5>
+<div class="paragraph"><p>ID of the configured node type (without namespace, this will be set
+using the <code>namespace</code> directive).</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_name_language_code_8594_string">nodetypes &gt; name ({language-code &#8594; string})</h5>
+<div class="paragraph"><p>The name of the node type as shown in the web interface, specified
+as a translation map.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_addable_to_string">nodetypes &gt; addable_to ([string])</h5>
+<div class="paragraph"><p>Per default, nodes may be added to any other node. This behaviour
+can be overwritten for one node type with the <code>addable_to</code>
+option. Nodes of this type may only be added to nodes of the
+specified types. You may specify individual node types with their
+full id <code>namespace.id</code> or all node types of a namespace using
+<code>namespace.</code> (i.e. the namespace followed by a single dot). To
+specify all available node types, use the single dot, i.e.<code>[.]</code>. To
+specify that the node may not be added to any other node, use a non
+existing namespace like <code>[null.]</code> (it&#8217;s currently not possible to
+specify an empty array).</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -1025,84 +1002,47 @@ other node by directly manipulating the node data on the file
 system. This option merely affects the web interface.</td>
 </tr></table>
 </div>
-<div class="dlist"><dl>
-<dt class="hdlist1">
-nodetypes &gt; fields ([&#8230;])
-</dt>
-<dd>
-<p>
-  List of the node type&#8217;s fields.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; fields &gt; id (string)
-</dt>
-<dd>
-<p>
-  ID of the node type field (without namespace, this will be set using
-  the <code>namespace</code> directive).
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; fields &gt; name ({language-code &#8594; string})
-</dt>
-<dd>
-<p>
-  The name of the node type field as shown in the web interface,
-  specified as a translation map.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; fields &gt; type (string})
-</dt>
-<dd>
-<p>
-  The type of the field.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; queries ([&#8230;])
-</dt>
-<dd>
-<p>
-  List of queries to be used.
-</p>
-</dd>
-<dt class="hdlist1">
-nodetypes &gt; queries &gt; id (string)
-</dt>
-<dd>
-<p>
-  ID of the query to be used.
-</p>
-</dd>
-<dt class="hdlist1">
-queries ([&#8230;])
-</dt>
-<dd>
-<p>
-  List of queries to be configured.
-</p>
-</dd>
-<dt class="hdlist1">
-queries &gt; id (string)
-</dt>
-<dd>
-<p>
-  ID of the configured query (without namespace, this will be set
-  using the <code>namespace</code> directive).
-</p>
-</dd>
-<dt class="hdlist1">
-queries &gt; order ([string])
-</dt>
-<dd>
-<p>
-  Order of the returned nodes. Currently, only "random" is
-  implemented.
-</p>
-</dd>
-</dl></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_fields_8230">nodetypes &gt; fields ([&#8230;])</h5>
+<div class="paragraph"><p>List of the node type&#8217;s fields.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_fields_gt_id_string">nodetypes &gt; fields &gt; id (string)</h5>
+<div class="paragraph"><p>ID of the node type field (without namespace, this will be set using
+the <code>namespace</code> directive).</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_fields_gt_name_language_code_8594_string">nodetypes &gt; fields &gt; name ({language-code &#8594; string})</h5>
+<div class="paragraph"><p>The name of the node type field as shown in the web interface,
+specified as a translation map.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_fields_gt_type_string">nodetypes &gt; fields &gt; type (string})</h5>
+<div class="paragraph"><p>The type of the field.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_queries_8230">nodetypes &gt; queries ([&#8230;])</h5>
+<div class="paragraph"><p>List of queries to be used.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_nodetypes_gt_queries_gt_id_string">nodetypes &gt; queries &gt; id (string)</h5>
+<div class="paragraph"><p>ID of the query to be used.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_queries_8230">queries ([&#8230;])</h5>
+<div class="paragraph"><p>List of queries to be configured.</p></div>
+</div>
+<div class="sect4">
+<h5 id="_queries_gt_id_string">queries &gt; id (string)</h5>
+<div class="paragraph"><p>ID of the configured query (without namespace, this will be set
+using the <code>namespace</code> directive).</p></div>
+</div>
+<div class="sect4">
+<h5 id="_queries_gt_order_string">queries &gt; order ([string])</h5>
+<div class="paragraph"><p>Order of the returned nodes. Currently, only "random" is
+implemented.</p></div>
+</div>
 </div>
 </div>
 </div>
@@ -1188,7 +1128,7 @@ author(s) of the translation (the authors are noted in the <code>.po</code> file
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-20 11:38:27 CEST
+Last updated 2014-10-20 11:41:23 CEST
 </div>
 </div>
 </body>
