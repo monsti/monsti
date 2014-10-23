@@ -96,7 +96,7 @@ func dataToNode(data []byte,
 	ret.Type, err = getNodeType(node.Type)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get node type %q: %v",
-			node.Type)
+			node.Type, err)
 	}
 
 	ret.InitFields()
