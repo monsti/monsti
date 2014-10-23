@@ -208,7 +208,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 }
 
 type removeFormData struct {
-	Confirm int
+	Confirm string
 }
 
 // Remove handles remove requests.
@@ -219,11 +219,12 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "Confirm", G("Confirm"), "")
 	switch c.Req.Method {
 	case "GET":
+		data.Confirm = "ok"
 	case "POST":
 		if err := c.Req.ParseForm(); err != nil {
 			return err
 		}
-		if form.Fill(c.Req.Form) {
+		if form.Fill(c.Req.Form) && data.Confirm == "ok" {
 			if err := c.Serv.Monsti().RemoveNode(c.Site.Name, c.Node.Path); err != nil {
 				return fmt.Errorf("Could not remove node: %v", err)
 			}
@@ -233,7 +234,6 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	data.Confirm = 1489
 	body, err := h.Renderer.Render("actions/removeform", mtemplate.Context{
 		"Form": form.RenderData(), "Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
