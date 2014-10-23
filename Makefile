@@ -148,7 +148,7 @@ locale/monsti-daemon.pot:
 %.po: locale/monsti-daemon.pot
 	  msgmerge -s -U $@ $<
 
-doc: doc/manual.html doc/developer.html
+doc: doc/manual.html
 
 doc/%.html: doc/%.adoc
 	asciidoc $<
