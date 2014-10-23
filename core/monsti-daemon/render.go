@@ -75,10 +75,8 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		}
 		secnav.MakeAbsolute(env.Node.Path)
 	}
-	title := env.Node.Fields["core.Title"].String()
-	if env.Title != "" {
-		title = env.Title
-	}
+
+	title := getNodeTitle(env.Node)
 	ret, err := r.Render("master", template.Context{
 		"Site": template.Context{
 			"Title": site.Title,
