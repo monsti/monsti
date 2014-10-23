@@ -1,3 +1,5 @@
+<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+
 {{with .Image}}
 <img src="{{.Path}}/?raw=1" alt="{{.Title}}" title="{{.Description}}">
 {{end}}

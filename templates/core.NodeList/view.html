@@ -1,3 +1,5 @@
+<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+
 {{with mapGet .Queries "core.NodeList"}}
 <ul class="node-list">
 {{range .}}
