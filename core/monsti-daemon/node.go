@@ -496,11 +496,14 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
 	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation (lower numbered entries appear first)."))
-	if newNode {
+	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
 			Regexp:          `^[-\w]+$`,
 			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'")},
 			"Name", G("Name"), G("The name as it should appear in the URL."))
+	}
+	if !newNode {
+		formData.Name = c.Node.Name()
 	}
 
 	fileFields := make([]string, 0)
@@ -518,11 +521,17 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
 			node := formData.Node
 			node.Type = nodeType
-			node.Path = c.Node.Path
-			writeNode := true
+			renamed := !newNode && c.Node.Name() != "" && c.Node.Name() != formData.Name
 			if newNode {
-				node.InitFields()
-				node.Path = path.Join(node.Path, formData.Name)
+				node.Path = path.Join(c.Node.Path, formData.Name)
+			} else if renamed {
+				parent := path.Dir(c.Node.Path)
+				node.Path = path.Join(parent, formData.Name)
+			} else {
+				node.Path = c.Node.Path
+			}
+			writeNode := true
+			if newNode || renamed {
 				existing, err := c.Serv.Monsti().GetNode(c.Site.Name, node.Path)
 				if err != nil {
 					return fmt.Errorf("Could not fetch possibly existing node: %v", err)
@@ -531,8 +540,15 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					form.AddError("Name", G("A node with this name does already exist"))
 					writeNode = false
 				}
+				node.InitFields()
 			}
 			if writeNode {
+				if renamed {
+					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
+					if err != nil {
+						return fmt.Errorf("Could not move node: ", err)
+					}
+				}
 				for _, field := range nodeType.Fields {
 					node.GetField(field.Id).FromFormField(formData.Fields, &field)
 				}
