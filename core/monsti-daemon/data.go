@@ -139,6 +139,20 @@ func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	return nil
 }
 
+type RenameNodeArgs struct {
+	Site, Source, Target string
+}
+
+func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
+	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	if err := os.Rename(
+		filepath.Join(root, args.Source),
+		filepath.Join(root, args.Target)); err != nil {
+		return fmt.Errorf("Can't move node: %v", err)
+	}
+	return nil
+}
+
 // getConfig returns the configuration value or section for the given name.
 func getConfig(path, name string) ([]byte, error) {
 	content, err := ioutil.ReadFile(path)

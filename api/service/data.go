@@ -202,6 +202,22 @@ func (s *MonstiClient) RemoveNode(site string, node string) error {
 	return nil
 }
 
+// RenameNode renames (moves) the given site's node.
+//
+// Source and target path must be absolute
+func (s *MonstiClient) RenameNode(site, source, target string) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Site, Source, Target string
+	}{site, source, target}
+	if err := s.RPCClient.Call("Monsti.RenameNode", args, new(int)); err != nil {
+		return fmt.Errorf("service: RenameNode error: %v", err)
+	}
+	return nil
+}
+
 func getConfig(reply []byte, out interface{}) error {
 	objectV := reflect.New(
 		reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf(out)))
