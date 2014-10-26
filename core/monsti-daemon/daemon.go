@@ -52,6 +52,7 @@ type settings struct {
 		Host     string
 		Username string
 		Password string
+		Debug    bool
 	}
 }
 
@@ -118,6 +119,7 @@ func main() {
 	monstiPath := settings.Monsti.GetServicePath(service.MonstiService.String())
 	monsti := new(MonstiService)
 	monsti.Settings = &settings
+	monsti.Logger = logger
 	provider := service.NewProvider("Monsti", monsti)
 	provider.Logger = logger
 	if err := provider.Listen(monstiPath); err != nil {

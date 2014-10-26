@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/smtp"
 	"strings"
 	"sync"
@@ -33,6 +34,7 @@ type MonstiService struct {
 	// Mutex to syncronize data access
 	mutex    sync.RWMutex
 	Settings *settings
+	Logger   *log.Logger
 }
 
 func (i *MonstiService) PublishService(args service.PublishServiceArgs,
@@ -70,11 +72,24 @@ func (i *MonstiService) FindDataService(arg int, path *string) error {
 */
 
 func (m *MonstiService) SendMail(mail mimemail.Mail, reply *int) error {
-	auth := smtp.PlainAuth("", m.Settings.Mail.Username,
-		m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
-	if err := smtp.SendMail(m.Settings.Mail.Host, auth,
-		mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
-		return fmt.Errorf("monsti: Could not send email: %v", err)
+	if !m.Settings.Mail.Debug {
+		auth := smtp.PlainAuth("", m.Settings.Mail.Username,
+			m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
+		if err := smtp.SendMail(m.Settings.Mail.Host, auth,
+			mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
+			return fmt.Errorf("monsti: Could not send email: %v", err)
+		}
+	} else {
+		m.Logger.Printf(`SendMail debug:
+From: %v
+To: %v
+Cc: %v
+Bcc: %v
+Subject: %v
+-- Body Start --
+%v
+-- Body End --`,
+			mail.From, mail.To, mail.Cc, mail.Bcc, mail.Subject, string(mail.Body))
 	}
 	return nil
 }

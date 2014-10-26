@@ -19,3 +19,6 @@ mail:
   host: localhost:25
   #username: user
   #password: password
+  # if debug is true, mails will not be send at all but written to the
+  # log.
+  debug: true
