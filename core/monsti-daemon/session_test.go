@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"code.google.com/p/go.crypto/bcrypt"
 	"pkg.monsti.org/monsti/api/service"
@@ -106,6 +107,39 @@ func TestPasswordEqual(t *testing.T) {
 		if passwordEqual(string(hash), v.Password) != v.Equal {
 			t.Errorf("passwordEqual(%v, %v) = %v, should be %v",
 				hash, v.Password, !v.Equal, v.Equal)
+		}
+	}
+}
+
+func TestRequestPasswordToken(t *testing.T) {
+	// Test call with empty secret
+	func() {
+		defer func() {
+			if err := recover(); err == nil {
+				t.Errorf("getRequestPasswordToken should panic if empty secret is passed")
+			}
+		}()
+		getRequestPasswordToken("foo", "bar", "")
+	}()
+
+	past := time.Now().Add(-time.Hour * 10000)
+	future := time.Now().Add(time.Hour * 10000)
+	tests := []struct {
+		Site, Login, Secret string
+		Changed             time.Time
+		Valid               bool
+	}{
+		{"foo", "bar", "baz", past, true},
+		{"foo", "bar", "baz", future, false},
+		{"bar", "baz", "foo", past, true},
+		{"bar", "baz", "foo", future, false},
+	}
+	for i, test := range tests {
+		token := getRequestPasswordToken(test.Site, test.Login, test.Secret)
+		if test.Valid != verifyRequestPasswordToken(test.Site,
+			service.User{Login: test.Login, PasswordChanged: test.Changed},
+			test.Secret, token) {
+			t.Errorf("RequestPasswordToken test[%v] failed", i)
 		}
 	}
 }

@@ -277,6 +277,8 @@ const (
 	LogoutAction
 	AddAction
 	RemoveAction
+	RequestPasswordTokenAction
+	ChangePasswordAction
 )
 
 /*

@@ -108,12 +108,14 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var nodePath string
 	nodePath, action := splitAction(c.Req.URL.Path)
 	c.Action = map[string]service.Action{
-		"view":   service.ViewAction,
-		"edit":   service.EditAction,
-		"login":  service.LoginAction,
-		"logout": service.LogoutAction,
-		"add":    service.AddAction,
-		"remove": service.RemoveAction,
+		"view":                   service.ViewAction,
+		"edit":                   service.EditAction,
+		"login":                  service.LoginAction,
+		"logout":                 service.LogoutAction,
+		"add":                    service.AddAction,
+		"remove":                 service.RemoveAction,
+		"request-password-token": service.RequestPasswordTokenAction,
+		"change-password":        service.ChangePasswordAction,
 	}[action]
 	site_name, ok := h.Hosts[c.Req.Host]
 	if !ok {
@@ -158,6 +160,10 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.Remove(&c)
 	case service.EditAction:
 		err = h.Edit(&c)
+	case service.RequestPasswordTokenAction:
+		err = h.RequestPasswordToken(&c)
+	case service.ChangePasswordAction:
+		err = h.ChangePassword(&c)
 	default:
 		err = h.View(&c)
 	}
