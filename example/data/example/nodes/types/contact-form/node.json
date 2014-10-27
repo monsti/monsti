@@ -1,0 +1,12 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Type": "core.ContactForm",
+  "Fields": {
+    "core": {
+      "Body": "A contact form! Possibly non functional, as it requires a configured SMTP daemon.\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
+      "Title": "Contact Form"
+    }
+  }
+}

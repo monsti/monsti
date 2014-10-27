@@ -1,0 +1,16 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": {
+    "core.Document/view": {
+      "Template": "foo.DocumentOverwrite/view"
+    }
+  },
+  "Type": "core.Document",
+  "Fields": {
+    "core": {
+      "Body": "The Foo Page.\u003cbr class=\"aloha-cleanme\"\u003e",
+      "Title": "Template Overwrites"
+    }
+  }
+}

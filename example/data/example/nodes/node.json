@@ -1,10 +1,11 @@
 {
   "Order": 0,
   "Hide": false,
+  "TemplateOverwrites": null,
   "Type": "core.Document",
   "Fields": {
     "core": {
-      "Body": "\u003cp style=\"\"\u003e\u003cb\u003eHello World!\u003c/b\u003e\u003c/p\u003e\u003cp style=\"\"\u003eAccess the admin interface via \u003ca href=\"/@@login\" class=\"aloha-link-text\"\u003e/@@login\u003c/a\u003e\u003c/p\u003e\u003cp style=\"\"\u003e\u003cb\u003eUser:\u003c/b\u003e admin \u003cb\u003ePassword:\u003c/b\u003e foofoo\u003c/p\u003e\u003cp style=\"\"\u003eExample File embedded:\u003c/p\u003e\u003cp style=\"\"\u003e\u003cimg class=\"\" style=\"height: 22px; width: 111px; position: relative; resize: none; display: inline-block; top: 0px; left: 0px; background-color: rgb(128, 181, 242);\" src=\"/example-file\" title=\"\"\u003e\u003c/p\u003e\u003cp style=\"\"\u003eImage:\u003c/p\u003e\u003cp style=\"\"\u003e\u003c/p\u003e\u003cdiv class=\"ui-wrapper aloha-image-box-active Aloha_Image_Resize aloha\" style=\"overflow: hidden; position: relative; width: 176px; height: 100px; top: 0px; left: 0px; margin: 0px; display: inline-block; float: none;\" contenteditable=\"false\"\u003e\u003cimg class=\"\" style=\"height: 100px; width: 200px; position: relative; resize: none; display: inline-block; top: 0px; left: 0px;\" src=\"sample-image?size=foo\" title=\"\"\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-ne\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-sw\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-nw\"\u003e\u003c/div\u003e\u003c/div\u003e\u003cbr style=\"\"\u003e\u003cp\u003e\u003c/p\u003e",
+      "Body": "\u003cp style=\"\"\u003e\u003cb\u003eHello World!\u003c/b\u003e\u003c/p\u003e\u003cp style=\"\"\u003eAccess the admin interface via \u003ca href=\"/@@login\" class=\"aloha-link-text\"\u003e/@@login\u003c/a\u003e\u003c/p\u003e\u003cp style=\"\"\u003e\u003cb\u003eUser:\u003c/b\u003e admin \u003cb\u003ePassword:\u003c/b\u003e foofoo\u003c/p\u003e",
       "Title": "Home"
     }
   }

@@ -1,11 +1,12 @@
 {
-  "Type": "core.File",
   "Order": 0,
   "Hide": false,
+  "TemplateOverwrites": null,
+  "Type": "core.Image",
   "Fields": {
     "core": {
       "File": "",
-      "Title": "Example file"
+      "Title": "Image"
     }
   }
 }
