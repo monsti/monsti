@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
     <link rel="shortcut icon" href="/site-static/favicon.png" />
   </head>
-  <body id="{{.Page.Node.PathToID}}">
+  <body id="{{.Page.Node.PathToID}}" class="node-type-{{.Page.Node.Type.Id}}">
     {{template "blocks/admin-bar" .}}
     <div id="site-wrap">
       <div id="top-wrap">
