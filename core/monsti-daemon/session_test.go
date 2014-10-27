@@ -134,11 +134,16 @@ func TestRequestPasswordToken(t *testing.T) {
 		{"bar", "baz", "foo", past, true},
 		{"bar", "baz", "foo", future, false},
 	}
+
 	for i, test := range tests {
 		token := getRequestPasswordToken(test.Site, test.Login, test.Secret)
-		if test.Valid != verifyRequestPasswordToken(test.Site,
-			service.User{Login: test.Login, PasswordChanged: test.Changed},
-			test.Secret, token) {
+		getUserFn := func(login string) (*service.User, error) {
+			return &service.User{
+				Login:           test.Login,
+				PasswordChanged: test.Changed}, nil
+		}
+		user, err := verifyRequestPasswordToken(test.Site, getUserFn, test.Secret, token)
+		if err != nil || (test.Valid && user == nil) {
 			t.Errorf("RequestPasswordToken test[%v] failed", i)
 		}
 	}

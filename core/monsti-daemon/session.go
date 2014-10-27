@@ -17,7 +17,7 @@
 package main
 
 import (
-	"encoding/base64"
+	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -95,10 +95,6 @@ func (h *nodeHandler) Logout(c *reqContext) error {
 	return nil
 }
 
-func (h *nodeHandler) ChangePassword(c *reqContext) error {
-	return nil
-}
-
 type requestPasswordTokenFormData struct {
 	User string
 }
@@ -127,7 +123,8 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 			}
 			if user != nil {
 				site := h.Settings.Monsti.Sites[c.Site.Name]
-				link := getRequestPasswordToken(c.Site.Name, data.User, site.PasswordTokenKey)
+				link := getRequestPasswordToken(c.Site.Name, data.User,
+					site.PasswordTokenKey)
 				mail := mimemail.Mail{
 					From:    mimemail.Address{site.EmailName, site.EmailAddress},
 					Subject: G("Password request"),
@@ -147,7 +144,8 @@ This is an automatically generated email. Please don't reply to it.
 				if err != nil {
 					return fmt.Errorf("Could not send mail: %v", err)
 				}
-				http.Redirect(c.Res, c.Req, "@@request-password-token?sent", http.StatusSeeOther)
+				http.Redirect(c.Res, c.Req, "@@request-password-token?sent",
+					http.StatusSeeOther)
 				return nil
 			} else {
 				form.AddError("User", G("Unkown user."))
@@ -175,60 +173,98 @@ This is an automatically generated email. Please don't reply to it.
 	return nil
 }
 
-/*
-type forgotPasswordFormData struct {
-	Token, Login, Password string
+type changePasswordFormData struct {
+	OldPassword, Password string
 }
 
-// ForgotPassword handles new password requests.
-func (h *nodeHandler) ForgotPassword(c *reqContext) error {
+// ChangePassword allows to change the user's password.
+func (h *nodeHandler) ChangePassword(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
-	data := forgotPasswordFormData{}
-
-	hasToken := len(c.Req.FormValue("Token")) > 0
-
+	authenticated := c.UserSession.User != nil
+	data := changePasswordFormData{}
 	form := htmlwidgets.NewForm(&data)
-	form.AddWidget(new(htmlwidgets.HiddenWidget), "Token", "", "")
-	if hasToken {
-		form.AddWidget(&htmlwidgets.PasswordWidget{Confirm: true}), "Password",
-	} else {
-		form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("Login"), "")
+	if authenticated {
+		form.AddWidget(&htmlwidgets.PasswordWidget{}, "OldPassword",
+			G("Old Password"), "")
 	}
-	G("New password"), "")
-
+	form.AddWidget(&htmlwidgets.PasswordWidget{
+		VerifyLabel: G("Please repeat the password."),
+		VerifyError: G("Passwords do not match."),
+	}, "Password", G("New Password"), "")
+	var token string
+	tokenInvalid := false
+	c.Req.ParseForm()
+	var user *service.User
+	if !authenticated {
+		if tokens, ok := c.Req.Form["token"]; ok {
+			token = tokens[0]
+		}
+		if len(token) == 0 {
+			http.Redirect(c.Res, c.Req, "@@login", http.StatusSeeOther)
+			return nil
+		}
+		getUserFn := func(login string) (*service.User, error) {
+			return getUser(login, h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+		}
+		var err error
+		user, err = verifyRequestPasswordToken(
+			c.Site.Name, getUserFn, c.Site.PasswordTokenKey, token)
+		if err != nil {
+			return fmt.Errorf("Could not verify request password token: %v", err)
+		}
+		if user == nil {
+			tokenInvalid = true
+		}
+	} else {
+		user = c.UserSession.User
+	}
+	changed := false
 	switch c.Req.Method {
 	case "GET":
+		if _, ok := c.Req.Form["changed"]; ok {
+			changed = true
+		}
 	case "POST":
-		c.Req.ParseForm()
-		if form.Fill(c.Req.Form) {
-			user, err := getUser(data.Login,
-				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
-			if err != nil {
-				return fmt.Errorf("Could not get user: %v", err)
-			}
-			if user != nil {
-			} else {
-				form.AddError("Login", G("Unkown user."))
+		if authenticated || !tokenInvalid {
+			if form.Fill(c.Req.Form) {
+				changePassword := true
+				if authenticated {
+					changePassword = passwordEqual(c.UserSession.User.Password,
+						data.OldPassword)
+					if !changePassword {
+						form.AddError("Password", G("Wrong password."))
+					}
+				}
+				if changePassword {
+					// TODO: Change Password
+					http.Redirect(c.Res, c.Req, "@@change-password?changed",
+						http.StatusSeeOther)
+					return nil
+				}
 			}
 		}
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	data.Password = ""
-	body, err := h.Renderer.Render("actions/loginform", template.Context{
-		"Form": form.RenderData()}, c.UserSession.Locale,
+
+	body, err := h.Renderer.Render("actions/change_password",
+		template.Context{
+			"TokenInvalid": tokenInvalid,
+			"Changed":      changed,
+			"Form":         form.RenderData()}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		return fmt.Errorf("Can't render login form: %v", err)
+		return fmt.Errorf("Can't render ChangePassword form: %v", err)
 	}
-	env := masterTmplEnv{Node: c.Node, Session: c.UserSession, Title: G("Login"),
-		Description: G("Login with your site account."),
-		Flags:       EDIT_VIEW}
+	env := masterTmplEnv{
+		Node:    c.Node,
+		Session: c.UserSession,
+		Title:   G("Change password"),
+		Flags:   EDIT_VIEW}
 	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
 	return nil
 }
-*/
 
 // getSession returns a currently active or new session.
 func getSession(r *http.Request, site util.SiteSettings) (
@@ -269,8 +305,27 @@ func getClientSession(session *sessions.Session,
 	return
 }
 
-// getUser returns the user with the given login.
+// getUser returns the user with the given login. If there is no such
+// user, returns nil.
 func getUser(login_, dataDir string) (*service.User, error) {
+	path := filepath.Join(dataDir, "users.json")
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not load user database: %v", err)
+	}
+	var users map[string]service.User
+	if err = json.Unmarshal(content, &users); err != nil {
+		return nil, fmt.Errorf("Could not unmarshal user database: %v", err)
+	}
+	if user, ok := users[login_]; ok {
+		user.Login = login_
+		return &user, nil
+	}
+	return nil, nil
+}
+
+// writeUser saves the user data for the given login
+func writeUser(login_, dataDir string) (*service.User, error) {
 	path := filepath.Join(dataDir, "users.json")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -313,7 +368,7 @@ func passwordEqual(hash, password string) bool {
 
 func generateToken(args ...string) string {
 	hash := sha256.Sum256([]byte(strings.Join(args, "#")))
-	return base64.URLEncoding.EncodeToString(hash[:])
+	return base32.StdEncoding.EncodeToString(hash[:])
 }
 
 // genPasswordToken generates a password token
@@ -327,27 +382,33 @@ func getRequestPasswordToken(site, login, secret string) string {
 }
 
 // verifyRequestPasswordToken verifies the password token for the
-// given site and user.
-func verifyRequestPasswordToken(site string, user service.User, secret string,
-	token string) bool {
+// given site and returns the user who requested the password
+// change. If the token is invalid, returns nil.
+func verifyRequestPasswordToken(site string,
+	getUserFn func(login string) (*service.User, error),
+	secret string, token string) (*service.User, error) {
 	if len(secret) == 0 {
 		panic("Secret passed to verifyRequestPasswordToken must not be empty")
 	}
 	parts := strings.Split(token, "-")
 	if len(parts) < 3 {
-		return false
+		return nil, nil
 	}
 	userPartsCount := len(parts) - 2
 	userSubstring := strings.Join(parts[:userPartsCount], "-")
-	if userSubstring != user.Login {
-		return false
+	user, err := getUserFn(userSubstring)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get user: %v", err)
 	}
 	timeSubstring := parts[userPartsCount]
 	generated, err := strconv.Atoi(timeSubstring)
 	if err != nil || int64(generated) < user.PasswordChanged.Unix() {
-		return false
+		return nil, nil
 	}
 	hashSubstring := parts[userPartsCount+1]
 	calculated := generateToken(site, user.Login, timeSubstring, secret)
-	return calculated == hashSubstring
+	if calculated == hashSubstring {
+		return user, nil
+	}
+	return nil, nil
 }
