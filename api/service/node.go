@@ -179,14 +179,22 @@ func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
 	*t = DateTimeField{Time: data.Get(field.Id).(time.Time)}
 }
 
+// TemplateOverwrite specifies a template that should be used instead
+// of another.
+type TemplateOverwrite struct {
+	// The template to be used instead.
+	Template string
+}
+
 type Node struct {
 	Path string `json:",omitempty"`
 	// Content type of the node.
 	Type  *NodeType `json:"-"`
 	Order int
 	// Don't show the node in navigations if Hide is true.
-	Hide   bool
-	Fields map[string]Field `json:"-"`
+	Hide               bool
+	Fields             map[string]Field `json:"-"`
+	TemplateOverwrites map[string]TemplateOverwrite
 }
 
 func (n *Node) InitFields() {

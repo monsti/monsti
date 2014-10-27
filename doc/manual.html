@@ -1172,7 +1172,10 @@ mail:
   # host:port
   host: localhost:25
   #username: user
-  #password: password</code></pre>
+  #password: password
+  # if debug is true, mails will not be send at all but written to the
+  # log.
+  debug: true</code></pre>
 </div></div>
 </div>
 </div>
@@ -1183,18 +1186,24 @@ mail:
 <div class="paragraph"><p>Monsti uses Go&#8217;s
 <a href="http://golang.org/pkg/html/template/"><code>html/template</code></a>
 package. Beside a global template directory that is used by all sites,
-you can configure site local template directories. The template
-directories may contain templates and include files.</p></div>
+you may configure site local template directories. The template
+directories contain templates and include files.</p></div>
 <div class="sect2">
 <h3 id="_include_files">Include Files</h3>
 <div class="paragraph"><p>Include files specify for a directory subtree or individual templates,
-which templates may be called inside the templates. Include files
-contain one template name per line. Specify callable templates for
-an individual template named <code>foo.html</code> in a file named <code>foo.include</code>
-in the same directory.</p></div>
-<div class="paragraph"><p>To include callable templates for all templates of a directory tree,
-add the names of the template to a file named <code>include</code> at the root of
-the tree.</p></div>
+which other templates may be called inside the templates. Include
+files contain one template name per line. Specify callable templates
+for an individual template named <code>foo.html</code> in a file named
+<code>foo.include</code> in the same directory. To include callable templates for
+all templates of a directory tree, add the names of the templates to a
+file named <code>include</code> at the root of the tree.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_template_overwrites">Template Overwrites</h3>
+<div class="paragraph"><p>You can overwrite templates for individual nodes by setting the
+corresponding option in the node&#8217;s <code>node.json</code> file. Have a look at
+the <code>service.Node</code> API documentation or the examples for more
+information.</p></div>
 </div>
 </div>
 </div>
@@ -1237,7 +1246,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-23 13:12:57 CEST
+Last updated 2014-10-27 12:17:47 CET
 </div>
 </div>
 </body>

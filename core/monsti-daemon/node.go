@@ -392,7 +392,11 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		}
 	}
 	context["Queries"] = queries
-	rendered, err := h.Renderer.Render(reqNode.Type.Id+"/view", context,
+	template := reqNode.Type.Id + "/view"
+	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
+		template = overwrite.Template
+	}
+	rendered, err := h.Renderer.Render(template, context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		return nil, fmt.Errorf("Could not render template: %v", err)

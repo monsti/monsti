@@ -7,5 +7,10 @@
       "Body": "The Foo Page.\u003cbr class=\"aloha-cleanme\"\u003e",
       "Title": "Foo"
     }
+  },
+  "TemplateOverwrites": {
+    "core.Document/view": {
+      "Template":"foo.DocumentOverwrite/view"
+    }
   }
 }

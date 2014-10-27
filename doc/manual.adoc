@@ -213,6 +213,13 @@ for an individual template named `foo.html` in a file named
 all templates of a directory tree, add the names of the templates to a
 file named `include` at the root of the tree.
 
+=== Template Overwrites
+
+You can overwrite templates for individual nodes by setting the
+corresponding option in the node's `node.json` file. Have a look at
+the `service.Node` API documentation or the examples for more
+information.
+
 == Core Node Types
 
 === Image
