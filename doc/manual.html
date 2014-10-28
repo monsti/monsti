@@ -823,6 +823,28 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 </div>
 </div>
 <div class="sect1">
+<h2 id="_nodes">Nodes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_embedding">Embedding</h3>
+<div class="paragraph"><p>You may embed nodes into other nodes. This is useful if for example
+you want to include in a <code>core.Document</code> node a list of recently
+changed nodes which is implemented by another node type
+<code>foo.RecentlyChangedList</code>.</p></div>
+<div class="paragraph"><p>To do this, create a (possibly hidden) node of type
+<code>foo.RecentlyChangedList</code> and embed it into the document node by
+setting the embed option in the node&#8217;s <code>Embed</code> attribute. Each embed
+has an id and an URI. The id is used to access the embeded content,
+the URI is the path to the embedded node, including any arguments.</p></div>
+<div class="paragraph"><p>You may access the embedded content in templates with
+<code>.Embed.&lt;ID&gt;</code>. For the above example, you have to overwrite the
+<code>core.Document</code> template for this node to actually add the embedded
+content. See the section about template overwrites how to do this.</p></div>
+<div class="paragraph"><p>As always, have a look at the example site (<code>Nodes &gt; Embedding</code>).</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_node_types">Node types</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1244,7 +1266,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-28 09:12:41 CET
+Last updated 2014-10-28 09:25:03 CET
 </div>
 </div>
 </body>
