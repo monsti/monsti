@@ -336,7 +336,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.RenderNode(c, nil)
+	rendered, err := h.RenderNode(c, nil, c.Req.Form)
 	if err != nil {
 		return fmt.Errorf("Could not render node: %v", err)
 	}
@@ -350,7 +350,8 @@ func (h *nodeHandler) View(c *reqContext) error {
 	return nil
 }
 
-func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
+func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
+	formValues url.Values) (
 	[]byte, error) {
 	reqNode := c.Node
 	if embed != nil {
@@ -372,7 +373,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		}
 		embedNode := node
 		embedNode.Path = embedPath
-		rendered, err := h.RenderNode(c, embedNode)
+		rendered, err := h.RenderNode(c, embedNode, reqURL.Query())
 		if err != nil {
 			return nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
@@ -382,7 +383,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 	context["Node"] = reqNode
 	switch reqNode.Type.Id {
 	case "core.ContactForm":
-		if err := renderContactForm(c, context, h); err != nil {
+		if err := renderContactForm(c, context, formValues, h); err != nil {
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}

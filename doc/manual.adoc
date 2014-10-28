@@ -125,6 +125,13 @@ content. See the section about template overwrites how to do this.
 
 As always, have a look at the example site (`Nodes > Embedding`).
 
+=== Query parameters
+
+Query parameters of the requsted node are not passed directly to the
+embedded node. Instead, any parameters specified in the embed option
+URI are passed. At some point, it will be possible to access the
+requested node's parameter.
+
 == Node types
 
 === Core Node Types

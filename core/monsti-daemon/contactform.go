@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"path"
 	"github.com/chrneumann/htmlwidgets"
@@ -32,7 +33,7 @@ type contactFormData struct {
 }
 
 func renderContactForm(c *reqContext, context template.Context,
-	h *nodeHandler) error {
+	formValues url.Values, h *nodeHandler) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.Site.Locale)
 	data := contactFormData{}
 	form := htmlwidgets.NewForm(&data)
@@ -47,11 +48,11 @@ func renderContactForm(c *reqContext, context template.Context,
 
 	switch c.Req.Method {
 	case "GET":
-		if _, submitted := c.Req.Form["submitted"]; submitted {
+		if _, submitted := formValues["submitted"]; submitted {
 			context["Submitted"] = 1
 		}
 	case "POST":
-		if form.Fill(c.Req.Form) {
+		if form.Fill(formValues) {
 			mail := mimemail.Mail{
 				From:    mimemail.Address{data.Name, data.Email},
 				Subject: data.Subject,
