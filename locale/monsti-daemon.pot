@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-07-12 12:03+0200\n"
+"POT-Creation-Date: 2014-10-28 18:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,133 +17,185 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Standardeingabe:34
-msgid "Edit"
-msgstr ""
-
-#: Standardeingabe:37
-msgid "Add"
-msgstr ""
-
-#: Standardeingabe:40
-msgid "Remove"
-msgstr ""
-
-#: Standardeingabe:44
-msgid "Logout"
-msgstr ""
-
-#: Standardeingabe:73
-msgid "Submit"
-msgstr ""
-
-#: Standardeingabe:86
-msgid "Thanks for your message!"
-msgstr ""
-
-#: Standardeingabe:244
-msgid "WARNING: You are about to remove this content and all content below."
-msgstr ""
-
-#: Standardeingabe:245
-msgid "The removed content will be lost, so be careful!"
-msgstr ""
-
-#: Standardeingabe:249
-msgid "Proceed"
-msgstr ""
-
-#: Standardeingabe:250
-msgid "Abort"
-msgstr ""
-
-#: Standardeingabe:283
+#: standard input:10
 msgid "No children found."
 msgstr ""
 
-#: Standardeingabe:331 Standardeingabe:363
-msgid "Login"
+#: standard input:90
+msgid "Edit"
 msgstr ""
 
-#: Standardeingabe:331 Standardeingabe:333 Standardeingabe:2068
-#: Standardeingabe:2095 Standardeingabe:2346 Standardeingabe:2594
-#: Standardeingabe:2595 Standardeingabe:2596 Standardeingabe:2597
-msgid "Required."
+#: standard input:93
+msgid "Add"
 msgstr ""
 
-#: Standardeingabe:333
-msgid "Password"
+#: standard input:96
+msgid "Remove"
 msgstr ""
 
-#: Standardeingabe:351
-msgid "Wrong login or password."
+#: standard input:100
+msgid "Logout"
 msgstr ""
 
-#: Standardeingabe:364
-msgid "Login with your site account."
+#: standard input:172
+msgid "Submit"
 msgstr ""
 
-#: Standardeingabe:2068
+#: standard input:186 standard input:199
+msgid "Jan"
+msgstr ""
+
+#: standard input:187
+msgid "Feb"
+msgstr ""
+
+#: standard input:188
+msgid "Mar"
+msgstr ""
+
+#: standard input:189
+msgid "Apr"
+msgstr ""
+
+#: standard input:190
+msgid "May"
+msgstr ""
+
+#: standard input:191
+msgid "Jun"
+msgstr ""
+
+#: standard input:192
+msgid "Jul"
+msgstr ""
+
+#: standard input:193
+msgid "Aug"
+msgstr ""
+
+#: standard input:194
+msgid "Sep"
+msgstr ""
+
+#: standard input:195
+msgid "Oct"
+msgstr ""
+
+#: standard input:196
+msgid "Nov"
+msgstr ""
+
+#: standard input:197
+msgid "Dec"
+msgstr ""
+
+#: standard input:217
+msgid "Thanks for your message!"
+msgstr ""
+
+#: standard input:231
+msgid "WARNING: You are about to remove this content and all content below."
+msgstr ""
+
+#: standard input:232
+msgid "The removed content will be lost, so be careful!"
+msgstr ""
+
+#: standard input:285
+msgid "Proceed"
+msgstr ""
+
+#: standard input:286
+msgid "Abort"
+msgstr ""
+
+#: standard input:1077
 msgid "Content type"
 msgstr ""
 
-#: Standardeingabe:2080
+#: standard input:1087
 msgid "Add content"
 msgstr ""
 
-#: Standardeingabe:2095
+#: standard input:1102
 msgid "Confirm"
 msgstr ""
 
-#: Standardeingabe:2121
+#: standard input:1127
 msgid "Remove \"%v\""
 msgstr ""
 
-#: Standardeingabe:2321
-msgid "Add %q to \"%s\""
+#: standard input:1369
+msgid "Add %v to \"%s\""
 msgstr ""
 
-#: Standardeingabe:2323
+#: standard input:1372
 #, c-format
 msgid "Edit \"%s\""
 msgstr ""
 
-#: Standardeingabe:2340
+#: standard input:1388
 msgid "Hide"
 msgstr ""
 
-#: Standardeingabe:2340
+#: standard input:1388
 msgid "Don't show node in navigation."
 msgstr ""
 
-#: Standardeingabe:2342
+#: standard input:1389
 msgid "Order"
 msgstr ""
 
-#: Standardeingabe:2342
+#: standard input:1389
 msgid "Order in navigation (lower numbered entries appear first)."
 msgstr ""
 
-#: Standardeingabe:2345 Standardeingabe:2594
+#: standard input:1393
+msgid ""
+"Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'"
+msgstr ""
+
+#: standard input:1394 standard input:2317
 msgid "Name"
 msgstr ""
 
-#: Standardeingabe:2345
+#: standard input:1394
 msgid "The name as it should appear in the URL."
 msgstr ""
 
-#: Standardeingabe:2347
-msgid "Contains\tinvalid characters."
+#: standard input:1431
+msgid "A node with this name does already exist"
 msgstr ""
 
-#: Standardeingabe:2595
+#: standard input:2317 standard input:2319 standard input:2321
+#: standard input:2323
+msgid "Required."
+msgstr ""
+
+#: standard input:2319
 msgid "Email"
 msgstr ""
 
-#: Standardeingabe:2596
+#: standard input:2321
 msgid "Subject"
 msgstr ""
 
-#: Standardeingabe:2597
+#: standard input:2323
 msgid "Message"
+msgstr ""
+
+#: standard input:2396 standard input:2427
+msgid "Login"
+msgstr ""
+
+#: standard input:2397
+msgid "Password"
+msgstr ""
+
+#: standard input:2415
+msgid "Wrong login or password."
+msgstr ""
+
+#: standard input:2428
+msgid "Login with your site account."
 msgstr ""
