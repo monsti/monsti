@@ -826,6 +826,17 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 <h2 id="_node_types">Node types</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="_core_node_types">Core Node Types</h3>
+<div class="sect3">
+<h4 id="_image">Image</h4>
+<div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
+site. As the File node type, the raw content (i.e. the image itself)
+can be accessed via the node&#8217;s path without trailing slash.</p></div>
+<div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
+can be access via <code>/foo/my_image.jpeg</code>.</p></div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_modifying_node_types">Modifying node types</h3>
 <div class="paragraph"><p>You have to be careful if you want to modify node types which have
 existing instances in one of your Monsti sites.</p></div>
@@ -1204,19 +1215,6 @@ file named <code>include</code> at the root of the tree.</p></div>
 corresponding option in the node&#8217;s <code>node.json</code> file. Have a look at
 the <code>service.Node</code> API documentation or the examples for more
 information.</p></div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_core_node_types">Core Node Types</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_image">Image</h3>
-<div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
-site. As the File node type, the raw content (i.e. the image itself)
-can be accessed via the node&#8217;s path without trailing slash.</p></div>
-<div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
-can be access via <code>/foo/my_image.jpeg</code>.</p></div>
 <div class="sect3">
 <h4 id="_automatic_resizing">Automatic resizing</h4>
 <div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
@@ -1246,7 +1244,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-27 12:17:47 CET
+Last updated 2014-10-28 09:12:41 CET
 </div>
 </div>
 </body>

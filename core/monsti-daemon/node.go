@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -356,16 +357,17 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		reqNode = embed
 	}
 	context := make(mtemplate.Context)
-	context["Embed"] = make(map[string][]byte)
+	context["Embed"] = make(map[string]template.HTML)
 	// Embed nodes
-	for _, embed := range reqNode.Type.Embed {
+	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
+	for _, embed := range embedNodes {
 		reqURL, err := url.Parse(embed.URI)
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
 		}
 		embedPath := path.Join(reqNode.Path, reqURL.Path)
 		node, err := c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
-		if err != nil || node.Type == nil {
+		if err != nil || node == nil {
 			continue
 		}
 		embedNode := node
@@ -374,7 +376,8 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		if err != nil {
 			return nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
-		context["Embed"].(map[string][]byte)[embed.Id] = rendered
+		context["Embed"].(map[string]template.HTML)[embed.Id] =
+			template.HTML(rendered)
 	}
 	context["Node"] = reqNode
 	switch reqNode.Type.Id {
@@ -392,6 +395,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
 		}
 	}
 	context["Queries"] = queries
+	context["Embedded"] = embed != nil
 	template := reqNode.Type.Id + "/view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
 		template = overwrite.Template

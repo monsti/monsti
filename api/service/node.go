@@ -195,6 +195,7 @@ type Node struct {
 	Hide               bool
 	Fields             map[string]Field `json:"-"`
 	TemplateOverwrites map[string]TemplateOverwrite
+	Embed              []EmbedNode
 }
 
 func (n *Node) InitFields() {

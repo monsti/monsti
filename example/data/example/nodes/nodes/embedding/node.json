@@ -1,7 +1,14 @@
 {
   "Order": 0,
   "Hide": false,
-  "TemplateOverwrites": null,
+  "TemplateOverwrites": {
+    "core.Document/view": {
+      "Template":"foo.EmbedExample/view"}
+  },
+  "Embed": [{
+    "Id": "fooEmbed",
+    "URI": "child-node"
+  }],
   "Type": "core.Document",
   "Fields": {
     "core": {

@@ -60,7 +60,42 @@ You will need following tools to build the documentation:
 - http://www.methods.co.nz/asciidoc/[AsciiDoc]
 - http://www.gnu.org/software/src-highlite/[source-highlight]
 
+== Nodes
+
+=== Embedding
+
+You may embed nodes into other nodes. This is useful if for example
+you want to include in a `core.Document` node a list of recently
+changed nodes which is implemented by another node type
+`foo.RecentlyChangedList`.
+
+To do this, create a (possibly hidden) node of type
+`foo.RecentlyChangedList` and embed it into the document node by
+setting the embed option in the node's `Embed` attribute. Each embed
+has an id and an URI. The id is used to access the embeded content,
+the URI is the path to the embedded node, including any arguments.
+
+You may access the embedded content in templates with
+`.Embed.<ID>`. For the above example, you have to overwrite the
+`core.Document` template for this node to actually add the embedded
+content. See the section about template overwrites how to do this.
+
+As always, have a look at the example site (`Nodes > Embedding`).
+
 == Node types
+
+=== Core Node Types
+
+==== Image
+
+The Image node type allows you to upload images to your Monsti
+site. As the File node type, the raw content (i.e. the image itself)
+can be accessed via the node's path without trailing slash.
+
+.Example for raw image access
+If the node's path is `/foo/my_image.jpeg/`, then the raw image data
+can be access via `/foo/my_image.jpeg`.
+
 
 === Modifying node types
 
@@ -219,18 +254,6 @@ You can overwrite templates for individual nodes by setting the
 corresponding option in the node's `node.json` file. Have a look at
 the `service.Node` API documentation or the examples for more
 information.
-
-== Core Node Types
-
-=== Image
-
-The Image node type allows you to upload images to your Monsti
-site. As the File node type, the raw content (i.e. the image itself)
-can be accessed via the node's path without trailing slash.
-
-.Example for raw image access
-If the node's path is `/foo/my_image.jpeg/`, then the raw image data
-can be access via `/foo/my_image.jpeg`.
 
 ==== Automatic resizing
 

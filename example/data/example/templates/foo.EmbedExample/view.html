@@ -1,0 +1,9 @@
+<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+
+<div>
+{{(.Node.GetField "core.Body").RenderHTML}}
+</div>
+
+<h2>Embedded Content</h2>
+
+{{(.Embed.fooEmbed)}}
