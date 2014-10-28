@@ -823,6 +823,45 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 </div>
 </div>
 <div class="sect1">
+<h2 id="_architecture">Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>(This section is somewhat outdated with regard to the existing modules
+and services. Currently, there is only one module, the master daemon
+which implements the main services.)</p></div>
+<div class="paragraph"><p>Monsti consists of modules that provide services like database access
+or nodes processing. Modules use other modules services via RPC
+communication through UNIX domain sockets. The master daemon controls
+and starts the modules. Currently, Monsti differentiates between these
+services: service information, node processing, database, mail sending
+and user authentication.</p></div>
+<div class="paragraph"><p>The info service is implemented by the master daemon and provides
+information about known modules and their services. Modules which
+provide the node service process incoming requests for specific node
+types. Modules with the database service provide access to the
+websites' node data.</p></div>
+<div class="paragraph"><p>A module may provide more than one service. Each module creates a UNIX
+domain socket to which other modules can connect to use the module&#8217;s
+services.</p></div>
+<div class="sect2">
+<h3 id="_monsti_daemon">monsti-daemon</h3>
+<div class="paragraph"><p>Monsti-daemon is the master daemon of Monsti. It provides the info
+service and is started by the user. The master daemon starts all the
+other modules. Each module registers its services using the master
+daemon&#8217;s info Service. If a module needs some specific service it uses
+the info service to get the path to a UNIX domain socket which belongs
+to a module which provides this service.</p></div>
+<div class="paragraph"><p>It also listens for incoming HTTP requests and uses other services to
+process the requests.</p></div>
+<div class="paragraph"><p>Beside that, it also provides access to the node data. It uses
+ordinary files and directories to save the node data. Each node is
+represented by a directory containing at least one <code>node.json</code> file,
+possibly node type specific data, and subdirectories belonging to
+child nodes. The <code>node.json</code> file contains common node attributes like
+the title and the node type, and also node type specific field data.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_nodes">Nodes</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1266,7 +1305,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-28 09:25:03 CET
+Last updated 2014-10-28 10:10:59 CET
 </div>
 </div>
 </body>

@@ -60,6 +60,49 @@ You will need following tools to build the documentation:
 - http://www.methods.co.nz/asciidoc/[AsciiDoc]
 - http://www.gnu.org/software/src-highlite/[source-highlight]
 
+
+== Architecture
+
+(This section is somewhat outdated with regard to the existing modules
+and services. Currently, there is only one module, the master daemon
+which implements the main services.)
+
+Monsti consists of modules that provide services like database access
+or nodes processing. Modules use other modules services via RPC
+communication through UNIX domain sockets. The master daemon controls
+and starts the modules. Currently, Monsti differentiates between these
+services: service information, node processing, database, mail sending
+and user authentication.
+
+The info service is implemented by the master daemon and provides
+information about known modules and their services. Modules which
+provide the node service process incoming requests for specific node
+types. Modules with the database service provide access to the
+websites' node data.
+
+A module may provide more than one service. Each module creates a UNIX
+domain socket to which other modules can connect to use the module's
+services.
+
+=== monsti-daemon
+
+Monsti-daemon is the master daemon of Monsti. It provides the info
+service and is started by the user. The master daemon starts all the
+other modules. Each module registers its services using the master
+daemon's info Service. If a module needs some specific service it uses
+the info service to get the path to a UNIX domain socket which belongs
+to a module which provides this service.
+
+It also listens for incoming HTTP requests and uses other services to
+process the requests.
+
+Beside that, it also provides access to the node data. It uses
+ordinary files and directories to save the node data. Each node is
+represented by a directory containing at least one `node.json` file,
+possibly node type specific data, and subdirectories belonging to
+child nodes. The `node.json` file contains common node attributes like
+the title and the node type, and also node type specific field data.
+
 == Nodes
 
 === Embedding
