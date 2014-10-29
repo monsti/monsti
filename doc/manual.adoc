@@ -174,6 +174,14 @@ not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.
 
+
+=== Local fields
+
+Local fields are fields that are only configured for one node, not a
+whole node type. Local fields can be specified in the node's
+`node.json` file. Have a look at the `LocalFields` attribute and the
+example.
+
 === Configuration
 
 ==== Directives

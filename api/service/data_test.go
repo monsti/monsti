@@ -17,6 +17,7 @@ package service
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -47,16 +48,24 @@ func TestDataToNode(t *testing.T) {
 		Name: map[string]string{"en": "A Bar"},
 		Fields: []NodeField{
 			{"foo.FooField", map[string]string{"en": "A FooField"}, false, "Text"},
-			{"foo.BarField", map[string]string{"en": "A BarField"}, false, "Text"},
 		},
 		Embed: nil}
 	data := []byte(`
 { "Type": "foo.Bar",
   "Fields": {
     "foo": {
-      "FooField": "Foo Value"
+      "FooField": "Foo Value",
+      "BarField": "Bar Value"
     }
-  }
+  },
+  "LocalFields": [
+		{
+			"Id": "foo.BarField",
+			"Name": null,
+			"Required": false,
+			"Type": "Text"
+		}
+	]
 }`)
 	getNodeType := func(id string) (*NodeType, error) { return &nodeType, nil }
 	node, err := dataToNode(data, getNodeType)
@@ -68,34 +77,67 @@ func TestDataToNode(t *testing.T) {
 		t.Errorf(`node.GetField(foo.FooField) = %q, should be "Foo Value"`, ret)
 	}
 	ret = node.GetField("foo.BarField").String()
-	if ret != "" {
-		t.Errorf(`node.GetField(foo.BarField) = %q, should be ""`, ret)
+	if ret != "Bar Value" {
+		t.Errorf(`node.GetField(foo.BarField) = %q, should be "Bar Value"`, ret)
 	}
 }
 
-/*
 func TestNodeToData(t *testing.T) {
-	tests := []struct {
-		Node   Node
-		Indent bool
-		Data   string
-	}{
-		{Node{Path: "/foo", Type: "Bar"}, false,
-			`{"Type":"Bar","Order":0,"Hide":false,"Fields":null}`},
+	node := Node{
+		Path: "/foo",
+		Type: &NodeType{
+			Id: "foo.Bar",
+			Fields: []NodeField{
+				{"foo.FooField", nil, false, "Text"},
+			},
+			Embed: nil,
+		},
+		LocalFields: []NodeField{
+			{"foo.BarField", nil, false, "Text"},
+		},
 	}
-	for i, test := range tests {
-		oldPath := test.Node.Path
-		ret, err := nodeToData(&test.Node, test.Indent)
-		if oldPath != test.Node.Path {
-			t.Errorf("nodeToData altered node")
+	node.InitFields()
+	node.Fields["foo.FooField"].Load("FooValue")
+	node.Fields["foo.BarField"].Load("BarValue")
+
+	expected := `{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": [
+		{
+			"Id": "foo.BarField",
+			"Name": null,
+			"Required": false,
+			"Type": "Text"
 		}
-		if err != nil {
-			t.Errorf("Test %d failed, got error: %v", i, err)
-		}
-		if string(ret) != test.Data {
-			t.Errorf("nodeToData(%v,%v) = %v, should be %v", test.Node, test.Indent,
-				string(ret), test.Data)
-		}
+	],
+  "Type": "foo.Bar",
+  "Fields": {
+    "foo": {
+      "BarField": "BarValue",
+      "FooField": "FooValue"
+    }
+  }
+}`
+
+	oldPath := node.Path
+	ret, err := nodeToData(&node, true)
+	if oldPath != node.Path {
+		t.Errorf("nodeToData altered node")
+	}
+	if err != nil {
+		t.Errorf("Got error: %v", err)
+	}
+	trim := func(in string) string {
+		out := strings.Replace(in, " ", "", -1)
+		out = strings.Replace(out, "\n", "", -1)
+		out = strings.Replace(out, "\t", "", -1)
+		return out
+	}
+	if trim(string(ret)) != trim(expected) {
+		t.Errorf("nodeToData(%v, true) = `%v`, should be `%v`", node,
+			string(ret), expected)
 	}
 }
-*/

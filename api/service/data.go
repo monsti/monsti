@@ -40,7 +40,8 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	outNode.Type = node.Type.Id
 	outNode.Fields = make(util.NestedMap)
 
-	for _, field := range node.Type.Fields {
+	nodeFields := append(node.Type.Fields, node.LocalFields...)
+	for _, field := range nodeFields {
 		outNode.Fields.Set(field.Id, node.Fields[field.Id].Dump())
 	}
 
@@ -100,7 +101,8 @@ func dataToNode(data []byte,
 	}
 
 	ret.InitFields()
-	for _, field := range ret.Type.Fields {
+	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
+	for _, field := range nodeFields {
 		value := node.Fields.Get(field.Id)
 		if value != nil {
 			ret.Fields[field.Id].Load(node.Fields.Get(field.Id))

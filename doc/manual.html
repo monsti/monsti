@@ -881,6 +881,13 @@ the URI is the path to the embedded node, including any arguments.</p></div>
 content. See the section about template overwrites how to do this.</p></div>
 <div class="paragraph"><p>As always, have a look at the example site (<code>Nodes &gt; Embedding</code>).</p></div>
 </div>
+<div class="sect2">
+<h3 id="_query_parameters">Query parameters</h3>
+<div class="paragraph"><p>Query parameters of the requsted node are not passed directly to the
+embedded node. Instead, any parameters specified in the embed option
+URI are passed. At some point, it will be possible to access the
+requested node&#8217;s parameter.</p></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -981,6 +988,13 @@ removed fields will get purged.</p></div>
 not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_local_fields">Local fields</h3>
+<div class="paragraph"><p>Local fields are fields that are only configured for one node, not a
+whole node type. Local fields can be specified in the node&#8217;s
+<code>node.json</code> file. Have a look at the <code>LocalFields</code> attribute and the
+example.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_configuration">Configuration</h3>
@@ -1305,7 +1319,8 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-28 10:10:59 CET
+Last updated
+ 2014-10-29 10:36:44 CET
 </div>
 </div>
 </body>
