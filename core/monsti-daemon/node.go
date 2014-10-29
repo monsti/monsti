@@ -516,7 +516,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	fileFields := make([]string, 0)
-	for _, field := range nodeType.Fields {
+	nodeFields := nodeType.Fields
+	if !newNode {
+		nodeFields = append(nodeFields, c.Node.LocalFields...)
+	}
+	for _, field := range nodeFields {
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
 			&field, c.UserSession.Locale)
 		if field.Type == "File" {
@@ -558,7 +562,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 						return fmt.Errorf("Could not move node: ", err)
 					}
 				}
-				for _, field := range nodeType.Fields {
+				for _, field := range nodeFields {
 					node.GetField(field.Id).FromFormField(formData.Fields, &field)
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)

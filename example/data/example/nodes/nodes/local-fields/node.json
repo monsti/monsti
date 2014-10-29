@@ -1,0 +1,39 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": {
+    "core.Document/view": {
+      "Template": "foo.DocumentOverwrite/viewlocalfields"
+    }
+  },
+  "Embed": null,
+  "LocalFields": [
+    {
+      "Id": "foo.FooField",
+      "Name": {
+        "en": "Foo"
+      },
+      "Required": false,
+      "Type": "Text"
+    },
+    {
+      "Id": "foo.BarField",
+      "Name": {
+        "en": "Bar"
+      },
+      "Required": false,
+      "Type": "Text"
+    }
+  ],
+  "Type": "core.Document",
+  "Fields": {
+    "core": {
+      "Body": "Local fields are node fields that are configured only for one specific node.\u003cbr style=\"\"\u003e",
+      "Title": "Local fields"
+    },
+    "foo": {
+      "BarField": "Another local field",
+      "FooField": "A local field"
+    }
+  }
+}

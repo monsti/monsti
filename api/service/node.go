@@ -196,11 +196,13 @@ type Node struct {
 	Fields             map[string]Field `json:"-"`
 	TemplateOverwrites map[string]TemplateOverwrite
 	Embed              []EmbedNode
+	LocalFields        []NodeField
 }
 
 func (n *Node) InitFields() {
 	n.Fields = make(map[string]Field)
-	for _, field := range n.Type.Fields {
+	nodeFields := append(n.Type.Fields, n.LocalFields...)
+	for _, field := range nodeFields {
 		var val Field
 		switch field.Type {
 		case "DateTime":
