@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2014 Christian Neumann <cneumann@datenkarussell.de>
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -27,6 +28,89 @@ import (
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/template"
 )
+import "pkg.monsti.org/monsti/api/service"
+
+func genLanguageMap(msg string) map[string]string {
+	ret := make(map[string]string)
+	for _, lang := range []string{"en", "de"} {
+		G, _, _, _ := gettext.DefaultLocales.Use("", lang)
+		ret[lang] = G(msg)
+	}
+	return ret
+}
+
+func initNodeTypes(settings *settings, session *service.Session, logger *log.Logger) error {
+	G := func(in string) string { return in }
+	documentType := service.NodeType{
+		Id:        "core.Document",
+		AddableTo: []string{"."},
+		Name:      genLanguageMap(G("Document")),
+		Fields: []*service.NodeField{
+			{
+				Id:       "core.Title",
+				Required: true,
+				Name:     genLanguageMap(G("Title")),
+				Type:     "Text",
+			},
+			{
+				Id:       "core.Body",
+				Required: true,
+				Name:     genLanguageMap(G("Body")),
+				Type:     "HTMLArea",
+			},
+		},
+	}
+	if err := session.Monsti().RegisterNodeType(&documentType); err != nil {
+		return fmt.Errorf("Could not register document node type: %v", err)
+	}
+
+	fileType := service.NodeType{
+		Id:        "core.File",
+		AddableTo: []string{"."},
+		Name:      genLanguageMap(G("File")),
+		Fields: []*service.NodeField{
+			{Id: "core.Title"},
+			{Id: "core.Body"},
+			{
+				Id:       "core.File",
+				Required: true,
+				Name:     genLanguageMap(G("File")),
+				Type:     "File",
+			},
+		},
+	}
+	if err := session.Monsti().RegisterNodeType(&fileType); err != nil {
+		return fmt.Errorf("Could not register file node type: %v", err)
+	}
+
+	imageType := service.NodeType{
+		Id:        "core.Image",
+		AddableTo: []string{"."},
+		Name:      genLanguageMap(G("Image")),
+		Fields: []*service.NodeField{
+			{Id: "core.Title"},
+			{Id: "core.File"},
+		},
+	}
+	if err := session.Monsti().RegisterNodeType(&imageType); err != nil {
+		return fmt.Errorf("Could not register image node type: %v", err)
+	}
+
+	contactFormType := service.NodeType{
+		Id:        "core.ContactForm",
+		AddableTo: []string{"."},
+		Name:      genLanguageMap(G("Contact form")),
+		Fields: []*service.NodeField{
+			{Id: "core.Title"},
+			{Id: "core.Body"},
+		},
+	}
+	if err := session.Monsti().RegisterNodeType(&contactFormType); err != nil {
+		return fmt.Errorf("Could not register contactform node type: %v", err)
+	}
+
+	return nil
+}
 
 type contactFormData struct {
 	Name, Email, Subject, Message string

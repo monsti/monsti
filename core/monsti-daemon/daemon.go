@@ -47,8 +47,11 @@ type settings struct {
 	Listen string
 	// List of modules to be activated.
 	Modules []string
-	Config  *Config
-	Mail    struct {
+	Config  struct {
+		NodeTypes  map[string]*service.NodeType
+		NodeFields map[string]*service.NodeField
+	}
+	Mail struct {
 		Host     string
 		Username string
 		Password string
@@ -100,11 +103,6 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	var err error
-	if settings.Config, err = loadConfig(filepath.Join(cfgPath, "conf.d")); err != nil {
-		logger.Fatalf("Could not load application configuration: %v", err)
-	}
-
 	if err := (&settings).Monsti.LoadSiteSettings(); err != nil {
 		logger.Fatal("Could not load site settings: ", err)
 	}
@@ -146,13 +144,26 @@ func main() {
 		}()
 	}
 
+	sessions := service.NewSessionPool(1, monstiPath)
+
+	// Init core functionality
+	session, err := sessions.New()
+	if err != nil {
+		logger.Fatalf("Could not get session: %v", err)
+	}
+	if err := initNodeTypes(&settings, session, logger); err != nil {
+		logger.Fatalf("Could not init blog: %v", err)
+	}
+	sessions.Free(session)
+
 	// Setup up httpd
 	handler := nodeHandler{
 		Renderer: template.Renderer{Root: settings.Monsti.GetTemplatesPath()},
 		Settings: &settings,
 		Log:      logger,
-		Sessions: service.NewSessionPool(1, monstiPath),
+		Sessions: sessions,
 	}
+
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
 	handler.Hosts = make(map[string]string)

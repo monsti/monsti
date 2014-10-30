@@ -2,6 +2,8 @@
   "Order": 0,
   "Hide": false,
   "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": null,
   "Type": "core.Document",
   "Fields": {
     "core": {

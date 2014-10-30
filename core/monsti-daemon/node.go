@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -387,15 +386,6 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}
-	queries := make(map[string][]*service.Node)
-	for _, query := range reqNode.Type.Queries {
-		var err error
-		queries[query.Id], err = h.QueryNodes(c, &query)
-		if err != nil {
-			return nil, fmt.Errorf("Cound not execute query %q: %v", query.Id, err)
-		}
-	}
-	context["Queries"] = queries
 	context["Embedded"] = embed != nil
 	template := reqNode.Type.Id + "/view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
@@ -424,30 +414,6 @@ func (s *nodeSort) Swap(i, j int) {
 
 func (s *nodeSort) Less(i, j int) bool {
 	return s.Sorter(s.Nodes[i], s.Nodes[j])
-}
-
-func (h *nodeHandler) QueryNodes(c *reqContext, query *service.NodeQuery) (
-	[]*service.Node, error) {
-	nodes, err := c.Serv.Monsti().GetChildren(c.Site.Name, c.Node.Path)
-	if err != nil {
-		return nil, fmt.Errorf("Could not get children of node: %v", err)
-	}
-	queryCfg := h.Settings.Config.Queries[query.Id]
-	if len(queryCfg.Order) == 1 && queryCfg.Order[0] == "random" {
-		randOrder := make(map[string]int)
-		order := func(left, right *service.Node) bool {
-			if _, ok := randOrder[left.Path]; !ok {
-				randOrder[left.Path] = rand.Int()
-			}
-			if _, ok := randOrder[right.Path]; !ok {
-				randOrder[right.Path] = rand.Int()
-			}
-			return randOrder[left.Path] < randOrder[right.Path]
-		}
-		sorter := nodeSort{nodes, order}
-		sort.Sort(&sorter)
-	}
-	return nodes, nil
 }
 
 type editFormData struct {
@@ -522,7 +488,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	for _, field := range nodeFields {
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
-			&field, c.UserSession.Locale)
+			field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)
 		}
@@ -563,7 +529,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					}
 				}
 				for _, field := range nodeFields {
-					node.GetField(field.Id).FromFormField(formData.Fields, &field)
+					node.GetField(field.Id).FromFormField(formData.Fields, field)
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 				if err != nil {

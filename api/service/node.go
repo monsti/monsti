@@ -196,7 +196,7 @@ type Node struct {
 	Fields             map[string]Field `json:"-"`
 	TemplateOverwrites map[string]TemplateOverwrite
 	Embed              []EmbedNode
-	LocalFields        []NodeField
+	LocalFields        []*NodeField
 }
 
 func (n *Node) InitFields() {
