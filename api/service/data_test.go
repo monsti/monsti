@@ -46,7 +46,7 @@ func TestDataToNode(t *testing.T) {
 	nodeType := NodeType{
 		Id:   "foo.Bar",
 		Name: map[string]string{"en": "A Bar"},
-		Fields: []NodeField{
+		Fields: []*NodeField{
 			{"foo.FooField", map[string]string{"en": "A FooField"}, false, "Text"},
 		},
 		Embed: nil}
@@ -87,12 +87,12 @@ func TestNodeToData(t *testing.T) {
 		Path: "/foo",
 		Type: &NodeType{
 			Id: "foo.Bar",
-			Fields: []NodeField{
+			Fields: []*NodeField{
 				{"foo.FooField", nil, false, "Text"},
 			},
 			Embed: nil,
 		},
-		LocalFields: []NodeField{
+		LocalFields: []*NodeField{
 			{"foo.BarField", nil, false, "Text"},
 		},
 	}
