@@ -1,5 +1,7 @@
-<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+<article class="{{if .Embedded}}embedded{{end}} node-type-core-File">
+  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
 
-{{with .Image}}
-<img src="{{.Path}}/?raw=1" alt="{{.Title}}" title="{{.Description}}">
-{{end}}
+  {{with .Image}}
+  <img src="{{.Path}}/?raw=1" alt="{{.Title}}" title="{{.Description}}">
+  {{end}}
+</article>
