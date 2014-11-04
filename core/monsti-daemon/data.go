@@ -203,8 +203,8 @@ func (i *MonstiService) GetConfig(args *GetConfigArgs,
 	return nil
 }
 
-func findAddableNodeTypes(nodeType string, nodeTypes map[string]service.NodeType,
-) []string {
+func findAddableNodeTypes(nodeType string,
+	nodeTypes map[string]*service.NodeType) []string {
 	types := make([]string, 0)
 	for _, otherNodeType := range nodeTypes {
 		isAddable := false
@@ -238,8 +238,30 @@ func (i *MonstiService) GetNodeType(nodeTypeID string,
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 	if nodeType, ok := i.Settings.Config.NodeTypes[nodeTypeID]; ok {
-		*ret = nodeType
+		*ret = *nodeType
 		return nil
 	}
 	return fmt.Errorf("Unknown node type %q", nodeTypeID)
+}
+
+func (m *MonstiService) RegisterNodeType(nodeType *service.NodeType,
+	reply *int) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if _, ok := m.Settings.Config.NodeTypes[nodeType.Id]; ok {
+		return fmt.Errorf("Node type with id %v does already exist", nodeType.Id)
+	}
+	if m.Settings.Config.NodeTypes == nil {
+		m.Settings.Config.NodeTypes = make(map[string]*service.NodeType)
+		m.Settings.Config.NodeFields = make(map[string]*service.NodeField)
+	}
+	m.Settings.Config.NodeTypes[nodeType.Id] = nodeType
+	for i, field := range nodeType.Fields {
+		if existing, ok := m.Settings.Config.NodeFields[field.Id]; ok {
+			nodeType.Fields[i] = existing
+		} else {
+			m.Settings.Config.NodeFields[field.Id] = field
+		}
+	}
+	return nil
 }

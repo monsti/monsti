@@ -823,8 +823,87 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 </div>
 </div>
 <div class="sect1">
+<h2 id="_architecture">Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>(This section is somewhat outdated with regard to the existing modules
+and services. Currently, there is only one module, the master daemon
+which implements the main services.)</p></div>
+<div class="paragraph"><p>Monsti consists of modules that provide services like database access
+or nodes processing. Modules use other modules services via RPC
+communication through UNIX domain sockets. The master daemon controls
+and starts the modules. Currently, Monsti differentiates between these
+services: service information, node processing, database, mail sending
+and user authentication.</p></div>
+<div class="paragraph"><p>The info service is implemented by the master daemon and provides
+information about known modules and their services. Modules which
+provide the node service process incoming requests for specific node
+types. Modules with the database service provide access to the
+websites' node data.</p></div>
+<div class="paragraph"><p>A module may provide more than one service. Each module creates a UNIX
+domain socket to which other modules can connect to use the module&#8217;s
+services.</p></div>
+<div class="sect2">
+<h3 id="_monsti_daemon">monsti-daemon</h3>
+<div class="paragraph"><p>Monsti-daemon is the master daemon of Monsti. It provides the info
+service and is started by the user. The master daemon starts all the
+other modules. Each module registers its services using the master
+daemon&#8217;s info Service. If a module needs some specific service it uses
+the info service to get the path to a UNIX domain socket which belongs
+to a module which provides this service.</p></div>
+<div class="paragraph"><p>It also listens for incoming HTTP requests and uses other services to
+process the requests.</p></div>
+<div class="paragraph"><p>Beside that, it also provides access to the node data. It uses
+ordinary files and directories to save the node data. Each node is
+represented by a directory containing at least one <code>node.json</code> file,
+possibly node type specific data, and subdirectories belonging to
+child nodes. The <code>node.json</code> file contains common node attributes like
+the title and the node type, and also node type specific field data.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_nodes">Nodes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_embedding">Embedding</h3>
+<div class="paragraph"><p>You may embed nodes into other nodes. This is useful if for example
+you want to include in a <code>core.Document</code> node a list of recently
+changed nodes which is implemented by another node type
+<code>foo.RecentlyChangedList</code>.</p></div>
+<div class="paragraph"><p>To do this, create a (possibly hidden) node of type
+<code>foo.RecentlyChangedList</code> and embed it into the document node by
+setting the embed option in the node&#8217;s <code>Embed</code> attribute. Each embed
+has an id and an URI. The id is used to access the embeded content,
+the URI is the path to the embedded node, including any arguments.</p></div>
+<div class="paragraph"><p>You may access the embedded content in templates with
+<code>.Embed.&lt;ID&gt;</code>. For the above example, you have to overwrite the
+<code>core.Document</code> template for this node to actually add the embedded
+content. See the section about template overwrites how to do this.</p></div>
+<div class="paragraph"><p>As always, have a look at the example site (<code>Nodes &gt; Embedding</code>).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_query_parameters">Query parameters</h3>
+<div class="paragraph"><p>Query parameters of the requsted node are not passed directly to the
+embedded node. Instead, any parameters specified in the embed option
+URI are passed. At some point, it will be possible to access the
+requested node&#8217;s parameter.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_node_types">Node types</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_core_node_types">Core Node Types</h3>
+<div class="sect3">
+<h4 id="_image">Image</h4>
+<div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
+site. As the File node type, the raw content (i.e. the image itself)
+can be accessed via the node&#8217;s path without trailing slash.</p></div>
+<div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
+can be access via <code>/foo/my_image.jpeg</code>.</p></div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_modifying_node_types">Modifying node types</h3>
 <div class="paragraph"><p>You have to be careful if you want to modify node types which have
@@ -911,139 +990,11 @@ undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_configuration">Configuration</h3>
-<div class="sect3">
-<h4 id="_directives">Directives</h4>
-<div class="sect4">
-<h5 id="_namespace_string">namespace (string)</h5>
-<div class="paragraph"><p>Sets the namespace for configured node types.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_8230">nodetypes ([&#8230;])</h5>
-<div class="paragraph"><p>List of node types to be configured.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_id_string">nodetypes &gt; id (string)</h5>
-<div class="paragraph"><p>ID of the configured node type (without namespace, this will be set
-using the <code>namespace</code> directive).</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_name_language_code_8594_string">nodetypes &gt; name ({language-code &#8594; string})</h5>
-<div class="paragraph"><p>The name of the node type as shown in the web interface, specified
-as a translation map.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_addable_to_string">nodetypes &gt; addable_to ([string])</h5>
-<div class="paragraph"><p>Per default, nodes may be added to any other node. This behaviour
-can be overwritten for one node type with the <code>addable_to</code>
-option. Nodes of this type may only be added to nodes of the
-specified types. You may specify individual node types with their
-full id <code>namespace.id</code> or all node types of a namespace using
-<code>namespace.</code> (i.e. the namespace followed by a single dot). To
-specify all available node types, use the single dot, i.e.<code>[.]</code>. To
-specify that the node may not be added to any other node, use a non
-existing namespace like <code>[null.]</code> (it&#8217;s currently not possible to
-specify an empty array).</p></div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<img alt="Tip" src="data:image/png;base64,
-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" />
-</td>
-<td class="content">It&#8217;s still possible to add nodes to any
-other node by directly manipulating the node data on the file
-system. This option merely affects the web interface.</td>
-</tr></table>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_fields_8230">nodetypes &gt; fields ([&#8230;])</h5>
-<div class="paragraph"><p>List of the node type&#8217;s fields.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_fields_gt_id_string">nodetypes &gt; fields &gt; id (string)</h5>
-<div class="paragraph"><p>ID of the node type field (without namespace, this will be set using
-the <code>namespace</code> directive).</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_fields_gt_name_language_code_8594_string">nodetypes &gt; fields &gt; name ({language-code &#8594; string})</h5>
-<div class="paragraph"><p>The name of the node type field as shown in the web interface,
-specified as a translation map.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_fields_gt_type_string">nodetypes &gt; fields &gt; type (string})</h5>
-<div class="paragraph"><p>The type of the field.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_queries_8230">nodetypes &gt; queries ([&#8230;])</h5>
-<div class="paragraph"><p>List of queries to be used.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_nodetypes_gt_queries_gt_id_string">nodetypes &gt; queries &gt; id (string)</h5>
-<div class="paragraph"><p>ID of the query to be used.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_queries_8230">queries ([&#8230;])</h5>
-<div class="paragraph"><p>List of queries to be configured.</p></div>
-</div>
-<div class="sect4">
-<h5 id="_queries_gt_id_string">queries &gt; id (string)</h5>
-<div class="paragraph"><p>ID of the configured query (without namespace, this will be set
-using the <code>namespace</code> directive).</p></div>
-</div>
-<div class="sect4">
-<h5 id="_queries_gt_order_string">queries &gt; order ([string])</h5>
-<div class="paragraph"><p>Order of the returned nodes. Currently, only "random" is
-implemented.</p></div>
-</div>
-</div>
+<h3 id="_local_fields">Local fields</h3>
+<div class="paragraph"><p>Local fields are fields that are only configured for one node, not a
+whole node type. Local fields can be specified in the node&#8217;s
+<code>node.json</code> file. Have a look at the <code>LocalFields</code> attribute and the
+example.</p></div>
 </div>
 </div>
 </div>
@@ -1125,7 +1076,7 @@ author(s) of the translation (the authors are noted in the <code>.po</code> file
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration_2">Configuration</h2>
+<h2 id="_configuration">Configuration</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_code_monsti_yaml_code"><code>monsti.yaml</code></h3>
@@ -1172,7 +1123,10 @@ mail:
   # host:port
   host: localhost:25
   #username: user
-  #password: password</code></pre>
+  #password: password
+  # if debug is true, mails will not be send at all but written to the
+  # log.
+  debug: true</code></pre>
 </div></div>
 </div>
 </div>
@@ -1183,31 +1137,24 @@ mail:
 <div class="paragraph"><p>Monsti uses Go&#8217;s
 <a href="http://golang.org/pkg/html/template/"><code>html/template</code></a>
 package. Beside a global template directory that is used by all sites,
-you can configure site local template directories. The template
-directories may contain templates and include files.</p></div>
+you may configure site local template directories. The template
+directories contain templates and include files.</p></div>
 <div class="sect2">
 <h3 id="_include_files">Include Files</h3>
 <div class="paragraph"><p>Include files specify for a directory subtree or individual templates,
-which templates may be called inside the templates. Include files
-contain one template name per line. Specify callable templates for
-an individual template named <code>foo.html</code> in a file named <code>foo.include</code>
-in the same directory.</p></div>
-<div class="paragraph"><p>To include callable templates for all templates of a directory tree,
-add the names of the template to a file named <code>include</code> at the root of
-the tree.</p></div>
+which other templates may be called inside the templates. Include
+files contain one template name per line. Specify callable templates
+for an individual template named <code>foo.html</code> in a file named
+<code>foo.include</code> in the same directory. To include callable templates for
+all templates of a directory tree, add the names of the templates to a
+file named <code>include</code> at the root of the tree.</p></div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_core_node_types">Core Node Types</h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="_image">Image</h3>
-<div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
-site. As the File node type, the raw content (i.e. the image itself)
-can be accessed via the node&#8217;s path without trailing slash.</p></div>
-<div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
-can be access via <code>/foo/my_image.jpeg</code>.</p></div>
+<h3 id="_template_overwrites">Template Overwrites</h3>
+<div class="paragraph"><p>You can overwrite templates for individual nodes by setting the
+corresponding option in the node&#8217;s <code>node.json</code> file. Have a look at
+the <code>service.Node</code> API documentation or the examples for more
+information.</p></div>
 <div class="sect3">
 <h4 id="_automatic_resizing">Automatic resizing</h4>
 <div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
@@ -1237,7 +1184,8 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-23 13:12:57 CEST
+Last updated
+ 2014-10-30 12:15:14 CET
 </div>
 </div>
 </body>

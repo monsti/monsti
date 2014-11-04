@@ -1,13 +1,46 @@
 {
   "Order": 0,
   "Hide": false,
-  "Type": "core.FieldsExample",
+  "TemplateOverwrites": {
+    "core.Document/view": {
+      "Template": "foo.Fields/view"
+    }
+  },
+  "Type": "core.Document",
+  "LocalFields": [
+    {
+      "Id": "foo.DateTime",
+      "Name": {
+        "en": "DateTime"
+      },
+      "Required": false,
+      "Type": "DateTime"
+    },
+    {
+      "Id": "foo.HTMLArea",
+      "Name": {
+        "en": "HTMLArea"
+      },
+      "Required": false,
+      "Type": "HTMLArea"
+    },
+    {
+      "Id": "foo.Text",
+      "Name": {
+        "en": "Text"
+      },
+      "Required": false,
+      "Type": "Text"
+    }
+  ],
   "Fields": {
     "core": {
+      "Title": "Fields"
+    },
+    "foo": {
       "DateTime": "2012-05-05T10:00:00Z",
       "HTMLArea": "\u003cb\u003eHTML\u003c/b\u003e Area\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
-      "Text": "Simple Text Field",
-      "Title": "The title"
+      "Text": "Simple Text Field"
     }
   }
 }

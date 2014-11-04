@@ -40,7 +40,8 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	outNode.Type = node.Type.Id
 	outNode.Fields = make(util.NestedMap)
 
-	for _, field := range node.Type.Fields {
+	nodeFields := append(node.Type.Fields, node.LocalFields...)
+	for _, field := range nodeFields {
 		outNode.Fields.Set(field.Id, node.Fields[field.Id].Dump())
 	}
 
@@ -100,7 +101,8 @@ func dataToNode(data []byte,
 	}
 
 	ret.InitFields()
-	for _, field := range ret.Type.Fields {
+	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
+	for _, field := range nodeFields {
 		value := node.Fields.Get(field.Id)
 		if value != nil {
 			ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
@@ -249,7 +251,11 @@ func (s *MonstiClient) GetConfig(site, module, name string,
 }
 
 type NodeField struct {
-	Id       string
+	// The Id of the field including a namespace,
+	// e.g. "namespace.somefieldype".
+	Id string
+	// The name of the field as shown in the web interface,
+	// specified as a translation map (language -> msg).
 	Name     map[string]string
 	Required bool
 	Type     string
@@ -265,12 +271,28 @@ type NodeQuery struct {
 }
 
 type NodeType struct {
-	Id        string
-	AddableTo []string `yaml:"addable_to"`
-	Name      map[string]string
-	Fields    []NodeField
-	Embed     []EmbedNode
-	Queries   []NodeQuery
+	// The Id of the node type including a namespace,
+	// e.g. "namespace.somenodetype".
+	Id string
+	// Per default, nodes may be added to any other node. This behaviour
+	// can be overwritten for one node type with this option. Nodes of
+	// this type may only be added to nodes of the specified types. You
+	// may specify individual node types with their full id
+	// `namespace.id` or all node types of a namespace using
+	// `namespace.` (i.e. the namespace followed by a single dot). To
+	// specify all available node types, use the single dot,
+	// i.e.`[.]`. To specify that the node may not be added to any other
+	// node, use a non existing namespace like `[null.]` (it's currently
+	// not possible to specify an empty array). It's still possible
+	// to add nodes to any other node by directly manipulating the node
+	// data on the file system. This option merely affects the web
+	// interface.
+	AddableTo []string
+	// The name of the node type as shown in the web interface,
+	// specified as a translation map (language -> msg).
+	Name   map[string]string
+	Fields []*NodeField
+	Embed  []EmbedNode
 }
 
 // GetLocalName returns the name of the node type in the given language.
@@ -285,6 +307,18 @@ func (n NodeType) GetLocalName(locale string) string {
 		name = n.Id
 	}
 	return name
+}
+
+// RegisterNodeType registers a new node type.
+//
+// Known field types will be reused. Just specify the id. All other //
+// attributes of the field type will be ignored in this case.
+func (s *MonstiClient) RegisterNodeType(nodeType *NodeType) error {
+	err := s.RPCClient.Call("Monsti.RegisterNodeType", nodeType, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Error calling RegisterNodeType: %v", err)
+	}
+	return nil
 }
 
 // GetNodeType requests information about the given node type.

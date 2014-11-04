@@ -6,7 +6,7 @@
     <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
     <link rel="shortcut icon" href="/site-static/favicon.png" />
   </head>
-  <body id="{{.Page.Node.PathToID}}">
+  <body id="{{.Page.Node.PathToID}}" class="node-type-{{.Page.Node.TypeToID}}">
     {{template "blocks/admin-bar" .}}
     <div id="site-wrap">
       <div id="top-wrap">
@@ -38,8 +38,8 @@
           <div id="footer">
             <p id="attribution">Powered by
               <a href="http://www.monsti.org">Monsti</a>
+            </p>
           </div>
-          </p>
         </div>
       </div>
     </div>

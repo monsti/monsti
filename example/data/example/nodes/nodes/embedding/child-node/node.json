@@ -1,0 +1,13 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Embed": null,
+  "Type": "core.Document",
+  "Fields": {
+    "core": {
+      "Body": "I want you to embed me!\u003cbr\u003e",
+      "Title": "Embed me!"
+    }
+  }
+}

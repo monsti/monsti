@@ -17,9 +17,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
+	"image/jpeg"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"path"
@@ -27,7 +29,7 @@ import (
 	"strings"
 
 	"github.com/chrneumann/htmlwidgets"
-	"github.com/quirkey/magick"
+	"github.com/nfnt/resize"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -247,7 +249,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	return nil
 }
 
-type imageSize struct{ Width, Height int }
+type imageSize struct{ Width, Height uint }
 
 func (s imageSize) String() string {
 	return fmt.Sprintf("%vx%v", s.Width, s.Height)
@@ -289,18 +291,17 @@ func (h *nodeHandler) View(c *reqContext) error {
 						if err != nil {
 							return fmt.Errorf("Could not get image data: %v", err)
 						}
-						image, err := magick.NewFromBlob(body, "jpg")
+						image, err := jpeg.Decode(bytes.NewBuffer(body))
 						if err != nil {
-							return fmt.Errorf("Could not open image data with magick: %v", err)
+							return fmt.Errorf("Could not decode image data: %v", err)
 						}
-						defer image.Destroy()
-						err = image.Resize(size.String())
+						image = resize.Thumbnail(size.Width, size.Height, image,
+							resize.Lanczos3)
+						var out bytes.Buffer
+						err = jpeg.Encode(&out, image, nil)
+						body = out.Bytes()
 						if err != nil {
-							return fmt.Errorf("Could not resize image: %v", err)
-						}
-						body, err = image.ToBlob("jpg")
-						if err != nil {
-							return fmt.Errorf("Could not dump image: %v", err)
+							return fmt.Errorf("Could not encode resized image: %v", err)
 						}
 						if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
 							sizePath, body); err != nil {
@@ -335,7 +336,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.RenderNode(c, nil)
+	rendered, err := h.RenderNode(c, nil, c.Req.Form)
 	if err != nil {
 		return fmt.Errorf("Could not render node: %v", err)
 	}
@@ -349,50 +350,49 @@ func (h *nodeHandler) View(c *reqContext) error {
 	return nil
 }
 
-func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node) (
+func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
+	formValues url.Values) (
 	[]byte, error) {
 	reqNode := c.Node
 	if embed != nil {
 		reqNode = embed
 	}
 	context := make(mtemplate.Context)
-	context["Embed"] = make(map[string][]byte)
+	context["Embed"] = make(map[string]template.HTML)
 	// Embed nodes
-	for _, embed := range reqNode.Type.Embed {
+	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
+	for _, embed := range embedNodes {
 		reqURL, err := url.Parse(embed.URI)
 		if err != nil {
 			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
 		}
 		embedPath := path.Join(reqNode.Path, reqURL.Path)
 		node, err := c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
-		if err != nil || node.Type == nil {
+		if err != nil || node == nil {
 			continue
 		}
 		embedNode := node
 		embedNode.Path = embedPath
-		rendered, err := h.RenderNode(c, embedNode)
+		rendered, err := h.RenderNode(c, embedNode, reqURL.Query())
 		if err != nil {
 			return nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
-		context["Embed"].(map[string][]byte)[embed.Id] = rendered
+		context["Embed"].(map[string]template.HTML)[embed.Id] =
+			template.HTML(rendered)
 	}
 	context["Node"] = reqNode
 	switch reqNode.Type.Id {
 	case "core.ContactForm":
-		if err := renderContactForm(c, context, h); err != nil {
+		if err := renderContactForm(c, context, formValues, h); err != nil {
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}
-	queries := make(map[string][]*service.Node)
-	for _, query := range reqNode.Type.Queries {
-		var err error
-		queries[query.Id], err = h.QueryNodes(c, &query)
-		if err != nil {
-			return nil, fmt.Errorf("Cound not execute query %q: %v", query.Id, err)
-		}
+	context["Embedded"] = embed != nil
+	template := reqNode.Type.Id + "/view"
+	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
+		template = overwrite.Template
 	}
-	context["Queries"] = queries
-	rendered, err := h.Renderer.Render(reqNode.Type.Id+"/view", context,
+	rendered, err := h.Renderer.Render(template, context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		return nil, fmt.Errorf("Could not render template: %v", err)
@@ -415,30 +415,6 @@ func (s *nodeSort) Swap(i, j int) {
 
 func (s *nodeSort) Less(i, j int) bool {
 	return s.Sorter(s.Nodes[i], s.Nodes[j])
-}
-
-func (h *nodeHandler) QueryNodes(c *reqContext, query *service.NodeQuery) (
-	[]*service.Node, error) {
-	nodes, err := c.Serv.Monsti().GetChildren(c.Site.Name, c.Node.Path)
-	if err != nil {
-		return nil, fmt.Errorf("Could not get children of node: %v", err)
-	}
-	queryCfg := h.Settings.Config.Queries[query.Id]
-	if len(queryCfg.Order) == 1 && queryCfg.Order[0] == "random" {
-		randOrder := make(map[string]int)
-		order := func(left, right *service.Node) bool {
-			if _, ok := randOrder[left.Path]; !ok {
-				randOrder[left.Path] = rand.Int()
-			}
-			if _, ok := randOrder[right.Path]; !ok {
-				randOrder[right.Path] = rand.Int()
-			}
-			return randOrder[left.Path] < randOrder[right.Path]
-		}
-		sorter := nodeSort{nodes, order}
-		sort.Sort(&sorter)
-	}
-	return nodes, nil
 }
 
 type editFormData struct {
@@ -507,9 +483,13 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	fileFields := make([]string, 0)
-	for _, field := range nodeType.Fields {
+	nodeFields := nodeType.Fields
+	if !newNode {
+		nodeFields = append(nodeFields, c.Node.LocalFields...)
+	}
+	for _, field := range nodeFields {
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
-			&field, c.UserSession.Locale)
+			field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)
 		}
@@ -549,8 +529,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 						return fmt.Errorf("Could not move node: ", err)
 					}
 				}
-				for _, field := range nodeType.Fields {
-					node.GetField(field.Id).FromFormField(formData.Fields, &field)
+				for _, field := range nodeFields {
+					node.GetField(field.Id).FromFormField(formData.Fields, field)
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 				if err != nil {

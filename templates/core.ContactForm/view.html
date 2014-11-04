@@ -1,12 +1,14 @@
-<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+<article class="{{if .Embedded}}embedded{{end}} node-type-core-ContactForm">
+  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
 
-{{(.Node.GetField "core.Body").RenderHTML}}
-<div class="contact-form-wrapper">
-  {{if .Submitted}}
+  {{(.Node.GetField "core.Body").RenderHTML}}
+  <div class="contact-form-wrapper">
+    {{if .Submitted}}
     <p class="alert alert-success">
-    {{G "Thanks for your message!"}}
+      {{G "Thanks for your message!"}}
     </p>
-  {{else}}
+    {{else}}
     {{template "blocks/form" .Form}}
-  {{end}}
-</div>
+    {{end}}
+  </div>
+</article>

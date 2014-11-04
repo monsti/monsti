@@ -131,26 +131,26 @@ func TestGetConfig(t *testing.T) {
 
 func TestFindAddableNodeTypes(t *testing.T) {
 	tests := []struct {
-		NodeTypes map[string]service.NodeType
+		NodeTypes map[string]*service.NodeType
 		NodeType  string
 		Expected  []string
 	}{
 		{
-			NodeTypes: map[string]service.NodeType{
-				"A": service.NodeType{Id: "A", AddableTo: []string{"B"}},
-				"B": service.NodeType{Id: "B", AddableTo: []string{}},
-				"C": service.NodeType{Id: "C", AddableTo: []string{"B"}},
+			NodeTypes: map[string]*service.NodeType{
+				"A": &service.NodeType{Id: "A", AddableTo: []string{"B"}},
+				"B": &service.NodeType{Id: "B", AddableTo: []string{}},
+				"C": &service.NodeType{Id: "C", AddableTo: []string{"B"}},
 			},
 			NodeType: "B",
 			Expected: []string{"A", "C"},
 		},
 		{
-			NodeTypes: map[string]service.NodeType{
-				"Foo.A": service.NodeType{Id: "Foo.A", AddableTo: nil},
-				"Foo.B": service.NodeType{Id: "Foo.B", AddableTo: []string{"Foo.B"}},
-				"Foo.C": service.NodeType{Id: "Foo.C", AddableTo: []string{}},
-				"Foo.D": service.NodeType{Id: "Foo.D", AddableTo: []string{"."}},
-				"Foo.E": service.NodeType{Id: "Foo.E", AddableTo: []string{"Foo."}},
+			NodeTypes: map[string]*service.NodeType{
+				"Foo.A": &service.NodeType{Id: "Foo.A", AddableTo: nil},
+				"Foo.B": &service.NodeType{Id: "Foo.B", AddableTo: []string{"Foo.B"}},
+				"Foo.C": &service.NodeType{Id: "Foo.C", AddableTo: []string{}},
+				"Foo.D": &service.NodeType{Id: "Foo.D", AddableTo: []string{"."}},
+				"Foo.E": &service.NodeType{Id: "Foo.E", AddableTo: []string{"Foo."}},
 			},
 			NodeType: "Foo.B",
 			Expected: []string{"Foo.A", "Foo.B", "Foo.D", "Foo.E"},

@@ -1,0 +1,12 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Type": "core.Document",
+  "Fields": {
+    "core": {
+      "Body": "",
+      "Title": "Nodes"
+    }
+  }
+}

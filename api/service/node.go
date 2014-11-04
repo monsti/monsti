@@ -179,19 +179,30 @@ func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
 	*t = DateTimeField{Time: data.Get(field.Id).(time.Time)}
 }
 
+// TemplateOverwrite specifies a template that should be used instead
+// of another.
+type TemplateOverwrite struct {
+	// The template to be used instead.
+	Template string
+}
+
 type Node struct {
 	Path string `json:",omitempty"`
 	// Content type of the node.
 	Type  *NodeType `json:"-"`
 	Order int
 	// Don't show the node in navigations if Hide is true.
-	Hide   bool
-	Fields map[string]Field `json:"-"`
+	Hide               bool
+	Fields             map[string]Field `json:"-"`
+	TemplateOverwrites map[string]TemplateOverwrite
+	Embed              []EmbedNode
+	LocalFields        []*NodeField
 }
 
 func (n *Node) InitFields() {
 	n.Fields = make(map[string]Field)
-	for _, field := range n.Type.Fields {
+	nodeFields := append(n.Type.Fields, n.LocalFields...)
+	for _, field := range nodeFields {
 		var val Field
 		switch field.Type {
 		case "DateTime":
@@ -230,6 +241,14 @@ func (n Node) PathToID() string {
 		panic("Can't calculate ID of node with unset path.")
 	}
 	return "node-" + strings.Replace(n.Path, "/", "__", -1)
+}
+
+// TypeToID returns an ID for the given node type.
+//
+// The ID is simply the type of the node with the namespace dot
+// replaced by a hyphen and the result prefixed with "node-type-".
+func (n Node) TypeToID() string {
+	return "node-type-" + strings.Replace(n.Type.Id, ".", "-", 1)
 }
 
 // Name returns the name of the node.
