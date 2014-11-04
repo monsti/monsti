@@ -21,9 +21,11 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"code.google.com/p/go.crypto/bcrypt"
 	"pkg.monsti.org/monsti/api/service"
+	utesting "pkg.monsti.org/monsti/api/util/testing"
 )
 
 func TestCheckPermission(t *testing.T) {
@@ -85,6 +87,28 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func WriteUser(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/users.json": `{"foo":{"password":"the pass"}}`}, "TestWriteUser")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	user := service.User{Login: "foo", Password: "new pass"}
+
+	err = writeUser(&user, root)
+	if err != nil {
+		t.Fatalf("Error writing changed user: %v", err)
+	}
+	userChanged, err := getUser(user.Login, root)
+	if err != nil {
+		t.Fatalf("Error reading changed user: %v", err)
+	}
+	if *userChanged != user {
+		t.Errorf("Users differ: %v\n %v", user, userChanged)
+	}
+}
+
 func TestPasswordEqual(t *testing.T) {
 	if !passwordEqual(
 		"$2a$10$1x90nccptYh/OtXQiFaom.xCisdPD7qCMoEcJa41XEnewk3NdMfGq",
@@ -106,6 +130,44 @@ func TestPasswordEqual(t *testing.T) {
 		if passwordEqual(string(hash), v.Password) != v.Equal {
 			t.Errorf("passwordEqual(%v, %v) = %v, should be %v",
 				hash, v.Password, !v.Equal, v.Equal)
+		}
+	}
+}
+
+func TestRequestPasswordToken(t *testing.T) {
+	// Test call with empty secret
+	func() {
+		defer func() {
+			if err := recover(); err == nil {
+				t.Errorf("getRequestPasswordToken should panic if empty secret is passed")
+			}
+		}()
+		getRequestPasswordToken("foo", "bar", "")
+	}()
+
+	past := time.Now().Add(-time.Hour * 10000)
+	future := time.Now().Add(time.Hour * 10000)
+	tests := []struct {
+		Site, Login, Secret string
+		Changed             time.Time
+		Valid               bool
+	}{
+		{"foo", "bar", "baz", past, true},
+		{"foo", "bar", "baz", future, false},
+		{"bar", "baz", "foo", past, true},
+		{"bar", "baz", "foo", future, false},
+	}
+
+	for i, test := range tests {
+		token := getRequestPasswordToken(test.Site, test.Login, test.Secret)
+		getUserFn := func(login string) (*service.User, error) {
+			return &service.User{
+				Login:           test.Login,
+				PasswordChanged: test.Changed}, nil
+		}
+		user, err := verifyRequestPasswordToken(test.Site, getUserFn, test.Secret, token)
+		if err != nil || (test.Valid && user == nil) {
+			t.Errorf("RequestPasswordToken test[%v] failed", i)
 		}
 	}
 }

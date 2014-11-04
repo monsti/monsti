@@ -18,6 +18,13 @@ type SiteSettings struct {
 	Title string
 	// The hosts which should deliver this site.
 	Hosts []string
+	// EmailName is used as name in the From header of outgoing site emails.
+	// BaseURL is the URL to the root of the site. Used to generate
+	// absolute URLs.
+	BaseURL   string
+	EmailName string
+	// EmailAddress is used as address in the From header of outgoing site emails.
+	EmailAddress string
 	// Name and email address of site owner.
 	//
 	// The owner's address is used as recipient of contact form submissions.
@@ -26,6 +33,8 @@ type SiteSettings struct {
 	}
 	// Key to authenticate session cookies.
 	SessionAuthKey string
+	// Key to authenticate password request tokens.
+	PasswordTokenKey string
 	// Locale used to translate monsti's web interface.
 	Locale string
 }

@@ -1,5 +1,6 @@
 title: "Monsti CMS Example Site"
 hosts: ["localhost:8080"]
+baseurl: "http://localhost:8080"
 locale: en
 # Name and email address of site owner.
 #
@@ -9,3 +10,5 @@ owner:
   email: owner@example.com
 # Key used for signing session cookie data. Change this!
 sessionauthkey: aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao
+# Key used for signing password request tokens. Change this!
+passwordtokenkey: foobarblacruz

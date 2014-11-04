@@ -16,6 +16,8 @@
 
 package service
 
+import "time"
+
 // User represents a registered user of the site.
 type User struct {
 	Login string
@@ -23,6 +25,8 @@ type User struct {
 	Email string
 	// Hashed password.
 	Password string
+	// PasswordChanged keeps the time of the last password change.
+	PasswordChanged time.Time
 }
 
 // UserSession is a session of an authenticated or anonymous user.
