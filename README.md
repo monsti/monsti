@@ -31,7 +31,7 @@ Project
 Website: http://www.monsti.org/
 Code: http://www.gitorious.org/monsti | http://github.com/monsti
 
-Acknowledgments
----------------
+Acknowledgements
+----------------
 
  - [Silk Icons by Mark James](http://www.famfamfam.com/lab/icons/silk/)
