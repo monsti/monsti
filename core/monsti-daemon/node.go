@@ -17,8 +17,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
+	"image/jpeg"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -27,7 +29,7 @@ import (
 	"strings"
 
 	"github.com/chrneumann/htmlwidgets"
-	"github.com/quirkey/magick"
+	"github.com/nfnt/resize"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -247,7 +249,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	return nil
 }
 
-type imageSize struct{ Width, Height int }
+type imageSize struct{ Width, Height uint }
 
 func (s imageSize) String() string {
 	return fmt.Sprintf("%vx%v", s.Width, s.Height)
@@ -289,18 +291,17 @@ func (h *nodeHandler) View(c *reqContext) error {
 						if err != nil {
 							return fmt.Errorf("Could not get image data: %v", err)
 						}
-						image, err := magick.NewFromBlob(body, "jpg")
+						image, err := jpeg.Decode(bytes.NewBuffer(body))
 						if err != nil {
-							return fmt.Errorf("Could not open image data with magick: %v", err)
+							return fmt.Errorf("Could not decode image data: %v", err)
 						}
-						defer image.Destroy()
-						err = image.Resize(size.String())
+						image = resize.Thumbnail(size.Width, size.Height, image,
+							resize.Lanczos3)
+						var out bytes.Buffer
+						err = jpeg.Encode(&out, image, nil)
+						body = out.Bytes()
 						if err != nil {
-							return fmt.Errorf("Could not resize image: %v", err)
-						}
-						body, err = image.ToBlob("jpg")
-						if err != nil {
-							return fmt.Errorf("Could not dump image: %v", err)
+							return fmt.Errorf("Could not encode resized image: %v", err)
 						}
 						if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
 							sizePath, body); err != nil {
