@@ -229,14 +229,23 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 			if form.Fill(c.Req.Form) {
 				changePassword := true
 				if authenticated {
-					changePassword = passwordEqual(c.UserSession.User.Password,
+					changePassword = passwordEqual(user.Password,
 						data.OldPassword)
 					if !changePassword {
 						form.AddError("Password", G("Wrong password."))
 					}
 				}
 				if changePassword {
-					// TODO: Change Password
+					hashed, err := bcrypt.GenerateFromPassword([]byte(data.Password), 0)
+					if err != nil {
+						return fmt.Errorf("Could not hash user password: %v", err)
+					}
+					user.PasswordChanged = time.Now()
+					user.Password = string(hashed)
+					err = writeUser(user, h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+					if err != nil {
+						return fmt.Errorf("Could not change user password: %v", err)
+					}
 					http.Redirect(c.Res, c.Req, "@@change-password?changed",
 						http.StatusSeeOther)
 					return nil
@@ -305,17 +314,40 @@ func getClientSession(session *sessions.Session,
 	return
 }
 
-// getUser returns the user with the given login. If there is no such
-// user, returns nil.
-func getUser(login_, dataDir string) (*service.User, error) {
+// getUserDatabase reads the user database from the given site data directory.
+func getUserDatabase(dataDir string) (map[string]service.User, error) {
 	path := filepath.Join(dataDir, "users.json")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("Could not load user database: %v", err)
 	}
-	var users map[string]service.User
+	users := make(map[string]service.User)
 	if err = json.Unmarshal(content, &users); err != nil {
 		return nil, fmt.Errorf("Could not unmarshal user database: %v", err)
+	}
+	return users, nil
+}
+
+// writeUserDatabase writes the given user database to the given site
+// data directory.
+func writeUserDatabase(users map[string]service.User, dataDir string) error {
+	path := filepath.Join(dataDir, "users.json")
+	content, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		return fmt.Errorf("Could not marshal user database: %v", err)
+	}
+	if err = ioutil.WriteFile(path, content, 0600); err != nil {
+		return fmt.Errorf("Could not write user database: %v", err)
+	}
+	return nil
+}
+
+// getUser returns the user with the given login. If there is no such
+// user, returns nil.
+func getUser(login_, dataDir string) (*service.User, error) {
+	users, err := getUserDatabase(dataDir)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get user database: %v", err)
 	}
 	if user, ok := users[login_]; ok {
 		user.Login = login_
@@ -324,22 +356,19 @@ func getUser(login_, dataDir string) (*service.User, error) {
 	return nil, nil
 }
 
-// writeUser saves the user data for the given login
-func writeUser(login_, dataDir string) (*service.User, error) {
-	path := filepath.Join(dataDir, "users.json")
-	content, err := ioutil.ReadFile(path)
+// writeUser saves the given user in the user database.
+//
+// An existing entry for the given user login will be overwritten.
+func writeUser(user *service.User, dataDir string) error {
+	users, err := getUserDatabase(dataDir)
 	if err != nil {
-		return nil, fmt.Errorf("Could not load user database: %v", err)
+		return fmt.Errorf("Could not get user database: %v", err)
 	}
-	var users map[string]service.User
-	if err = json.Unmarshal(content, &users); err != nil {
-		return nil, fmt.Errorf("Could not unmarshal user database: %v", err)
+	users[user.Login] = *user
+	if err = writeUserDatabase(users, dataDir); err != nil {
+		return fmt.Errorf("Could not write user database: %v", err)
 	}
-	if user, ok := users[login_]; ok {
-		user.Login = login_
-		return &user, nil
-	}
-	return nil, nil
+	return nil
 }
 
 // checkPermission checks if the session's user might perform the given action.

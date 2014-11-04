@@ -25,6 +25,7 @@ import (
 
 	"code.google.com/p/go.crypto/bcrypt"
 	"pkg.monsti.org/monsti/api/service"
+	utesting "pkg.monsti.org/monsti/api/util/testing"
 )
 
 func TestCheckPermission(t *testing.T) {
@@ -83,6 +84,28 @@ func TestGetUser(t *testing.T) {
 			t.Errorf("getUser(%q, _) = %v,%v should be %v, nil", v.Login, err,
 				user, v.User)
 		}
+	}
+}
+
+func WriteUser(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
+		"/users.json": `{"foo":{"password":"the pass"}}`}, "TestWriteUser")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	user := service.User{Login: "foo", Password: "new pass"}
+
+	err = writeUser(&user, root)
+	if err != nil {
+		t.Fatalf("Error writing changed user: %v", err)
+	}
+	userChanged, err := getUser(user.Login, root)
+	if err != nil {
+		t.Fatalf("Error reading changed user: %v", err)
+	}
+	if *userChanged != user {
+		t.Errorf("Users differ: %v\n %v", user, userChanged)
 	}
 }
 
