@@ -16,7 +16,7 @@
               <a href="/">{{.Site.Title}}</a>
             </div>
             <div id="primary-nav-wrap">
-              {{template "blocks/primary-navigation" .Page.PrimaryNav}}
+              {{template "blocks/navigation" .Page.PrimaryNav}}
             </div>
           </div>
         </div>
@@ -24,7 +24,11 @@
           <div id="messages">
           </div>
           <div id="sidebar">
-            {{template "blocks/secondary-navigation" .}}
+            {{if .Page.ShowSecondaryNav}}
+            <div id="secondary-nav-wrap">
+              {{template "blocks/navigation" .Page.SecondaryNav}}
+            </div>
+            {{end}}
           </div>
           <div id="content">
             <div class="body">
