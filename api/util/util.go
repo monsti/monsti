@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"pkg.monsti.org/gettext"
 
 	"launchpad.net/goyaml"
 )
@@ -94,4 +95,18 @@ func (n NestedMap) Set(id string, value interface{}) {
 		field = next
 	}
 	field.(map[string]interface{})[parts[len(parts)-1]] = value
+}
+
+// GenLanguageMap generates a language map for the given locales.
+//
+// The map will have an entry for each locale with the locale id being
+// the key and the value being the gettext translation of msg (using
+// pkg.monsti.org/gettext.DefaultLocales)
+func GenLanguageMap(msg string, locales []string) map[string]string {
+	ret := make(map[string]string)
+	for _, lang := range locales {
+		G, _, _, _ := gettext.DefaultLocales.Use("", lang)
+		ret[lang] = G(msg)
+	}
+	return ret
 }

@@ -26,36 +26,30 @@ import (
 	"github.com/chrneumann/htmlwidgets"
 	"github.com/chrneumann/mimemail"
 	"pkg.monsti.org/gettext"
+	"pkg.monsti.org/monsti/api/util"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 import "pkg.monsti.org/monsti/api/service"
 
-func genLanguageMap(msg string) map[string]string {
-	ret := make(map[string]string)
-	for _, lang := range []string{"en", "de"} {
-		G, _, _, _ := gettext.DefaultLocales.Use("", lang)
-		ret[lang] = G(msg)
-	}
-	return ret
-}
+var availableLocales = []string{"en", "de"}
 
 func initNodeTypes(settings *settings, session *service.Session, logger *log.Logger) error {
 	G := func(in string) string { return in }
 	documentType := service.NodeType{
 		Id:        "core.Document",
 		AddableTo: []string{"."},
-		Name:      genLanguageMap(G("Document")),
+		Name:      util.GenLanguageMap(G("Document"), availableLocales),
 		Fields: []*service.NodeField{
 			{
 				Id:       "core.Title",
 				Required: true,
-				Name:     genLanguageMap(G("Title")),
+				Name:     util.GenLanguageMap(G("Title"), availableLocales),
 				Type:     "Text",
 			},
 			{
 				Id:       "core.Body",
 				Required: true,
-				Name:     genLanguageMap(G("Body")),
+				Name:     util.GenLanguageMap(G("Body"), availableLocales),
 				Type:     "HTMLArea",
 			},
 		},
@@ -67,14 +61,14 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	fileType := service.NodeType{
 		Id:        "core.File",
 		AddableTo: []string{"."},
-		Name:      genLanguageMap(G("File")),
+		Name:      util.GenLanguageMap(G("File"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
 			{Id: "core.Body"},
 			{
 				Id:       "core.File",
 				Required: true,
-				Name:     genLanguageMap(G("File")),
+				Name:     util.GenLanguageMap(G("File"), availableLocales),
 				Type:     "File",
 			},
 		},
@@ -86,7 +80,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	imageType := service.NodeType{
 		Id:        "core.Image",
 		AddableTo: []string{"."},
-		Name:      genLanguageMap(G("Image")),
+		Name:      util.GenLanguageMap(G("Image"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
 			{Id: "core.File"},
@@ -99,7 +93,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	contactFormType := service.NodeType{
 		Id:        "core.ContactForm",
 		AddableTo: []string{"."},
-		Name:      genLanguageMap(G("Contact form")),
+		Name:      util.GenLanguageMap(G("Contact form"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
 			{Id: "core.Body"},
