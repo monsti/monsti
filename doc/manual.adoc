@@ -15,9 +15,8 @@ https://gitorious.org/monsti/monsti/
 === Dependencies
 
 - make
-- C compiler, pkg-config
+- C compiler
 - Git, Bazaar, Mercurial (to fetch Go packages)
-- MagickCore library and development files
 - Latest Go compiler and tools
 
 
