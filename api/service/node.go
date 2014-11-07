@@ -303,6 +303,8 @@ type NodeType struct {
 	Name   map[string]string
 	Fields []*NodeField
 	Embed  []EmbedNode
+	// If true, never show nodes of this type in the navigation.
+	Hide bool
 }
 
 // GetLocalName returns the name of the node type in the given language.

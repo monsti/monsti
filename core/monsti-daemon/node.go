@@ -89,7 +89,7 @@ func getNav(nodePath, active string,
 	}
 	childrenNavLinks := navLinks[:]
 	for _, child := range children {
-		if child.Hide {
+		if child.Hide || child.Type.Hide {
 			continue
 		}
 		childrenNavLinks = append(childrenNavLinks, navLink{
@@ -121,7 +121,7 @@ func getNav(nodePath, active string,
 			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
 		for _, sibling := range siblings {
-			if sibling.Hide {
+			if sibling.Hide || sibling.Type.Hide {
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
@@ -470,8 +470,10 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	form := htmlwidgets.NewForm(&formData)
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
-	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
-	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation (lower numbered entries appear first)."))
+	if !nodeType.Hide {
+		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
+	}
+	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation or listings (lower numbered entries appear first)."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
 			Regexp:          `^[-\w]+$`,

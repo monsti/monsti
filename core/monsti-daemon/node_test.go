@@ -53,6 +53,7 @@ func TestGetNav(t *testing.T) {
 	getNodeFn := func(nodePath string) (*service.Node, error) {
 		if val, ok := nodes[nodePath]; ok {
 			val.Node.Path = nodePath
+			val.Node.Type = new(service.NodeType)
 			return &val.Node, nil
 		} else {
 			t.Fatalf("Could not find node %q", nodePath)
