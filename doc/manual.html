@@ -897,6 +897,28 @@ site. As the File node type, the raw content (i.e. the image itself)
 can be accessed via the node&#8217;s path without trailing slash.</p></div>
 <div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
 can be access via <code>/foo/my_image.jpeg</code>.</p></div>
+<div class="sect4">
+<h5 id="_automatic_resizing">Automatic resizing</h5>
+<div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
+register your allowed image sizes in
+<code>&lt;config_dir&gt;/sites/&lt;your_site&gt;/image.json</code>.</p></div>
+<div class="listingblock">
+<div class="title">Example for image sizes "thumbnail" (200x100) and "icon" (20x20)</div>
+<div class="content"><!-- Generator: GNU source-highlight 3.1.7
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #FF0000">{</span>
+  <span style="color: #FF0000">"sizes"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span>
+    <span style="color: #FF0000">"thumbnail"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">200</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">100</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+    <span style="color: #FF0000">"icon"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">20</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">20</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
+  <span style="color: #FF0000">}</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>To access these sizes, add <code>?size=&lt;size_name&gt;</code> to the image URL,
+e.g. <code>/foo/my_image.jpeg?size=thumbnail</code>.</p></div>
+<div class="paragraph"><p>Monsti will generate the specified size if it has not been generated
+before and saves it in the node&#8217;s directory.</p></div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1163,28 +1185,6 @@ file named <code>include</code> at the root of the tree.</p></div>
 corresponding option in the node&#8217;s <code>node.json</code> file. Have a look at
 the <code>service.Node</code> API documentation or the examples for more
 information.</p></div>
-<div class="sect3">
-<h4 id="_automatic_resizing">Automatic resizing</h4>
-<div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
-register your allowed image sizes in
-<code>&lt;config_dir&gt;/sites/&lt;your_site&gt;/image.json</code>.</p></div>
-<div class="listingblock">
-<div class="title">Example for image sizes "thumbnail" (200x100) and "icon" (20x20)</div>
-<div class="content"><!-- Generator: GNU source-highlight 3.1.7
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span>
-  <span style="color: #FF0000">"sizes"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span>
-    <span style="color: #FF0000">"thumbnail"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">200</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">100</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-    <span style="color: #FF0000">"icon"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">20</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">20</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-  <span style="color: #FF0000">}</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
-<div class="paragraph"><p>To access these sizes, add <code>?size=&lt;size_name&gt;</code> to the image URL,
-e.g. <code>/foo/my_image.jpeg?size=thumbnail</code>.</p></div>
-<div class="paragraph"><p>Monsti will generate the specified size if it has not been generated
-before and saves it in the node&#8217;s directory.</p></div>
-</div>
 </div>
 </div>
 </div>
@@ -1193,7 +1193,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2014-11-07 15:48:35 CET
+ 2014-11-07 15:50:22 CET
 </div>
 </div>
 </body>
