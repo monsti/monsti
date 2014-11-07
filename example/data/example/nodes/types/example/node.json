@@ -1,0 +1,18 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": null,
+  "Type": "example.ExampleType",
+  "Fields": {
+    "core": {
+      "Body": "example.ExampleType is a node type registered by the example module.\u003cbr style=\"\"\u003e",
+      "Title": "Module Example"
+    },
+    "example": {
+      "Bar": "2014-01-01T00:00:00Z",
+      "Foo": "Foo Field"
+    }
+  }
+}

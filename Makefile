@@ -20,7 +20,7 @@ ALOHA_VERSION=1.1.2
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
-all: monsti bcrypt
+all: monsti bcrypt example-module
 
 monsti: modules dep-aloha-editor dep-jquery
 
@@ -115,6 +115,7 @@ clean:
 	rm go/* -Rf
 	rm static/aloha/ -Rf
 	rm dist/ -Rf
+	$(MAKE) -C example/monsti-example-module clean
 
 dep-aloha-editor: static/aloha/
 static/aloha/:
@@ -152,3 +153,13 @@ doc: doc/manual.html
 
 doc/%.html: doc/%.adoc
 	asciidoc $<
+
+.PHONY: example/monsti-example-module/monsti-example-module
+example/monsti-example-module/monsti-example-module:
+	$(MAKE) -C example/monsti-example-module
+
+example-module: go/bin/monsti-example-module
+
+go/bin/monsti-example-module: example/monsti-example-module/monsti-example-module
+	cp example/monsti-example-module/monsti-example-module $(GOPATH)/bin
+	ln -rsf example/monsti-example-module/templates/example.ExampleType templates/
