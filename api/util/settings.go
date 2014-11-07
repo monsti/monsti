@@ -174,17 +174,24 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 	}
 
 	// Load Monsti settings
-	monstiSettings.Set(reflect.Zero(monstiSettings.Type()))
-	path = filepath.Join(cfgPath, "monsti.yaml")
-	if err := ParseYAML(path,
-		monstiSettings.Addr().Interface()); err != nil {
-		return fmt.Errorf("util: Could not parse Monsti settings: %v", err)
+	monstiSettingsRet, err := LoadMonstiSettings(cfgPath)
+	if err != nil {
+		return fmt.Errorf("util: Could not load monsti settings: %v", err)
 	}
-	monstiValue := monstiSettings.Addr().Interface().(*MonstiSettings)
-	monstiValue.Directories.Config = cfgPath
-	MakeAbsolute(&monstiValue.Directories.Data, cfgPath)
-	MakeAbsolute(&monstiValue.Directories.Share, cfgPath)
-	MakeAbsolute(&monstiValue.Directories.Locale, cfgPath)
-	MakeAbsolute(&monstiValue.Directories.Run, cfgPath)
+	monstiSettings.Set(reflect.ValueOf(*monstiSettingsRet))
 	return nil
+}
+
+func LoadMonstiSettings(cfgPath string) (*MonstiSettings, error) {
+	path := filepath.Join(cfgPath, "monsti.yaml")
+	var settings MonstiSettings
+	if err := ParseYAML(path, &settings); err != nil {
+		return nil, fmt.Errorf("util: Could not parse Monsti settings: %v", err)
+	}
+	settings.Directories.Config = cfgPath
+	MakeAbsolute(&settings.Directories.Data, cfgPath)
+	MakeAbsolute(&settings.Directories.Share, cfgPath)
+	MakeAbsolute(&settings.Directories.Locale, cfgPath)
+	MakeAbsolute(&settings.Directories.Run, cfgPath)
+	return &settings, nil
 }
