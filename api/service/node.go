@@ -260,112 +260,61 @@ func (n Node) Name() string {
 	return base
 }
 
-/*
-
-// RequestFile stores the path or content of a multipart request's file.
-type RequestFile struct {
-	// TmpFile stores the path to a temporary file with the contents.
-	TmpFile string
-	// Content stores the file content if TmpFile is not set.
-	Content []byte
+type NodeField struct {
+	// The Id of the field including a namespace,
+	// e.g. "namespace.somefieldype".
+	Id string
+	// The name of the field as shown in the web interface,
+	// specified as a translation map (language -> msg).
+	Name     map[string]string
+	Required bool
+	Type     string
 }
 
-// ReadFile returns the file's content. Uses io/ioutil ReadFile if the request
-// file's content is in a temporary file.
-func (r RequestFile) ReadFile() ([]byte, error) {
-	if len(r.TmpFile) > 0 {
-		return ioutil.ReadFile(r.TmpFile)
+type EmbedNode struct {
+	Id  string
+	URI string
+}
+
+type NodeQuery struct {
+	Id string
+}
+
+type NodeType struct {
+	// The Id of the node type including a namespace,
+	// e.g. "namespace.somenodetype".
+	Id string
+	// Per default, nodes may be added to any other node. This behaviour
+	// can be overwritten for one node type with this option. Nodes of
+	// this type may only be added to nodes of the specified types. You
+	// may specify individual node types with their full id
+	// `namespace.id` or all node types of a namespace using
+	// `namespace.` (i.e. the namespace followed by a single dot). To
+	// specify all available node types, use the single dot,
+	// i.e.`[.]`. To specify that the node may not be added to any other
+	// node, use a non existing namespace like `[null.]` (it's currently
+	// not possible to specify an empty array). It's still possible
+	// to add nodes to any other node by directly manipulating the node
+	// data on the file system. This option merely affects the web
+	// interface.
+	AddableTo []string
+	// The name of the node type as shown in the web interface,
+	// specified as a translation map (language -> msg).
+	Name   map[string]string
+	Fields []*NodeField
+	Embed  []EmbedNode
+}
+
+// GetLocalName returns the name of the node type in the given language.
+//
+// Fall backs to to the "en" locale or the id of the node type.
+func (n NodeType) GetLocalName(locale string) string {
+	name, ok := n.Name[locale]
+	if !ok {
+		name, ok = n.Name["en"]
 	}
-	return r.Content, nil
-}
-
-type RequestMethod uint
-
-const (
-	GetRequest = iota
-	PostRequest
-)
-*/
-
-type Action uint
-
-const (
-	ViewAction = iota
-	EditAction
-	LoginAction
-	LogoutAction
-	AddAction
-	RemoveAction
-	RequestPasswordTokenAction
-	ChangePasswordAction
-)
-
-/*
-// A request to be processed by a nodes service.
-type Request struct {
-	// Site name
-	Site string
-	// The requested node.
-	Node Node
-	// The query values of the request URL.
-	Query url.Values
-	// Method of the request (GET,POST,...).
-	Method RequestMethod
-	// User session
-	Session UserSession
-	// Action to perform (e.g. "edit").
-	Action Action
-	// FormData stores the requests form data.
-	FormData url.Values
-	// Files stores files of multipart requests.
-	Files map[string][]RequestFile
-}
-*/
-
-/*
-// Response to a node request.
-type Response struct {
-	// The html content to be embedded in the root template.
-	Body []byte
-	// Raw must be set to true if Body should not be embedded in the root
-	// template. The content type will be automatically detected.
-	Raw bool
-	// If set, redirect to this target using error 303 'see other'.
-	Redirect string
-	// The node as received by GetRequest, possibly with some fields
-	// updated (e.g. modified title).
-	//
-	// If nil, the original node data is used.
-	Node *Node
-}
-*/
-
-/*
-// Write appends the given bytes to the body of the response.
-func (r *Response) Write(p []byte) (n int, err error) {
-	r.Body = append(r.Body, p...)
-	return len(p), nil
-}
-*/
-
-/*
-// Request performs the given request.
-func (s *MonstiClient) Request(req *Request) (*Response, error) {
-	var res Response
-	err := s.RPCClient.Call("Monsti.Request", req, &res)
-	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
+	if !ok {
+		name = n.Id
 	}
-	return &res, nil
-}
-*/
-
-// GetNodeType returns all supported node types.
-func (s *MonstiClient) GetNodeTypes() ([]string, error) {
-	var res []string
-	err := s.RPCClient.Call("Monsti.GetNodeTypes", 0, &res)
-	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for GetNodeTypes: %v", err)
-	}
-	return res, nil
+	return name
 }

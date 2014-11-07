@@ -16,7 +16,15 @@
 
 package service
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"time"
+
+	"github.com/chrneumann/mimemail"
+	"pkg.monsti.org/monsti/api/util"
+)
 
 // MonstiClient represents the RPC connection to the Monsti service.
 type MonstiClient struct {
@@ -46,6 +54,448 @@ func (s *MonstiClient) ModuleInitDone(module string) error {
 	err := s.RPCClient.Call("Monsti.ModuleInitDone", module, new(int))
 	if err != nil {
 		return fmt.Errorf("service: ModuleInitDone error: %v", err)
+	}
+	return nil
+}
+
+// nodeToData converts the node to a JSON document.
+// The Path field will be omitted.
+func nodeToData(node *Node, indent bool) ([]byte, error) {
+	var data []byte
+	var err error
+	path := node.Path
+	node.Path = ""
+	defer func() {
+		node.Path = path
+	}()
+
+	var outNode nodeJSON
+	outNode.Node = *node
+	outNode.Type = node.Type.Id
+	outNode.Fields = make(util.NestedMap)
+
+	nodeFields := append(node.Type.Fields, node.LocalFields...)
+	for _, field := range nodeFields {
+		outNode.Fields.Set(field.Id, node.Fields[field.Id].Dump())
+	}
+
+	if indent {
+		data, err = json.MarshalIndent(outNode, "", "  ")
+	} else {
+		data, err = json.Marshal(outNode)
+	}
+	if err != nil {
+		return nil, fmt.Errorf(
+			"service: Could not marshal node: %v", err)
+	}
+	return data, nil
+}
+
+// WriteNode writes the given node.
+func (s *MonstiClient) WriteNode(site, path string, node *Node) error {
+	if s.Error != nil {
+		return nil
+	}
+	data, err := nodeToData(node, true)
+	if err != nil {
+		return fmt.Errorf("service: Could not convert node: %v", err)
+	}
+	err = s.WriteNodeData(site, path, "node.json", data)
+	if err != nil {
+		return fmt.Errorf(
+			"service: Could not write node: %v", err)
+	}
+	return nil
+}
+
+type nodeJSON struct {
+	Node
+	Type   string
+	Fields util.NestedMap
+}
+
+// dataToNode unmarshals given data
+func dataToNode(data []byte,
+	getNodeType func(id string) (*NodeType, error)) (
+	*Node, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+	var node nodeJSON
+	err := json.Unmarshal(data, &node)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"service: Could not unmarshal node: %v", err)
+	}
+	ret := node.Node
+	ret.Type, err = getNodeType(node.Type)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get node type %q: %v",
+			node.Type, err)
+	}
+
+	ret.InitFields()
+	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
+	for _, field := range nodeFields {
+		value := node.Fields.Get(field.Id)
+		if value != nil {
+			ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
+		}
+	}
+	return &ret, nil
+}
+
+// GetNode reads the given node.
+//
+// If the node does not exist, it returns nil, nil.
+func (s *MonstiClient) GetNode(site, path string) (*Node, error) {
+	if s.Error != nil {
+		return nil, nil
+	}
+	args := struct{ Site, Path string }{site, path}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.GetNode", args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("service: GetNode error: %v", err)
+	}
+	node, err := dataToNode(reply, s.GetNodeType)
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not convert node: %v", err)
+	}
+	return node, nil
+}
+
+// GetChildren returns the children of the given node.
+func (s *MonstiClient) GetChildren(site, path string) ([]*Node, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	args := struct{ Site, Path string }{site, path}
+	var reply [][]byte
+	err := s.RPCClient.Call("Monsti.GetChildren", args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("service: GetChildren error: %v", err)
+	}
+	nodes := make([]*Node, 0, len(reply))
+	for _, entry := range reply {
+
+		node, err := dataToNode(entry, s.GetNodeType)
+		if err != nil {
+			return nil, fmt.Errorf("service: Could not convert node: %v", err)
+		}
+		nodes = append(nodes, node)
+	}
+	return nodes, nil
+}
+
+// GetNodeData requests data from some node.
+//
+// Returns a nil slice and nil error if the data does not exist.
+func (s *MonstiClient) GetNodeData(site, path, file string) ([]byte, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	type GetNodeDataArgs struct {
+	}
+	args := struct{ Site, Path, File string }{
+		site, path, file}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.GetNodeData", &args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("service: GetNodeData error:", err)
+	}
+	return reply, nil
+}
+
+// WriteNodeData writes data for some node.
+func (s *MonstiClient) WriteNodeData(site, path, file string,
+	content []byte) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Site, Path, File string
+		Content          []byte
+	}{
+		site, path, file, content}
+	if err := s.RPCClient.Call("Monsti.WriteNodeData", &args, new(int)); err != nil {
+		return fmt.Errorf("service: WriteNodeData error: %v", err)
+	}
+	return nil
+}
+
+// RemoveNode recursively removes the given site's node.
+func (s *MonstiClient) RemoveNode(site string, node string) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Site, Node string
+	}{site, node}
+	if err := s.RPCClient.Call("Monsti.RemoveNode", args, new(int)); err != nil {
+		return fmt.Errorf("service: RemoveNode error: %v", err)
+	}
+	return nil
+}
+
+// RenameNode renames (moves) the given site's node.
+//
+// Source and target path must be absolute
+func (s *MonstiClient) RenameNode(site, source, target string) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Site, Source, Target string
+	}{site, source, target}
+	if err := s.RPCClient.Call("Monsti.RenameNode", args, new(int)); err != nil {
+		return fmt.Errorf("service: RenameNode error: %v", err)
+	}
+	return nil
+}
+
+func getConfig(reply []byte, out interface{}) error {
+	objectV := reflect.New(
+		reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf(out)))
+	err := json.Unmarshal(reply, objectV.Interface())
+	if err != nil {
+		return fmt.Errorf("service: Could not decode configuration: %v", err)
+	}
+	value := objectV.Elem().MapIndex(
+		objectV.Elem().MapKeys()[0])
+	if !value.IsNil() {
+		reflect.ValueOf(out).Elem().Set(value.Elem())
+	}
+	return nil
+}
+
+// GetConfig puts the named configuration into the variable out.
+func (s *MonstiClient) GetConfig(site, module, name string,
+	out interface{}) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct{ Site, Module, Name string }{site, module, name}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.GetConfig", args, &reply)
+	if err != nil {
+		return fmt.Errorf("service: GetConfig error: %v", err)
+	}
+	return getConfig(reply, out)
+}
+
+// RegisterNodeType registers a new node type.
+//
+// Known field types will be reused. Just specify the id. All other //
+// attributes of the field type will be ignored in this case.
+func (s *MonstiClient) RegisterNodeType(nodeType *NodeType) error {
+	err := s.RPCClient.Call("Monsti.RegisterNodeType", nodeType, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Error calling RegisterNodeType: %v", err)
+	}
+	return nil
+}
+
+// GetNodeType requests information about the given node type.
+func (s *MonstiClient) GetNodeType(nodeTypeID string) (*NodeType,
+	error) {
+	var nodeType NodeType
+	err := s.RPCClient.Call("Monsti.GetNodeType", nodeTypeID, &nodeType)
+	if err != nil {
+		return nil, fmt.Errorf("service: Error calling GetNodeType: %v", err)
+	}
+	return &nodeType, nil
+}
+
+// GetAddableNodeTypes returns the node types that may be added as child nodes
+// to the given node type at the given website.
+func (s *MonstiClient) GetAddableNodeTypes(site, nodeType string) (types []string,
+	err error) {
+	args := struct{ Site, NodeType string }{site, nodeType}
+	err = s.RPCClient.Call("Monsti.GetAddableNodeTypes", args, &types)
+	if err != nil {
+		err = fmt.Errorf("service: Error calling GetAddableNodeTypes: %v", err)
+	}
+	return
+}
+
+/*
+
+// RequestFile stores the path or content of a multipart request's file.
+type RequestFile struct {
+	// TmpFile stores the path to a temporary file with the contents.
+	TmpFile string
+	// Content stores the file content if TmpFile is not set.
+	Content []byte
+}
+
+// ReadFile returns the file's content. Uses io/ioutil ReadFile if the request
+// file's content is in a temporary file.
+func (r RequestFile) ReadFile() ([]byte, error) {
+	if len(r.TmpFile) > 0 {
+		return ioutil.ReadFile(r.TmpFile)
+	}
+	return r.Content, nil
+}
+
+type RequestMethod uint
+
+const (
+	GetRequest = iota
+	PostRequest
+)
+*/
+
+type Action uint
+
+const (
+	ViewAction = iota
+	EditAction
+	LoginAction
+	LogoutAction
+	AddAction
+	RemoveAction
+	RequestPasswordTokenAction
+	ChangePasswordAction
+)
+
+/*
+// A request to be processed by a nodes service.
+type Request struct {
+	// Site name
+	Site string
+	// The requested node.
+	Node Node
+	// The query values of the request URL.
+	Query url.Values
+	// Method of the request (GET,POST,...).
+	Method RequestMethod
+	// User session
+	Session UserSession
+	// Action to perform (e.g. "edit").
+	Action Action
+	// FormData stores the requests form data.
+	FormData url.Values
+	// Files stores files of multipart requests.
+	Files map[string][]RequestFile
+}
+*/
+
+/*
+// Response to a node request.
+type Response struct {
+	// The html content to be embedded in the root template.
+	Body []byte
+	// Raw must be set to true if Body should not be embedded in the root
+	// template. The content type will be automatically detected.
+	Raw bool
+	// If set, redirect to this target using error 303 'see other'.
+	Redirect string
+	// The node as received by GetRequest, possibly with some fields
+	// updated (e.g. modified title).
+	//
+	// If nil, the original node data is used.
+	Node *Node
+}
+*/
+
+/*
+// Write appends the given bytes to the body of the response.
+func (r *Response) Write(p []byte) (n int, err error) {
+	r.Body = append(r.Body, p...)
+	return len(p), nil
+}
+*/
+
+/*
+// Request performs the given request.
+func (s *MonstiClient) Request(req *Request) (*Response, error) {
+	var res Response
+	err := s.RPCClient.Call("Monsti.Request", req, &res)
+	if err != nil {
+		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
+	}
+	return &res, nil
+}
+*/
+
+// GetNodeType returns all supported node types.
+func (s *MonstiClient) GetNodeTypes() ([]string, error) {
+	var res []string
+	err := s.RPCClient.Call("Monsti.GetNodeTypes", 0, &res)
+	if err != nil {
+		return nil, fmt.Errorf("service: RPC error for GetNodeTypes: %v", err)
+	}
+	return res, nil
+}
+
+// PublishServiceArgs are the arguments provided by the caller of
+// PublishService.
+type PublishServiceArgs struct {
+	Service, Path string
+}
+
+// PublishService informs the INFO service about a new service.
+//
+// service is the identifier of the service
+// path is the path to the unix domain socket of the service
+//
+// If the data does not exist, return null length []byte.
+func (s *MonstiClient) PublishService(service, path string) error {
+	args := PublishServiceArgs{service, path}
+	var reply int
+	err := s.RPCClient.Call("Monsti.PublishService", args, &reply)
+	if err != nil {
+		return fmt.Errorf("service: Error calling PublishService: %v", err)
+	}
+	return nil
+}
+
+/*
+// FindDataService requests a data client.
+func (s *MonstiClient) FindDataService() (*MonstiClient, error) {
+	var path string
+	err := s.RPCClient.Call("Monsti.FindDataService", 0, &path)
+	if err != nil {
+		return nil, fmt.Errorf("service: Error calling FindDataService: %v", err)
+	}
+	service_ := NewDataClient()
+	if err := service_.Connect(path); err != nil {
+		return nil,
+			fmt.Errorf("service: Could not establish connection to data service: %v",
+				err)
+	}
+	return service_, nil
+}
+*/
+
+// User represents a registered user of the site.
+type User struct {
+	Login string
+	Name  string
+	Email string
+	// Hashed password.
+	Password string
+	// PasswordChanged keeps the time of the last password change.
+	PasswordChanged time.Time
+}
+
+// UserSession is a session of an authenticated or anonymous user.
+type UserSession struct {
+	// Authenticaded user or nil
+	User *User
+	// Locale used for this session.
+	Locale string
+}
+
+// Send given Monsti.
+func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	var reply int
+	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
+		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
 	}
 	return nil
 }
