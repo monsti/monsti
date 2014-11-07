@@ -823,7 +823,7 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 </div>
 </div>
 <div class="sect1">
-<h2 id="_architecture">Architecture</h2>
+<h2 id="_architecture_a_id_sec_architecture_a">Architecture <a id="sec-architecture"></a></h2>
 <div class="sectionbody">
 <div class="paragraph"><p>(This section is somewhat outdated with regard to the existing modules
 and services. Currently, there is only one module, the master daemon
@@ -1076,6 +1076,19 @@ author(s) of the translation (the authors are noted in the <code>.po</code> file
 </div>
 </div>
 <div class="sect1">
+<h2 id="_modules">Modules</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Modules allow to add new functionality or alter Monsti&#8217;s
+behaviour. See <a href="#sec-architecture">the section about Monsti&#8217;s architecture</a>
+for a detailed description.</p></div>
+<div class="sect2">
+<h3 id="_writing_modules">Writing modules</h3>
+<div class="paragraph"><p>Have a look at the documented example module
+<code>monsti-example-module</code>. It shows how to setup a module and call Monsti&#8217;s API.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_configuration">Configuration</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -1109,7 +1122,7 @@ directories:
 # Monsti expects the module binaries to be in $PATH and named
 # monsti-&lt;modulename&gt;, e.g. $PATH/monsti-my-addon
 # modules: [my-addon, another-addon]
-modules: []
+modules: [example-module]
 
 # Listen for HTTP connections on this address and port,
 # e.g. localhost:8080, :8080, yourdomain.com:80
@@ -1185,7 +1198,7 @@ before and saves it in the node&#8217;s directory.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2014-10-30 12:15:14 CET
+ 2014-11-07 15:44:09 CET
 </div>
 </div>
 </body>
