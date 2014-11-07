@@ -1,4 +1,4 @@
-GOPATH=$(PWD)/go/
+GOPATH=$(CURDIR)/go/
 GO=GOPATH=$(GOPATH) go
 #GO_COMMON_OPTS=-race
 GO_GET=$(GO) get $(GO_COMMON_OPTS)
