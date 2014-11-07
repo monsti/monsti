@@ -23,8 +23,6 @@ import (
 	"strings"
 	"sync"
 
-	"pkg.monsti.org/monsti/api/service"
-
 	"github.com/chrneumann/mimemail"
 )
 
@@ -37,7 +35,11 @@ type MonstiService struct {
 	Logger   *log.Logger
 }
 
-func (i *MonstiService) PublishService(args service.PublishServiceArgs,
+type publishServiceArgs struct {
+	Service, Path string
+}
+
+func (i *MonstiService) PublishService(args publishServiceArgs,
 	reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -45,8 +47,6 @@ func (i *MonstiService) PublishService(args service.PublishServiceArgs,
 		i.Services = make(map[string][]string)
 	}
 	switch args.Service {
-	case "Data":
-	case "Mail":
 	default:
 		return fmt.Errorf("Unknown service type %v", args.Service)
 	}

@@ -429,12 +429,6 @@ func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 	return res, nil
 }
 
-// PublishServiceArgs are the arguments provided by the caller of
-// PublishService.
-type PublishServiceArgs struct {
-	Service, Path string
-}
-
 // PublishService informs the INFO service about a new service.
 //
 // service is the identifier of the service
@@ -442,7 +436,7 @@ type PublishServiceArgs struct {
 //
 // If the data does not exist, return null length []byte.
 func (s *MonstiClient) PublishService(service, path string) error {
-	args := PublishServiceArgs{service, path}
+	args := struct{ Service, Path string }{service, path}
 	var reply int
 	err := s.RPCClient.Call("Monsti.PublishService", args, &reply)
 	if err != nil {
