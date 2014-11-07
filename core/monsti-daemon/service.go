@@ -59,6 +59,11 @@ func (i *MonstiService) PublishService(args service.PublishServiceArgs,
 	return nil
 }
 
+func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
+	// TODO Implement me
+	return nil
+}
+
 /*
 func (i *MonstiService) FindDataService(arg int, path *string) error {
 	i.mutex.RLock()

@@ -35,3 +35,17 @@ func NewMonstiConnection(path string) (*MonstiClient, error) {
 	}
 	return &service, nil
 }
+
+// ModuleInitDone tells Monsti that the given module has finished its
+// initialization. Monsti won't finish its startup until all modules
+// called this method.
+func (s *MonstiClient) ModuleInitDone(module string) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	err := s.RPCClient.Call("Monsti.ModuleInitDone", module, new(int))
+	if err != nil {
+		return fmt.Errorf("service: ModuleInitDone error: %v", err)
+	}
+	return nil
+}
