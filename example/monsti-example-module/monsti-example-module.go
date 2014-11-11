@@ -90,8 +90,8 @@ func main() {
 		logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
 	}
 
-	cb := func(_ int, _ string) map[string]string {
-		return map[string]string{"SignalFoo": "foo"}
+	cb := func(_ int, _ string) string {
+		return "foostring"
 	}
 	handler := service.NewNodeContextHandler(cb)
 	if err := session.Monsti().AddSignalHandler(handler); err != nil {

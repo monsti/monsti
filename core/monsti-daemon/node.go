@@ -392,6 +392,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 
 	ret, err := c.Serv.Monsti().EmitSignal("monsti.NodeContext", "arguments")
 	log.Printf("in the end, got return %v", ret)
+	context["SignalFoo"] = ret
 
 	template := reqNode.Type.Id + "/view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {

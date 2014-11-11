@@ -25,24 +25,21 @@ type SignalHandler interface {
 }
 
 type nodeContextHandler struct {
-	f func(Request int, NodeType string) map[string]string
+	f func(Request int, NodeType string) string
 }
 
 func (r *nodeContextHandler) Name() string {
-	return "monsti.RenderNodeAddContext"
+	return "monsti.NodeContext"
 }
 
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
-	args_ := args.(struct {
-		Request  int
-		NodeType string
-	})
-	return r.f(args_.Request, args_.NodeType), nil
+	args_ := args.(string)
+	return r.f(1, args_), nil
 }
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
 func NewNodeContextHandler(
-	cb func(Request int, NodeType string) map[string]string) SignalHandler {
+	cb func(Request int, NodeType string) string) SignalHandler {
 	return &nodeContextHandler{cb}
 }
