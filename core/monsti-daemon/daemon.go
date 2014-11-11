@@ -23,7 +23,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/gob"
 	"flag"
 	"fmt"
 	"log"
@@ -77,9 +76,6 @@ func (s moduleLog) Write(p []byte) (int, error) {
 }
 
 func main() {
-	gob.Register(service.EmitSignalArgs{})
-	gob.Register(service.EmitSignalRet{})
-	gob.Register("")
 	useSyslog := flag.Bool("syslog", false, "use syslog")
 
 	flag.Parse()

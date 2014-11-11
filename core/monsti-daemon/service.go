@@ -31,8 +31,8 @@ type subscription struct {
 
 type signal struct {
 	Name string
-	Args interface{}
-	Ret  chan interface{}
+	Args []byte
+	Ret  chan []byte
 }
 
 type MonstiService struct {
@@ -44,7 +44,7 @@ type MonstiService struct {
 	Logger        *log.Logger
 	subscriptions map[string][]string
 	subscriber    map[string]chan *signal
-	subscriberRet map[string]chan interface{}
+	subscriberRet map[string]chan []byte
 }
 
 type PublishServiceArgs struct {
@@ -116,29 +116,25 @@ func (m *MonstiService) ConnectSignal(args *ConnectSignalArgs, ret *int) error {
 	return nil
 }
 
-type Ret struct {
-	Ret interface{}
-}
-
 type Receive struct {
 	Name string
-	Args interface{}
+	Args []byte
 }
 
-func (m *MonstiService) EmitSignal(args *Receive, ret *Ret) error {
+func (m *MonstiService) EmitSignal(args *Receive, ret *[]byte) error {
 	log.Printf("daemon received EmitSignal with args: %v ret: %t ", args, ret)
 	for _, id := range m.subscriptions[args.Name] {
 		log.Printf("send to %v", id)
-		retChan := make(chan interface{})
+		retChan := make(chan []byte)
 		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
-		ret.Ret = <-retChan
+		*ret = <-retChan
 	}
 	return nil
 }
 
 type WaitSignalRet struct {
 	Name string
-	Args interface{}
+	Args []byte
 }
 
 func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error {
@@ -147,7 +143,7 @@ func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error 
 	ret.Name = signal.Name
 	ret.Args = signal.Args
 	if m.subscriberRet == nil {
-		m.subscriberRet = make(map[string]chan interface{})
+		m.subscriberRet = make(map[string]chan []byte)
 	}
 	m.subscriberRet[subscriber] = signal.Ret
 	return nil
@@ -155,7 +151,7 @@ func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error 
 
 type FinishSignalArgs struct {
 	Id  string
-	Ret interface{}
+	Ret []byte
 }
 
 func (m *MonstiService) FinishSignal(args *FinishSignalArgs, _ *int) error {

@@ -17,6 +17,8 @@
 package service
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -513,14 +515,7 @@ func (s *MonstiClient) AddSignalHandler(handler SignalHandler) error {
 	return nil
 }
 
-type EmitSignalArgs struct {
-	Name string
-	Args interface{}
-}
-
-type EmitSignalRet struct {
-	Ret interface{}
-}
+type ArgWrap struct{ Wrap interface{} }
 
 // EmitSignal emits the named signal with given arguments and return
 // value.
@@ -528,14 +523,33 @@ func (s *MonstiClient) EmitSignal(name string, args interface{}) (interface{}, e
 	if s.Error != nil {
 		return nil, s.Error
 	}
-	ret := EmitSignalRet{}
-	log.Printf("EmitSignal called. RPC call will have args %v", EmitSignalArgs{name, args})
-	err := s.RPCClient.Call("Monsti.EmitSignal", EmitSignalArgs{name, args}, &ret)
-	log.Println("called", ret)
+	var args_ struct {
+		Name string
+		Args []byte
+	}
+	buffer := &bytes.Buffer{}
+	enc := gob.NewEncoder(buffer)
+	err := enc.Encode(ArgWrap{args})
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not encode signal argumens: %v", err)
+	}
+	args_.Name = name
+	args_.Args = buffer.Bytes()
+	log.Printf("EmitSignal called. RPC call will have args %v, encoded: %v", args, args_)
+	var ret []byte
+	err = s.RPCClient.Call("Monsti.EmitSignal", args_, &ret)
 	if err != nil {
 		return nil, fmt.Errorf("service: Monsti.EmitSignal error: %v", err)
 	}
-	return ret.Ret, nil
+	buffer = bytes.NewBuffer(ret)
+	dec := gob.NewDecoder(buffer)
+	var ret_ ArgWrap
+	err = dec.Decode(&ret_)
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not decode signal return value: %v", err)
+	}
+	log.Printf("called %v, decoded %v", string(ret), ret_)
+	return ret_.Wrap, nil
 }
 
 // WaitSignal waits for the next emitted signal.
@@ -549,21 +563,37 @@ func (s *MonstiClient) WaitSignal() error {
 	}
 	signal := struct {
 		Name string
-		Args interface{}
+		Args []byte
 	}{}
 	err := s.RPCClient.Call("Monsti.WaitSignal", s.Id, &signal)
 	if err != nil {
 		return fmt.Errorf("service: Monsti.WaitSignal error: %v", err)
 	}
-	ret, err := s.SignalHandlers[signal.Name](signal.Args)
+	log.Println("signal Args: %v", signal.Args)
+	buffer := bytes.NewBuffer(signal.Args)
+	dec := gob.NewDecoder(buffer)
+	var args_ ArgWrap
+	err = dec.Decode(&args_)
+	if err != nil {
+		return fmt.Errorf("service: Could not decode signal argumens: %v", err)
+	}
+	log.Printf("calling with %v", args_)
+	ret, err := s.SignalHandlers[signal.Name](args_.Wrap)
 	if err != nil {
 		return fmt.Errorf("service: Signal handler for %v returned error: %v",
 			signal.Name, err)
 	}
 	signalRet := &struct {
 		Id  string
-		Ret interface{}
-	}{s.Id, ret}
+		Ret []byte
+	}{Id: s.Id}
+	buffer = &bytes.Buffer{}
+	enc := gob.NewEncoder(buffer)
+	err = enc.Encode(ArgWrap{ret})
+	if err != nil {
+		return fmt.Errorf("service: Could not encode signal return value: %v", err)
+	}
+	signalRet.Ret = buffer.Bytes()
 	err = s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
 	if err != nil {
 		return fmt.Errorf("service: Monsti.FinishSignal error: %v", err)
