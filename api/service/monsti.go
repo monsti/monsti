@@ -515,7 +515,7 @@ func (s *MonstiClient) AddSignalHandler(handler SignalHandler) error {
 	return nil
 }
 
-type ArgWrap struct{ Wrap interface{} }
+type argWrap struct{ Wrap interface{} }
 
 // EmitSignal emits the named signal with given arguments and return
 // value.
@@ -529,7 +529,7 @@ func (s *MonstiClient) EmitSignal(name string, args interface{}) (interface{}, e
 	}
 	buffer := &bytes.Buffer{}
 	enc := gob.NewEncoder(buffer)
-	err := enc.Encode(ArgWrap{args})
+	err := enc.Encode(argWrap{args})
 	if err != nil {
 		return nil, fmt.Errorf("service: Could not encode signal argumens: %v", err)
 	}
@@ -543,7 +543,7 @@ func (s *MonstiClient) EmitSignal(name string, args interface{}) (interface{}, e
 	}
 	buffer = bytes.NewBuffer(ret)
 	dec := gob.NewDecoder(buffer)
-	var ret_ ArgWrap
+	var ret_ argWrap
 	err = dec.Decode(&ret_)
 	if err != nil {
 		return nil, fmt.Errorf("service: Could not decode signal return value: %v", err)
@@ -572,7 +572,7 @@ func (s *MonstiClient) WaitSignal() error {
 	log.Println("signal Args: %v", signal.Args)
 	buffer := bytes.NewBuffer(signal.Args)
 	dec := gob.NewDecoder(buffer)
-	var args_ ArgWrap
+	var args_ argWrap
 	err = dec.Decode(&args_)
 	if err != nil {
 		return fmt.Errorf("service: Could not decode signal argumens: %v", err)
@@ -589,7 +589,7 @@ func (s *MonstiClient) WaitSignal() error {
 	}{Id: s.Id}
 	buffer = &bytes.Buffer{}
 	enc := gob.NewEncoder(buffer)
-	err = enc.Encode(ArgWrap{ret})
+	err = enc.Encode(argWrap{ret})
 	if err != nil {
 		return fmt.Errorf("service: Could not encode signal return value: %v", err)
 	}
