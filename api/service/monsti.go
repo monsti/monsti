@@ -19,6 +19,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 // MonstiClient represents the RPC connection to the Monsti service.
 type MonstiClient struct {
 	Client
+	SignalHandlers map[string]func(interface{}) (interface{}, error)
 }
 
 // NewMonstiConnection establishes a new RPC connection to a Monsti service.
@@ -490,6 +492,81 @@ func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
 	var reply int
 	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
 		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
+	}
+	return nil
+}
+
+// AddSignalHandler connects to a signal with the given signal handler.
+func (s *MonstiClient) AddSignalHandler(handler SignalHandler) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct{ Id, Signal string }{s.Id, handler.Name()}
+	err := s.RPCClient.Call("Monsti.ConnectSignal", args, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Monsti.ConnectSignal error: %v", err)
+	}
+	if s.SignalHandlers == nil {
+		s.SignalHandlers = make(map[string]func(interface{}) (interface{}, error))
+	}
+	s.SignalHandlers[handler.Name()] = handler.Handle
+	return nil
+}
+
+type EmitSignalArgs struct {
+	Name string
+	Args interface{}
+}
+
+type EmitSignalRet struct {
+	Ret interface{}
+}
+
+// EmitSignal emits the named signal with given arguments and return
+// value.
+func (s *MonstiClient) EmitSignal(name string, args interface{}) (interface{}, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	ret := EmitSignalRet{}
+	log.Printf("EmitSignal called. RPC call will have args %v", EmitSignalArgs{name, args})
+	err := s.RPCClient.Call("Monsti.EmitSignal", EmitSignalArgs{name, args}, &ret)
+	log.Println("called", ret)
+	if err != nil {
+		return nil, fmt.Errorf("service: Monsti.EmitSignal error: %v", err)
+	}
+	return ret.Ret, nil
+}
+
+// WaitSignal waits for the next emitted signal.
+//
+// You have to connect to some signals before. See ConnectSignal.
+// This method must not be called in parallel by the same client
+// instance.
+func (s *MonstiClient) WaitSignal() error {
+	if s.Error != nil {
+		return s.Error
+	}
+	signal := struct {
+		Name string
+		Args interface{}
+	}{}
+	err := s.RPCClient.Call("Monsti.WaitSignal", s.Id, &signal)
+	if err != nil {
+		return fmt.Errorf("service: Monsti.WaitSignal error: %v", err)
+	}
+	ret, err := s.SignalHandlers[signal.Name](signal.Args)
+	if err != nil {
+		return fmt.Errorf("service: Signal handler for %v returned error: %v",
+			signal.Name, err)
+	}
+	signalRet := &struct {
+		Id  string
+		Ret interface{}
+	}{s.Id, ret}
+	err = s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Monsti.FinishSignal error: %v", err)
 	}
 	return nil
 }

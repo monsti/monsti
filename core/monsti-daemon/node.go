@@ -22,6 +22,7 @@ import (
 	"html/template"
 	"image/jpeg"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -388,6 +389,10 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 		}
 	}
 	context["Embedded"] = embed != nil
+
+	ret, err := c.Serv.Monsti().EmitSignal("monsti.NodeContext", "arguments")
+	log.Printf("in the end, got return %v", ret)
+
 	template := reqNode.Type.Id + "/view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
 		template = overwrite.Template

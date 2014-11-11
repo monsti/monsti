@@ -90,10 +90,24 @@ func main() {
 		logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
 	}
 
+	cb := func(_ int, _ string) map[string]string {
+		return map[string]string{"SignalFoo": "foo"}
+	}
+	handler := service.NewNodeContextHandler(cb)
+	if err := session.Monsti().AddSignalHandler(handler); err != nil {
+		logger.Fatalf("Could not add signal handler: %v", err)
+	}
+
 	// At the end of the initialization, every module has to call
 	// ModuleInitDone. Monsti won't complete its startup until all
 	// modules have called this method.
 	if err := session.Monsti().ModuleInitDone("example-module"); err != nil {
 		logger.Fatalf("Could not finish initialization: %v", err)
+	}
+
+	for {
+		if err := session.Monsti().WaitSignal(); err != nil {
+			logger.Fatalf("Could not wait for signal: %v", err)
+		}
 	}
 }
