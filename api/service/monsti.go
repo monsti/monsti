@@ -17,6 +17,8 @@
 package service
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -29,6 +31,7 @@ import (
 // MonstiClient represents the RPC connection to the Monsti service.
 type MonstiClient struct {
 	Client
+	SignalHandlers map[string]func(interface{}) (interface{}, error)
 }
 
 // NewMonstiConnection establishes a new RPC connection to a Monsti service.
@@ -490,6 +493,114 @@ func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
 	var reply int
 	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
 		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
+	}
+	return nil
+}
+
+// AddSignalHandler connects to a signal with the given signal handler.
+func (s *MonstiClient) AddSignalHandler(handler SignalHandler) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct{ Id, Signal string }{s.Id, handler.Name()}
+	err := s.RPCClient.Call("Monsti.ConnectSignal", args, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Monsti.ConnectSignal error: %v", err)
+	}
+	if s.SignalHandlers == nil {
+		s.SignalHandlers = make(map[string]func(interface{}) (interface{}, error))
+	}
+	s.SignalHandlers[handler.Name()] = handler.Handle
+	return nil
+}
+
+type argWrap struct{ Wrap interface{} }
+
+// EmitSignal emits the named signal with given arguments and return
+// value.
+func (s *MonstiClient) EmitSignal(name string, args interface{},
+	retarg interface{}) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	gob.RegisterName(name+"Ret", reflect.Zero(
+		reflect.TypeOf(retarg).Elem().Elem()).Interface())
+	gob.RegisterName(name+"Args", args)
+	var args_ struct {
+		Name string
+		Args []byte
+	}
+	buffer := &bytes.Buffer{}
+	enc := gob.NewEncoder(buffer)
+	err := enc.Encode(argWrap{args})
+	if err != nil {
+		return fmt.Errorf("service: Could not encode signal argumens: %v", err)
+	}
+	args_.Name = name
+	args_.Args = buffer.Bytes()
+	var ret [][]byte
+	err = s.RPCClient.Call("Monsti.EmitSignal", args_, &ret)
+	if err != nil {
+		return fmt.Errorf("service: Monsti.EmitSignal error: %v", err)
+	}
+	reflect.ValueOf(retarg).Elem().Set(reflect.MakeSlice(
+		reflect.TypeOf(retarg).Elem(), len(ret), len(ret)))
+	for i, answer := range ret {
+		buffer = bytes.NewBuffer(answer)
+		dec := gob.NewDecoder(buffer)
+		var ret_ argWrap
+		err = dec.Decode(&ret_)
+		if err != nil {
+			return fmt.Errorf("service: Could not decode signal return value: %v", err)
+		}
+		reflect.ValueOf(retarg).Elem().Index(i).Set(reflect.ValueOf(ret_.Wrap))
+	}
+	return nil
+}
+
+// WaitSignal waits for the next emitted signal.
+//
+// You have to connect to some signals before. See ConnectSignal.
+// This method must not be called in parallel by the same client
+// instance.
+func (s *MonstiClient) WaitSignal() error {
+	if s.Error != nil {
+		return s.Error
+	}
+	signal := struct {
+		Name string
+		Args []byte
+	}{}
+	err := s.RPCClient.Call("Monsti.WaitSignal", s.Id, &signal)
+	if err != nil {
+		return fmt.Errorf("service: Monsti.WaitSignal error: %v", err)
+	}
+	buffer := bytes.NewBuffer(signal.Args)
+	dec := gob.NewDecoder(buffer)
+	var args_ argWrap
+	err = dec.Decode(&args_)
+	if err != nil {
+		return fmt.Errorf("service: Could not decode signal argumens: %v", err)
+	}
+	ret, err := s.SignalHandlers[signal.Name](args_.Wrap)
+	if err != nil {
+		return fmt.Errorf("service: Signal handler for %v returned error: %v",
+			signal.Name, err)
+	}
+	signalRet := &struct {
+		Id  string
+		Ret []byte
+	}{Id: s.Id}
+	buffer = &bytes.Buffer{}
+	enc := gob.NewEncoder(buffer)
+	err = enc.Encode(argWrap{ret})
+	if err != nil {
+		return fmt.Errorf("service: Could not encode signal return value: %v", err)
+	}
+	signalRet.Ret = buffer.Bytes()
+	err = s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
+	if err != nil {
+		return fmt.Errorf("service: Monsti.FinishSignal error: %v", err)
 	}
 	return nil
 }

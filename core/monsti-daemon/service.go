@@ -26,20 +26,32 @@ import (
 	"github.com/chrneumann/mimemail"
 )
 
+type subscription struct {
+}
+
+type signal struct {
+	Name string
+	Args []byte
+	Ret  chan []byte
+}
+
 type MonstiService struct {
 	// Services maps service names to service paths
 	Services map[string][]string
 	// Mutex to syncronize data access
-	mutex    sync.RWMutex
-	Settings *settings
-	Logger   *log.Logger
+	mutex         sync.RWMutex
+	Settings      *settings
+	Logger        *log.Logger
+	subscriptions map[string][]string
+	subscriber    map[string]chan *signal
+	subscriberRet map[string]chan []byte
 }
 
-type publishServiceArgs struct {
+type PublishServiceArgs struct {
 	Service, Path string
 }
 
-func (i *MonstiService) PublishService(args publishServiceArgs,
+func (i *MonstiService) PublishService(args PublishServiceArgs,
 	reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -64,18 +76,6 @@ func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
 	return nil
 }
 
-/*
-func (i *MonstiService) FindDataService(arg int, path *string) error {
-	i.mutex.RLock()
-	defer i.mutex.RUnlock()
-	if len(i.Services["Data"]) == 0 {
-		return fmt.Errorf("Could not find any data services")
-	}
-	*path = i.Services["Data"][0]
-	return nil
-}
-*/
-
 func (m *MonstiService) SendMail(mail mimemail.Mail, reply *int) error {
 	if !m.Settings.Mail.Debug {
 		auth := smtp.PlainAuth("", m.Settings.Mail.Username,
@@ -96,5 +96,62 @@ Subject: %v
 -- Body End --`,
 			mail.From, mail.To, mail.Cc, mail.Bcc, mail.Subject, string(mail.Body))
 	}
+	return nil
+}
+
+type ConnectSignalArgs struct {
+	Id, Signal string
+}
+
+func (m *MonstiService) ConnectSignal(args *ConnectSignalArgs, ret *int) error {
+	if m.subscriptions == nil {
+		m.subscriptions = make(map[string][]string)
+		m.subscriber = make(map[string]chan *signal)
+	}
+	m.subscriptions[args.Signal] = append(m.subscriptions[args.Signal], args.Id)
+	if _, ok := m.subscriber[args.Id]; !ok {
+		m.subscriber[args.Id] = make(chan *signal)
+	}
+	return nil
+}
+
+type Receive struct {
+	Name string
+	Args []byte
+}
+
+func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
+	*ret = make([][]byte, len(m.subscriptions[args.Name]))
+	for i, id := range m.subscriptions[args.Name] {
+		retChan := make(chan []byte)
+		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
+		(*ret)[i] = <-retChan
+	}
+	return nil
+}
+
+type WaitSignalRet struct {
+	Name string
+	Args []byte
+}
+
+func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error {
+	signal := <-m.subscriber[subscriber]
+	ret.Name = signal.Name
+	ret.Args = signal.Args
+	if m.subscriberRet == nil {
+		m.subscriberRet = make(map[string]chan []byte)
+	}
+	m.subscriberRet[subscriber] = signal.Ret
+	return nil
+}
+
+type FinishSignalArgs struct {
+	Id  string
+	Ret []byte
+}
+
+func (m *MonstiService) FinishSignal(args *FinishSignalArgs, _ *int) error {
+	m.subscriberRet[args.Id] <- args.Ret
 	return nil
 }

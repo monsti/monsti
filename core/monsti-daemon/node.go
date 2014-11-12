@@ -388,6 +388,21 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 		}
 	}
 	context["Embedded"] = embed != nil
+
+	var ret []map[string]string
+	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext", struct {
+		Request  int
+		NodeType string
+	}{0, reqNode.Type.Id}, &ret)
+	if err != nil {
+		return nil, fmt.Errorf("Could not emit signal: %v", err)
+	}
+	for i, _ := range ret {
+		for key, value := range ret[i] {
+			context[key] = value
+		}
+	}
+
 	template := reqNode.Type.Id + "/view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
 		template = overwrite.Template

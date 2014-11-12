@@ -17,6 +17,7 @@
 package service
 
 import (
+	"log"
 	"net"
 	"net/rpc"
 )
@@ -46,6 +47,8 @@ type Client struct {
 	RPCClient *rpc.Client
 	// Error holds the last error if any.
 	Error error
+	// Id is a unique identifier for this client.
+	Id string
 }
 
 // Connect establishes a new RPC connection to the given service.
@@ -56,6 +59,8 @@ func (s *Client) Connect(path string) error {
 	if err != nil {
 		return err
 	}
+	s.Id = conn.LocalAddr().String()
+	log.Println(s.Id) // DEBUG
 	s.RPCClient = rpc.NewClient(conn)
 	return nil
 }
