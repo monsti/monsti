@@ -90,10 +90,14 @@ func main() {
 		logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
 	}
 
-	cb := func(_ int, _ string) string {
-		return "foostring"
-	}
-	handler := service.NewNodeContextHandler(cb)
+	// Add a signal handler
+	handler := service.NewNodeContextHandler(
+		func(_ int, nodeType string) map[string]string {
+			if nodeType == "example.ExampleType" {
+				return map[string]string{"SignalFoo": "Hello Signal!"}
+			}
+			return nil
+		})
 	if err := session.Monsti().AddSignalHandler(handler); err != nil {
 		logger.Fatalf("Could not add signal handler: %v", err)
 	}

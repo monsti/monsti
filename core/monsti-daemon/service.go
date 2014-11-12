@@ -104,7 +104,6 @@ type ConnectSignalArgs struct {
 }
 
 func (m *MonstiService) ConnectSignal(args *ConnectSignalArgs, ret *int) error {
-	log.Printf("ConnectSignal %v", args)
 	if m.subscriptions == nil {
 		m.subscriptions = make(map[string][]string)
 		m.subscriber = make(map[string]chan *signal)
@@ -121,13 +120,12 @@ type Receive struct {
 	Args []byte
 }
 
-func (m *MonstiService) EmitSignal(args *Receive, ret *[]byte) error {
-	log.Printf("daemon received EmitSignal with args: %v ret: %t ", args, ret)
-	for _, id := range m.subscriptions[args.Name] {
-		log.Printf("send to %v", id)
+func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
+	*ret = make([][]byte, len(m.subscriptions[args.Name]))
+	for i, id := range m.subscriptions[args.Name] {
 		retChan := make(chan []byte)
 		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
-		*ret = <-retChan
+		(*ret)[i] = <-retChan
 	}
 	return nil
 }
@@ -138,7 +136,6 @@ type WaitSignalRet struct {
 }
 
 func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error {
-	log.Printf("WaitSignal %v", subscriber)
 	signal := <-m.subscriber[subscriber]
 	ret.Name = signal.Name
 	ret.Args = signal.Args

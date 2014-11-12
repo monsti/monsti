@@ -16,6 +16,8 @@
 
 package service
 
+import "encoding/gob"
+
 // SignalHandler wraps a handler for a specific signal.
 type SignalHandler interface {
 	// Name returns the name of the signal to handle.
@@ -25,21 +27,28 @@ type SignalHandler interface {
 }
 
 type nodeContextHandler struct {
-	f func(Request int, NodeType string) string
+	f func(Request int, NodeType string) map[string]string
 }
 
 func (r *nodeContextHandler) Name() string {
 	return "monsti.NodeContext"
 }
 
+type nodeContextArgs struct {
+	Request  int
+	NodeType string
+}
+
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
-	args_ := args.(string)
-	return r.f(1, args_), nil
+	args_ := args.(nodeContextArgs)
+	return r.f(args_.Request, args_.NodeType), nil
 }
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
 func NewNodeContextHandler(
-	cb func(Request int, NodeType string) string) SignalHandler {
+	cb func(Request int, NodeType string) map[string]string) SignalHandler {
+	gob.RegisterName("monsti.NodeContextArgs", nodeContextArgs{})
+	gob.RegisterName("monsti.NodeContextRet", map[string]string{})
 	return &nodeContextHandler{cb}
 }
