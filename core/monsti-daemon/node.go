@@ -576,7 +576,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	rendered, err := h.Renderer.Render(path.Join(nodeType.Id, "edit"),
+	rendered, err := h.Renderer.Render("edit",
 		mtemplate.Context{"Form": form.RenderData()},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 
