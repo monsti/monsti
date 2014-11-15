@@ -77,6 +77,7 @@ type getChildrenFunc func(path string) ([]*service.Node, error)
 
 // getNav returns the navigation for the given node.
 //
+// If public is true, show only public pages.
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
 func getNav(nodePath, active string, public bool,
@@ -90,7 +91,7 @@ func getNav(nodePath, active string, public bool,
 	}
 	childrenNavLinks := navLinks[:]
 	for _, child := range children {
-		if child.Hide || child.Type.Hide {
+		if child.Hide || child.Type.Hide || public && !child.Public {
 			continue
 		}
 		childrenNavLinks = append(childrenNavLinks, navLink{
@@ -122,7 +123,7 @@ func getNav(nodePath, active string, public bool,
 			return nil, fmt.Errorf("Could not get siblings: %v", err)
 		}
 		for _, sibling := range siblings {
-			if sibling.Hide || sibling.Type.Hide {
+			if sibling.Hide || sibling.Type.Hide || public && !sibling.Public {
 				continue
 			}
 			siblingsNavLinks = append(siblingsNavLinks, navLink{
