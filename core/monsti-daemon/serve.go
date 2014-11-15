@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
@@ -139,7 +140,9 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		serveError("Error getting node: %v", err)
 	}
-	if c.Node == nil {
+	if c.Node == nil ||
+		(c.UserSession.User == nil &&
+			(c.Node.Public == false || c.Node.PublishTime.After(time.Now()))) {
 		h.Log.Printf("Node not found: %v @ %v", nodePath, c.Site.Name)
 		c.Node = &service.Node{Path: nodePath}
 		http.Error(c.Res, "Document not found", http.StatusNotFound)

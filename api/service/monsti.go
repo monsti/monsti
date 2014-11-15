@@ -99,6 +99,7 @@ func (s *MonstiClient) WriteNode(site, path string, node *Node) error {
 	if s.Error != nil {
 		return nil
 	}
+	node.Changed = time.Now()
 	data, err := nodeToData(node, true)
 	if err != nil {
 		return fmt.Errorf("service: Could not convert node: %v", err)

@@ -3,6 +3,10 @@
   "Hide": false,
   "TemplateOverwrites": null,
   "Embed": null,
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.197447573+01:00",
+  "Changed": "2014-11-12T15:14:31.197447607+01:00",
   "Type": "core.Document",
   "Fields": {
     "core": {

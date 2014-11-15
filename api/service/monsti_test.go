@@ -101,25 +101,28 @@ func TestNodeToData(t *testing.T) {
 	node.Fields["foo.BarField"].Load("BarValue")
 
 	expected := `{
-  "Order": 0,
-  "Hide": false,
-  "TemplateOverwrites": null,
-  "Embed": null,
-  "LocalFields": [
-		{
-			"Id": "foo.BarField",
-			"Name": null,
-			"Required": false,
-			"Type": "Text"
-		}
-	],
-  "Type": "foo.Bar",
-  "Fields": {
-    "foo": {
-      "BarField": "BarValue",
-      "FooField": "FooValue"
-    }
-  }
+		  "Order": 0,
+		  "Hide": false,
+		  "TemplateOverwrites": null,
+		  "Embed": null,
+		  "LocalFields": [
+				{
+					"Id": "foo.BarField",
+					"Name": null,
+					"Required": false,
+					"Type": "Text"
+				}
+			],
+		  "Public": false,
+		  "PublishTime": "0001-01-01T00:00:00Z",
+      "Changed":"0001-01-01T00:00:00Z",
+		  "Type": "foo.Bar",
+		  "Fields": {
+		    "foo": {
+		      "BarField": "BarValue",
+		      "FooField": "FooValue"
+		    }
+		  }
 }`
 
 	oldPath := node.Path
@@ -137,7 +140,7 @@ func TestNodeToData(t *testing.T) {
 		return out
 	}
 	if trim(string(ret)) != trim(expected) {
-		t.Errorf("nodeToData(%v, true) = `%v`, should be `%v`", node,
-			string(ret), expected)
+		t.Errorf("nodeToData(%v, true) is\n`%v`\n, should be\n`%v`", node,
+			trim(string(ret)), trim(expected))
 	}
 }

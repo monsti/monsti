@@ -197,6 +197,15 @@ type Node struct {
 	TemplateOverwrites map[string]TemplateOverwrite
 	Embed              []EmbedNode
 	LocalFields        []*NodeField
+	// Public controls wether the node or its content may be viewed by
+	// unauthenticated users.
+	Public bool
+	// PublishTime holds the time the node has been or should be
+	// published.
+	PublishTime time.Time
+	// Changed is updated with the current time on every write to the
+	// database.
+	Changed time.Time
 }
 
 func (n *Node) InitFields() {

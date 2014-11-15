@@ -4,6 +4,9 @@
   "TemplateOverwrites": null,
   "Embed": null,
   "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.198207618+01:00",
+  "Changed": "2014-11-12T15:14:31.198207648+01:00",
   "Type": "example.ExampleType",
   "Fields": {
     "core": {

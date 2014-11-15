@@ -2,6 +2,11 @@
   "Order": 0,
   "Hide": false,
   "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.198365836+01:00",
+  "Changed": "2014-11-12T15:14:31.198365869+01:00",
   "Type": "core.Image",
   "Fields": {
     "core": {

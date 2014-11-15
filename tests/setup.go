@@ -150,3 +150,12 @@ func Must(err error, msg string, t *testing.T) {
 		t.Fatalf("%v: %v", msg, err)
 	}
 }
+
+// MustErr expects err to be non nil. If err is nil, it calls t.Fail with the given
+// error msg. If `contains` is a string of non zero length, it also
+// checks if the error contains this string.
+func MustErr(err error, contains string, msg string, t *testing.T) {
+	if err == nil || len(contains) > 0 && !strings.Contains(err.Error(), contains) {
+		t.Fatalf("%v | Error: %v", msg, err)
+	}
+}
