@@ -27,6 +27,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/chrneumann/htmlwidgets"
 	"github.com/nfnt/resize"
@@ -78,7 +79,7 @@ type getChildrenFunc func(path string) ([]*service.Node, error)
 //
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
-func getNav(nodePath, active string,
+func getNav(nodePath, active string, public bool,
 	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
 	navLinks navigation, err error) {
 
@@ -101,7 +102,7 @@ func getNav(nodePath, active string,
 		if nodePath == "/" || path.Dir(nodePath) == "/" {
 			return nil, nil
 		}
-		return getNav(path.Dir(nodePath), active, getNodeFn, getChildrenFn)
+		return getNav(path.Dir(nodePath), active, public, getNodeFn, getChildrenFn)
 	}
 	sort.Sort(&childrenNavLinks)
 	siblingsNavLinks := navLinks[:]
@@ -480,6 +481,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
 		formData.Node.InitFields()
+		formData.Node.PublishTime = time.Now()
 	} else {
 		formData.Node = *c.Node
 	}
@@ -489,6 +491,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
 	}
 	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation or listings (lower numbered entries appear first)."))
+	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
+	form.AddWidget(new(htmlwidgets.TimeWidget), "Node.PublishTime", G("Publish time"), G("The node won't be accessible to the public until it is published."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
 			Regexp:          `^[-\w]+$`,

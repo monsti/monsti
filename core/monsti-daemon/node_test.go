@@ -70,43 +70,44 @@ func TestGetNav(t *testing.T) {
 	}
 	tests := []struct {
 		Path, Active string
+		Public       bool
 		Expected     navigation
 	}{
-		{"/", "/", navigation{
+		{"/", "/", true, navigation{
 			{Target: "/", Child: false, Active: true},
 			{Target: "/cruz", Child: true, Order: -2},
 			{Target: "/foo", Child: true},
 			{Target: "/bar", Child: true, Order: 2}}},
-		{"/", "/foo/child2/child1", navigation{
+		{"/", "/foo/child2/child1", true, navigation{
 			{Target: "/", Child: false, Active: false, ActiveBelow: true},
 			{Target: "/cruz", Child: true, Order: -2},
 			{Target: "/foo", Child: true, ActiveBelow: true},
 			{Target: "/bar", Child: true, Order: 2}}},
-		{"/foo", "/foo", navigation{
+		{"/foo", "/foo", true, navigation{
 			{Target: "/foo", Active: true},
 			{Target: "/foo/child1", Child: true},
 			{Target: "/foo/child2", Child: true}}},
-		{"/foo/child1", "/foo/child1", navigation{
+		{"/foo/child1", "/foo/child1", true, navigation{
 			{Target: "/foo", Active: false, ActiveBelow: true},
 			{Target: "/foo/child1", Child: true, Active: true},
 			{Target: "/foo/child2", Child: true}}},
-		{"/foo/child2", "/foo/child2", navigation{
+		{"/foo/child2", "/foo/child2", true, navigation{
 			{Target: "/foo/child1"},
 			{Target: "/foo/child2", Active: true},
 			{Target: "/foo/child2/child1", Child: true}}},
-		{"/foo/child2/child1", "/foo/child2/child1", navigation{
+		{"/foo/child2/child1", "/foo/child2/child1", true, navigation{
 			{Target: "/foo/child1"},
 			{Target: "/foo/child2", Active: false, ActiveBelow: true},
 			{Target: "/foo/child2/child1", Active: true, Child: true}}},
-		{"/bar", "/bar", navigation{}},
-		{"/cruz", "/cruz", navigation{
+		{"/bar", "/bar", true, navigation{}},
+		{"/cruz", "/cruz", true, navigation{
 			{Target: "/cruz", Active: true, Order: -2},
 			{Target: "/cruz/child1", Child: true}}}}
 	for _, test := range tests {
 		for i, _ := range test.Expected {
 			test.Expected[i].Name = "Untitled"
 		}
-		ret, err := getNav(test.Path, test.Active, getNodeFn, getChildrenFn)
+		ret, err := getNav(test.Path, test.Active, test.Public, getNodeFn, getChildrenFn)
 		if err != nil || !(len(ret) == 0 && len(test.Expected) == 0 || reflect.DeepEqual(ret, test.Expected)) {
 			t.Errorf("getNav(%q, %q, _) is\n%v, %v\nshould be\n%v, nil",
 				test.Path, test.Active, ret, err, test.Expected)

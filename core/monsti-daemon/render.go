@@ -62,14 +62,16 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	getChildrenFn := func(path string) ([]*service.Node, error) {
 		return s.Monsti().GetChildren(site.Name, path)
 	}
-	prinav, err := getNav("/", path.Join("/", firstDir), getNodeFn, getChildrenFn)
+	prinav, err := getNav("/", path.Join("/", firstDir), env.Node.Public,
+		getNodeFn, getChildrenFn)
 	if err != nil {
 		panic(fmt.Sprint("Could not get primary navigation: ", err))
 	}
 	prinav.MakeAbsolute("/")
 	var secnav navigation = nil
 	if env.Node.Path != "/" {
-		secnav, err = getNav(env.Node.Path, env.Node.Path, getNodeFn, getChildrenFn)
+		secnav, err = getNav(env.Node.Path, env.Node.Path, env.Node.Public,
+			getNodeFn, getChildrenFn)
 		if err != nil {
 			panic(fmt.Sprint("Could not get secondary navigation: ", err))
 		}

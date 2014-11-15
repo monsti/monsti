@@ -6,7 +6,7 @@
       "Template": "foo.Fields/view"
     }
   },
-  "Type": "core.Document",
+  "Embed": null,
   "LocalFields": [
     {
       "Id": "foo.DateTime",
@@ -33,8 +33,13 @@
       "Type": "Text"
     }
   ],
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.197158588Z",
+  "Changed": "2014-11-12T15:15:36.700386302+01:00",
+  "Type": "core.Document",
   "Fields": {
     "core": {
+      "Body": "",
       "Title": "Fields"
     },
     "foo": {

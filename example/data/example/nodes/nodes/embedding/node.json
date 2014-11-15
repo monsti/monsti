@@ -3,12 +3,19 @@
   "Hide": false,
   "TemplateOverwrites": {
     "core.Document/view": {
-      "Template":"foo.EmbedExample/view"}
+      "Template": "foo.EmbedExample/view"
+    }
   },
-  "Embed": [{
-    "Id": "fooEmbed",
-    "URI": "child-node"
-  }],
+  "Embed": [
+    {
+      "Id": "fooEmbed",
+      "URI": "child-node"
+    }
+  ],
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.197357355+01:00",
+  "Changed": "2014-11-12T15:14:31.197357386+01:00",
   "Type": "core.Document",
   "Fields": {
     "core": {

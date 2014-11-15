@@ -2,6 +2,11 @@
   "Order": 0,
   "Hide": false,
   "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.19798318+01:00",
+  "Changed": "2014-11-12T15:14:31.197983207+01:00",
   "Type": "core.Document",
   "Fields": {
     "core": {

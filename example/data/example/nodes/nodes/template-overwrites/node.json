@@ -6,6 +6,11 @@
       "Template": "foo.DocumentOverwrite/view"
     }
   },
+  "Embed": null,
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:31.197670196+01:00",
+  "Changed": "2014-11-12T15:14:31.197670225+01:00",
   "Type": "core.Document",
   "Fields": {
     "core": {
