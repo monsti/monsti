@@ -375,7 +375,8 @@ const (
 
 // A request to be processed by a nodes service.
 type Request struct {
-	Id uint
+	Id       uint
+	NodePath string
 	// Site name
 	Site string
 	// The query values of the request URL.

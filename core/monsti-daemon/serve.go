@@ -70,9 +70,10 @@ func (n *nodeHandler) GetRequest(id uint) *service.Request {
 		return nil
 	}
 	return &service.Request{
-		Id:    id,
-		Site:  req.Site.Name,
-		Query: req.Req.URL.Query(),
+		Id:       id,
+		NodePath: req.Node.Path,
+		Site:     req.Site.Name,
+		Query:    req.Req.URL.Query(),
 		// TODO add method
 		Session:  req.UserSession,
 		Action:   req.Action,
