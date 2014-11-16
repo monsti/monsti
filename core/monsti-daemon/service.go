@@ -49,6 +49,7 @@ type MonstiService struct {
 	mutex         sync.RWMutex
 	Settings      *settings
 	Logger        *log.Logger
+	Handler       *nodeHandler
 	subscriptions map[string][]string
 	subscriber    map[string]chan *signal
 	subscriberRet map[string]chan []byte
@@ -357,8 +358,8 @@ type GetAddableNodeTypesArgs struct{ Site, NodeType string }
 func (i *MonstiService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
 	types *[]string) error {
 	i.mutex.RLock()
-	*types = findAddableNodeTypes(args.NodeType, i.Settings.Config.NodeTypes)
 	defer i.mutex.RUnlock()
+	*types = findAddableNodeTypes(args.NodeType, i.Settings.Config.NodeTypes)
 	return nil
 }
 
@@ -391,6 +392,13 @@ func (m *MonstiService) RegisterNodeType(nodeType *service.NodeType,
 		} else {
 			m.Settings.Config.NodeFields[field.Id] = field
 		}
+	}
+	return nil
+}
+
+func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
+	if r := i.Handler.GetRequest(id); r != nil {
+		*req = *r
 	}
 	return nil
 }

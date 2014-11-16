@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/context"
@@ -34,6 +35,7 @@ import (
 
 // Context holds information about a request
 type reqContext struct {
+	Id          uint
 	Res         http.ResponseWriter
 	Req         *http.Request
 	Node        *service.Node
@@ -53,8 +55,32 @@ type nodeHandler struct {
 	// Log is the logger used by the node handler.
 	Log *log.Logger
 	// Info is a connection to an INFO service.
-	Monsti   *service.MonstiClient
-	Sessions *service.SessionPool
+	Monsti        *service.MonstiClient
+	Sessions      *service.SessionPool
+	requests      map[uint]*reqContext
+	lastRequestID uint
+	mutex         sync.RWMutex
+}
+
+func (n *nodeHandler) GetRequest(id uint) *service.Request {
+	n.mutex.RLock()
+	defer n.mutex.RUnlock()
+	req, ok := n.requests[id]
+	if !ok {
+		return nil
+	}
+	return &service.Request{
+		Id:    id,
+		Site:  req.Site.Name,
+		Query: req.Req.URL.Query(),
+		// TODO add method
+		Session:  req.UserSession,
+		Action:   req.Action,
+		FormData: req.Req.PostForm,
+		/*
+			Node:  req.Node,
+		*/
+	}
 }
 
 // splitAction splits and returns the path and @@action of the given URL.
@@ -88,7 +114,18 @@ func serveError(args ...interface{}) {
 // ServeHTTP handles incoming HTTP requests.
 func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c := reqContext{Res: w, Req: r}
+	h.mutex.Lock()
+	c.Id = h.lastRequestID
+	h.lastRequestID += 1
+	if h.requests == nil {
+		h.requests = make(map[uint]*reqContext)
+	}
+	h.requests[c.Id] = &c
+	h.mutex.Unlock()
 	defer func() {
+		h.mutex.Lock()
+		delete(h.requests, c.Id)
+		h.mutex.Unlock()
 		if err := recover(); err != nil {
 			var buf bytes.Buffer
 			fmt.Fprintf(&buf, "error: %v\n", err)

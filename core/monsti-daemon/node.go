@@ -393,9 +393,9 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 
 	var ret []map[string]string
 	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext", struct {
-		Request  int
+		Request  uint
 		NodeType string
-	}{0, reqNode.Type.Id}, &ret)
+	}{c.Id, reqNode.Type.Id}, &ret)
 	if err != nil {
 		return nil, fmt.Errorf("Could not emit signal: %v", err)
 	}

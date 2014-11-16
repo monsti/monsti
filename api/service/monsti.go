@@ -21,6 +21,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"reflect"
 	"time"
 
@@ -350,6 +351,7 @@ func (r RequestFile) ReadFile() ([]byte, error) {
 	}
 	return r.Content, nil
 }
+*/
 
 type RequestMethod uint
 
@@ -357,7 +359,6 @@ const (
 	GetRequest = iota
 	PostRequest
 )
-*/
 
 type Action uint
 
@@ -372,27 +373,45 @@ const (
 	ChangePasswordAction
 )
 
-/*
 // A request to be processed by a nodes service.
 type Request struct {
+	Id uint
 	// Site name
 	Site string
-	// The requested node.
-	Node Node
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
 	Method RequestMethod
 	// User session
-	Session UserSession
+	Session *UserSession
 	// Action to perform (e.g. "edit").
 	Action Action
 	// FormData stores the requests form data.
 	FormData url.Values
-	// Files stores files of multipart requests.
-	Files map[string][]RequestFile
+	/*
+			// The requested node.
+			Node *Node
+		// Files stores files of multipart requests.
+				Files map[string][]RequestFile
+	*/
 }
-*/
+
+// GetRequest returns the request with the given id.
+//
+// If there is no request with the given id, it returns nil.
+func (s *MonstiClient) GetRequest(id uint) (*Request, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	var req Request
+	if err := s.RPCClient.Call("Monsti.GetRequest", id, &req); err != nil {
+		return nil, fmt.Errorf("service: Monsti.GetRequest error: %v", err)
+	}
+	if req.Id != id {
+		return nil, nil
+	}
+	return &req, nil
+}
 
 /*
 // Response to a node request.
@@ -417,6 +436,18 @@ type Response struct {
 func (r *Response) Write(p []byte) (n int, err error) {
 	r.Body = append(r.Body, p...)
 	return len(p), nil
+}
+*/
+
+/*
+// Request performs the given request.
+func (s *MonstiClient) Request(req *Request) (*Response, error) {
+	var res Response
+	err := s.RPCClient.Call("Monsti.Request", req, &res)
+	if err != nil {
+		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
+	}
+	return &res, nil
 }
 */
 

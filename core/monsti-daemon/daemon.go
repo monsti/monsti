@@ -163,6 +163,7 @@ func main() {
 		Log:      logger,
 		Sessions: sessions,
 	}
+	monsti.Handler = &handler
 
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))

@@ -23,6 +23,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -92,9 +93,15 @@ func main() {
 
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
-		func(_ int, nodeType string) map[string]string {
+		func(id uint, nodeType string) map[string]string {
 			if nodeType == "example.ExampleType" {
-				return map[string]string{"SignalFoo": "Hello Signal!"}
+				req, err := session.Monsti().GetRequest(id)
+				if err != nil || req == nil {
+					logger.Fatalf("Could not get request: %v", err)
+				}
+				return map[string]string{
+					"SignalFoo": fmt.Sprintf("Hello Signal! Site name: %v", req.Site),
+				}
 			}
 			return nil
 		})
