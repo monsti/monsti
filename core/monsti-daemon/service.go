@@ -17,13 +17,20 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/smtp"
+	"os"
+	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/chrneumann/mimemail"
+	"pkg.monsti.org/monsti/api/service"
 )
 
 type subscription struct {
@@ -153,5 +160,237 @@ type FinishSignalArgs struct {
 
 func (m *MonstiService) FinishSignal(args *FinishSignalArgs, _ *int) error {
 	m.subscriberRet[args.Id] <- args.Ret
+	return nil
+}
+
+// getNode looks up the given node.
+// If no such node exists, return nil.
+// It adds a path attribute with the given path.
+func getNode(root, path string) (node []byte, err error) {
+	node_path := filepath.Join(root, path[1:], "node.json")
+	node, err = ioutil.ReadFile(node_path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return
+	}
+	pathJSON := fmt.Sprintf(`{"Path":%q,`, path)
+	node = bytes.Replace(node, []byte("{"), []byte(pathJSON), 1)
+	return
+}
+
+// getChildren looks up child nodes of the given node.
+func getChildren(root, path string) (nodes [][]byte, err error) {
+	files, err := ioutil.ReadDir(filepath.Join(root, path))
+	if err != nil {
+		return
+	}
+	for _, file := range files {
+		node, _ := getNode(root, filepath.Join(path, file.Name()))
+		if err != nil {
+			return nil, err
+		}
+		if node != nil {
+			nodes = append(nodes, node)
+		}
+	}
+	return
+}
+
+type GetChildrenArgs struct {
+	Site, Path string
+}
+
+func (i *MonstiService) GetChildren(args GetChildrenArgs,
+	reply *[][]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	ret, err := getChildren(site, args.Path)
+	*reply = ret
+	return err
+}
+
+type GetNodeArgs struct{ Site, Path string }
+
+func (i *MonstiService) GetNode(args *GetNodeDataArgs,
+	reply *[]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	ret, err := getNode(site, args.Path)
+	*reply = ret
+	return err
+}
+
+type GetNodeDataArgs struct{ Site, Path, File string }
+
+func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
+	reply *[]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	path := filepath.Join(site, args.Path[1:], args.File)
+	ret, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		*reply = nil
+		return nil
+	}
+	*reply = ret
+	return err
+}
+
+type WriteNodeDataArgs struct {
+	Site, Path, File string
+	Content          []byte
+}
+
+func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	path := filepath.Join(site, args.Path[1:], args.File)
+	err := os.MkdirAll(filepath.Dir(path), 0700)
+	if err != nil {
+		return fmt.Errorf("Could not create node directory: %v", err)
+	}
+	err = ioutil.WriteFile(path, []byte(args.Content), 0600)
+	if err != nil {
+		return fmt.Errorf("Could not write node data: %v", err)
+	}
+	return nil
+}
+
+type RemoveNodeArgs struct {
+	Site, Node string
+}
+
+func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
+	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	nodePath := filepath.Join(root, args.Node[1:])
+	if err := os.RemoveAll(nodePath); err != nil {
+		return fmt.Errorf("Can't remove node: %v", err)
+	}
+	return nil
+}
+
+type RenameNodeArgs struct {
+	Site, Source, Target string
+}
+
+func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
+	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	if err := os.Rename(
+		filepath.Join(root, args.Source),
+		filepath.Join(root, args.Target)); err != nil {
+		return fmt.Errorf("Can't move node: %v", err)
+	}
+	return nil
+}
+
+// getConfig returns the configuration value or section for the given name.
+func getConfig(path, name string) ([]byte, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read configuration: %v", err)
+	}
+	var target interface{}
+	err = json.Unmarshal(content, &target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not parse configuration: %v", err)
+	}
+	subs := strings.Split(name, ".")
+	for _, sub := range subs {
+		if sub == "" {
+			break
+		}
+		targetT := reflect.TypeOf(target)
+		if targetT != reflect.TypeOf(map[string]interface{}{}) {
+			target = nil
+			break
+		}
+		var ok bool
+		if target, ok = (target.(map[string]interface{}))[sub]; !ok {
+			target = nil
+			break
+		}
+	}
+	target = map[string]interface{}{"Value": target}
+	ret, err := json.Marshal(target)
+	if err != nil {
+		return nil, fmt.Errorf("Could not encode configuration: %v", err)
+	}
+	return ret, nil
+}
+
+type GetConfigArgs struct{ Site, Module, Name string }
+
+func (i *MonstiService) GetConfig(args *GetConfigArgs,
+	reply *[]byte) error {
+	configPath := i.Settings.Monsti.GetSiteConfigPath(args.Site)
+	config, err := getConfig(filepath.Join(configPath, args.Module+".json"),
+		args.Name)
+	if err != nil {
+		reply = nil
+		return err
+	}
+	*reply = config
+	return nil
+}
+
+func findAddableNodeTypes(nodeType string,
+	nodeTypes map[string]*service.NodeType) []string {
+	types := make([]string, 0)
+	for _, otherNodeType := range nodeTypes {
+		isAddable := false
+		for _, addableTo := range otherNodeType.AddableTo {
+			if addableTo == "." ||
+				addableTo == nodeType || (addableTo[len(addableTo)-1] == '.' &&
+				nodeType[0:len(addableTo)] == addableTo) {
+				isAddable = true
+				break
+			}
+		}
+		if otherNodeType.AddableTo == nil || isAddable {
+			types = append(types, otherNodeType.Id)
+		}
+	}
+	return types
+}
+
+type GetAddableNodeTypesArgs struct{ Site, NodeType string }
+
+func (i *MonstiService) GetAddableNodeTypes(args GetAddableNodeTypesArgs,
+	types *[]string) error {
+	i.mutex.RLock()
+	*types = findAddableNodeTypes(args.NodeType, i.Settings.Config.NodeTypes)
+	defer i.mutex.RUnlock()
+	return nil
+}
+
+func (i *MonstiService) GetNodeType(nodeTypeID string,
+	ret *service.NodeType) error {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+	if nodeType, ok := i.Settings.Config.NodeTypes[nodeTypeID]; ok {
+		*ret = *nodeType
+		return nil
+	}
+	return fmt.Errorf("Unknown node type %q", nodeTypeID)
+}
+
+func (m *MonstiService) RegisterNodeType(nodeType *service.NodeType,
+	reply *int) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if _, ok := m.Settings.Config.NodeTypes[nodeType.Id]; ok {
+		return fmt.Errorf("Node type with id %v does already exist", nodeType.Id)
+	}
+	if m.Settings.Config.NodeTypes == nil {
+		m.Settings.Config.NodeTypes = make(map[string]*service.NodeType)
+		m.Settings.Config.NodeFields = make(map[string]*service.NodeField)
+	}
+	m.Settings.Config.NodeTypes[nodeType.Id] = nodeType
+	for i, field := range nodeType.Fields {
+		if existing, ok := m.Settings.Config.NodeFields[field.Id]; ok {
+			nodeType.Fields[i] = existing
+		} else {
+			m.Settings.Config.NodeFields[field.Id] = field
+		}
+	}
 	return nil
 }
