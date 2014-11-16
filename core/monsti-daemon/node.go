@@ -405,7 +405,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 		}
 	}
 
-	template := reqNode.Type.Id + "/view"
+	template := strings.Replace(reqNode.Type.Id, ".", "/", 1) + "-view"
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
 		template = overwrite.Template
 	}
