@@ -7,7 +7,7 @@ func TestViewPrivatePage(t *testing.T) {
 	Must(b.VisitLink("Nodes"), "", t)
 	MustErr(b.Contains("Private document"), "does not contain",
 		"Private document should not be visible", t)
-	Must(b.Go(appURL+"/nodes/private-document"), "", t)
+	Must(b.Go(appURL+"/nodes/private"), "", t)
 	MustErr(b.Contains("This document is only visible"), "does not contain",
 		"Private document should not be reachable", t)
 	login(*b, t)
