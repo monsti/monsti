@@ -2,8 +2,8 @@
   "Order": 0,
   "Hide": false,
   "TemplateOverwrites": {
-    "core.Document/view": {
-      "Template": "foo.DocumentOverwrite/viewlocalfields"
+    "core/Document-view": {
+      "Template": "foo/DocumentOverwrite-viewlocalfields"
     }
   },
   "Embed": null,
