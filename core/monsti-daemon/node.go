@@ -401,7 +401,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 	}
 	for i, _ := range ret {
 		for key, value := range ret[i] {
-			context[key] = value
+			context[key] = template.HTML(value)
 		}
 	}
 
