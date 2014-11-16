@@ -1,0 +1,15 @@
+<article class="{{if .Embedded}}embedded{{end}} node-type-example-ExampleType">
+  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <div>
+    {{(.Node.GetField "core.Body").RenderHTML}}
+  </div>
+  <div>
+    {{(.Node.GetField "example.Foo").RenderHTML}}
+  </div>
+  <div>
+    {{(.Node.GetField "example.Bar").RenderHTML}}
+  </div>
+  <div>
+    Content by NodeContext Signal: {{.SignalFoo}}
+  </div>
+</article>
