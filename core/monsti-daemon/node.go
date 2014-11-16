@@ -417,23 +417,6 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 	return []byte(rendered), nil
 }
 
-type nodeSort struct {
-	Nodes  []*service.Node
-	Sorter func(left, right *service.Node) bool
-}
-
-func (s *nodeSort) Len() int {
-	return len(s.Nodes)
-}
-
-func (s *nodeSort) Swap(i, j int) {
-	s.Nodes[i], s.Nodes[j] = s.Nodes[j], s.Nodes[i]
-}
-
-func (s *nodeSort) Less(i, j int) bool {
-	return s.Sorter(s.Nodes[i], s.Nodes[j])
-}
-
 type editFormData struct {
 	NodeType string
 	Name     string
