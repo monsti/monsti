@@ -17,7 +17,6 @@
 package service
 
 import (
-	"log"
 	"net"
 	"net/rpc"
 )
@@ -60,7 +59,7 @@ func (s *Client) Connect(path string) error {
 		return err
 	}
 	s.Id = conn.LocalAddr().String()
-	log.Println(s.Id) // DEBUG
+	// TODO Fix id
 	s.RPCClient = rpc.NewClient(conn)
 	return nil
 }
