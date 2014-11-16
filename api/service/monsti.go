@@ -293,6 +293,9 @@ func (s *MonstiClient) GetConfig(site, module, name string,
 // Known field types will be reused. Just specify the id. All other //
 // attributes of the field type will be ignored in this case.
 func (s *MonstiClient) RegisterNodeType(nodeType *NodeType) error {
+	if s.Error != nil {
+		return s.Error
+	}
 	err := s.RPCClient.Call("Monsti.RegisterNodeType", nodeType, new(int))
 	if err != nil {
 		return fmt.Errorf("service: Error calling RegisterNodeType: %v", err)
@@ -303,6 +306,9 @@ func (s *MonstiClient) RegisterNodeType(nodeType *NodeType) error {
 // GetNodeType requests information about the given node type.
 func (s *MonstiClient) GetNodeType(nodeTypeID string) (*NodeType,
 	error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
 	var nodeType NodeType
 	err := s.RPCClient.Call("Monsti.GetNodeType", nodeTypeID, &nodeType)
 	if err != nil {
@@ -315,6 +321,9 @@ func (s *MonstiClient) GetNodeType(nodeTypeID string) (*NodeType,
 // to the given node type at the given website.
 func (s *MonstiClient) GetAddableNodeTypes(site, nodeType string) (types []string,
 	err error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
 	args := struct{ Site, NodeType string }{site, nodeType}
 	err = s.RPCClient.Call("Monsti.GetAddableNodeTypes", args, &types)
 	if err != nil {
@@ -411,20 +420,11 @@ func (r *Response) Write(p []byte) (n int, err error) {
 }
 */
 
-/*
-// Request performs the given request.
-func (s *MonstiClient) Request(req *Request) (*Response, error) {
-	var res Response
-	err := s.RPCClient.Call("Monsti.Request", req, &res)
-	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
-	}
-	return &res, nil
-}
-*/
-
 // GetNodeType returns all supported node types.
 func (s *MonstiClient) GetNodeTypes() ([]string, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
 	var res []string
 	err := s.RPCClient.Call("Monsti.GetNodeTypes", 0, &res)
 	if err != nil {
@@ -441,6 +441,9 @@ func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 // If the data does not exist, return null length []byte.
 func (s *MonstiClient) PublishService(service, path string) error {
 	args := struct{ Service, Path string }{service, path}
+	if s.Error != nil {
+		return s.Error
+	}
 	var reply int
 	err := s.RPCClient.Call("Monsti.PublishService", args, &reply)
 	if err != nil {
