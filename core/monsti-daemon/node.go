@@ -338,7 +338,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.RenderNode(c, nil, c.Req.Form)
+	rendered, err := h.RenderNode(c, nil)
 	if err != nil {
 		return fmt.Errorf("Could not render node: %v", err)
 	}
@@ -352,30 +352,30 @@ func (h *nodeHandler) View(c *reqContext) error {
 	return nil
 }
 
-func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
-	formValues url.Values) (
+// RenderNode renders a requested node.
+//
+// If embedNode is not null, render the given node that is embedded
+// into the node given by the request.
+func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	[]byte, error) {
 	reqNode := c.Node
-	if embed != nil {
-		reqNode = embed
+	if embedNode != nil {
+		embedURL, err := url.Parse(embedNode.URI)
+		if err != nil {
+			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
+		}
+		embedPath := path.Join(reqNode.Path, embedURL.Path)
+		reqNode, err = c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
+		if err != nil || reqNode == nil {
+			return nil, fmt.Errorf("Could not find node to embed: %v", err)
+		}
 	}
 	context := make(mtemplate.Context)
 	context["Embed"] = make(map[string]template.HTML)
 	// Embed nodes
 	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
 	for _, embed := range embedNodes {
-		reqURL, err := url.Parse(embed.URI)
-		if err != nil {
-			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
-		}
-		embedPath := path.Join(reqNode.Path, reqURL.Path)
-		node, err := c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
-		if err != nil || node == nil {
-			continue
-		}
-		embedNode := node
-		embedNode.Path = embedPath
-		rendered, err := h.RenderNode(c, embedNode, reqURL.Query())
+		rendered, err := h.RenderNode(c, &embed)
 		if err != nil {
 			return nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
@@ -385,17 +385,18 @@ func (h *nodeHandler) RenderNode(c *reqContext, embed *service.Node,
 	context["Node"] = reqNode
 	switch reqNode.Type.Id {
 	case "core.ContactForm":
-		if err := renderContactForm(c, context, formValues, h); err != nil {
+		if err := renderContactForm(c, context, c.Req.Form, h); err != nil {
 			return nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}
-	context["Embedded"] = embed != nil
+	context["Embedded"] = embedNode != nil
 
 	var ret []map[string]string
 	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext", struct {
-		Request  uint
-		NodeType string
-	}{c.Id, reqNode.Type.Id}, &ret)
+		Request   uint
+		NodeType  string
+		EmbedNode *service.EmbedNode
+	}{c.Id, reqNode.Type.Id, embedNode}, &ret)
 	if err != nil {
 		return nil, fmt.Errorf("Could not emit signal: %v", err)
 	}

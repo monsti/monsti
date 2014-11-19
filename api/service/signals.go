@@ -27,7 +27,7 @@ type SignalHandler interface {
 }
 
 type nodeContextHandler struct {
-	f func(Request uint, NodeType string) map[string]string
+	f func(Request uint, NodeType string, embedNode *EmbedNode) map[string]string
 }
 
 func (r *nodeContextHandler) Name() string {
@@ -35,19 +35,21 @@ func (r *nodeContextHandler) Name() string {
 }
 
 type nodeContextArgs struct {
-	Request  uint
-	NodeType string
+	Request   uint
+	NodeType  string
+	EmbedNode *EmbedNode
 }
 
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 	args_ := args.(nodeContextArgs)
-	return r.f(args_.Request, args_.NodeType), nil
+	return r.f(args_.Request, args_.NodeType, args_.EmbedNode), nil
 }
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
 func NewNodeContextHandler(
-	cb func(Request uint, NodeType string) map[string]string) SignalHandler {
+	cb func(Request uint, NodeType string,
+		embedNode *EmbedNode) map[string]string) SignalHandler {
 	gob.RegisterName("monsti.NodeContextArgs", nodeContextArgs{})
 	gob.RegisterName("monsti.NodeContextRet", map[string]string{})
 	return &nodeContextHandler{cb}

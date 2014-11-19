@@ -93,7 +93,7 @@ func main() {
 
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
-		func(id uint, nodeType string) map[string]string {
+		func(id uint, nodeType string, embedNode *service.EmbedNode) map[string]string {
 			if nodeType == "example.ExampleType" {
 				req, err := session.Monsti().GetRequest(id)
 				if err != nil || req == nil {
