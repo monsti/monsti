@@ -269,9 +269,28 @@ func (n Node) Name() string {
 	return base
 }
 
-// GetPrefixPath returns the calculated prefix path.
-func (n Node) GetPrefixPath() string {
-	return ""
+// GetPathPrefix returns the calculated prefix path.
+func (n Node) GetPathPrefix() string {
+	if n.Type == nil {
+		return ""
+	}
+	prefix := n.Type.PathPrefix
+	prefix = strings.Replace(prefix, "$year", n.PublishTime.Format("2006"), -1)
+	prefix = strings.Replace(prefix, "$month", n.PublishTime.Format("01"), -1)
+	prefix = strings.Replace(prefix, "$day", n.PublishTime.Format("02"), -1)
+	return prefix
+}
+
+// GetParentPath calculates the parent node's path respecting the
+// node's path prefix.
+func (n Node) GetParentPath() string {
+	prefix := n.GetPathPrefix()
+	nodePath := n.Path
+	for prefix != "" && prefix != "." && prefix != "/" {
+		prefix = path.Dir(prefix)
+		nodePath = path.Dir(nodePath)
+	}
+	return path.Dir(nodePath)
 }
 
 type NodeField struct {
