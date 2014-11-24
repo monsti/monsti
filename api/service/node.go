@@ -269,6 +269,11 @@ func (n Node) Name() string {
 	return base
 }
 
+// GetPrefixPath returns the calculated prefix path.
+func (n Node) GetPrefixPath() string {
+	return ""
+}
+
 type NodeField struct {
 	// The Id of the field including a namespace,
 	// e.g. "namespace.somefieldype".
@@ -314,6 +319,11 @@ type NodeType struct {
 	Embed  []EmbedNode
 	// If true, never show nodes of this type in the navigation.
 	Hide bool
+	// PathPrefix defines a dynamic path that will be prepended to the
+	// node name.
+	//
+	// Supported values: $year, $month, $day
+	PathPrefix string
 }
 
 // GetLocalName returns the name of the node type in the given language.
