@@ -467,6 +467,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		formData.Node.Type = nodeType
 		formData.Node.InitFields()
 		formData.Node.PublishTime = time.Now()
+		formData.Node.Public = true
 	} else {
 		formData.Node = *c.Node
 	}
