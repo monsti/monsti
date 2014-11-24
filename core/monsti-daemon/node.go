@@ -508,7 +508,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
 			node := formData.Node
 			node.Type = nodeType
-			pathPrefix := c.Node.GetPathPrefix()
+			pathPrefix := node.GetPathPrefix()
 			oldPath := c.Node.Path
 			parentPath := c.Node.GetParentPath()
 			if newNode {
