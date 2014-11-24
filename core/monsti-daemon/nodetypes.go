@@ -103,6 +103,32 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		return fmt.Errorf("Could not register contactform node type: %v", err)
 	}
 
+	nodeType := service.NodeType{
+		Id:        "core.Blog",
+		AddableTo: []string{"."},
+		Name:      util.GenLanguageMap(G("Blog"), availableLocales),
+		Fields: []*service.NodeField{
+			{Id: "core.Title"},
+		},
+	}
+	if err := session.Monsti().RegisterNodeType(&nodeType); err != nil {
+		return fmt.Errorf("Could not register blog node type: %v", err)
+	}
+
+	nodeType = service.NodeType{
+		Id:        "core.BlogPost",
+		AddableTo: []string{"core.Blog"},
+		Name:      util.GenLanguageMap(G("Blog Post"), availableLocales),
+		Fields: []*service.NodeField{
+			{Id: "core.Title"},
+			{Id: "core.Body"},
+		},
+		Hide:       true,
+		PathPrefix: "$year/$month",
+	}
+	if err := session.Monsti().RegisterNodeType(&nodeType); err != nil {
+		return fmt.Errorf("Could not register blog post node type: %v", err)
+	}
 	return nil
 }
 
