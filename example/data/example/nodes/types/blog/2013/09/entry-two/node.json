@@ -1,0 +1,17 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "TemplateOverwrites": null,
+  "Embed": null,
+  "LocalFields": null,
+  "Public": true,
+  "PublishTime": "2013-09-24T15:28:03.192858614Z",
+  "Changed": "2014-11-27T11:29:04.163315033+01:00",
+  "Type": "core.BlogPost",
+  "Fields": {
+    "core": {
+      "Body": "This is another blog post!\u003cbr\u003e",
+      "Title": "Entry two"
+    }
+  }
+}
