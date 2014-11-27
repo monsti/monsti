@@ -38,6 +38,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	pathType := service.NodeType{
 		Id:        "core.Path",
 		AddableTo: nil,
+		Hide:      true,
 		Name:      util.GenLanguageMap(G("Path"), availableLocales),
 	}
 	if err := session.Monsti().RegisterNodeType(&pathType); err != nil {
