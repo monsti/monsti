@@ -35,6 +35,15 @@ var availableLocales = []string{"en", "de"}
 
 func initNodeTypes(settings *settings, session *service.Session, logger *log.Logger) error {
 	G := func(in string) string { return in }
+	pathType := service.NodeType{
+		Id:        "core.Path",
+		AddableTo: nil,
+		Name:      util.GenLanguageMap(G("Path"), availableLocales),
+	}
+	if err := session.Monsti().RegisterNodeType(&pathType); err != nil {
+		return fmt.Errorf("Could not register path node type: %v", err)
+	}
+
 	documentType := service.NodeType{
 		Id:        "core.Document",
 		AddableTo: []string{"."},

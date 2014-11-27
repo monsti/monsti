@@ -864,7 +864,13 @@ requested node&#8217;s parameter.</p></div>
 <div class="sect2">
 <h3 id="_core_node_types">Core Node Types</h3>
 <div class="sect3">
-<h4 id="_image">Image</h4>
+<h4 id="_core_path">core.Path</h4>
+<div class="paragraph"><p>The Path node type is not written to the database. It will be returned
+by <code>monsti.GetChildren</code> to represent a subdirectory that is not a
+regular node but may contain children.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_core_image">core.Image</h4>
 <div class="paragraph"><p>The Image node type allows you to upload images to your Monsti
 site. As the File node type, the raw content (i.e. the image itself)
 can be accessed via the node&#8217;s path without trailing slash.</p></div>
@@ -1167,7 +1173,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2014-11-12 10:51:48 CET
+ 2014-11-27 11:25:13 CET
 </div>
 </div>
 </body>

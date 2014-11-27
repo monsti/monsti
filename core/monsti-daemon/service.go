@@ -194,6 +194,10 @@ func getChildren(root, path string) (nodes [][]byte, err error) {
 		}
 		if node != nil {
 			nodes = append(nodes, node)
+		} else if file.IsDir() {
+			nodes = append(nodes,
+				[]byte(fmt.Sprintf(`{"Path":%q,"Type":"core.Path"}`,
+					filepath.Join(path, file.Name()))))
 		}
 	}
 	return
