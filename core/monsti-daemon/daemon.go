@@ -145,6 +145,7 @@ func main() {
 	}
 
 	sessions := service.NewSessionPool(1, monstiPath)
+	renderer := template.Renderer{Root: settings.Monsti.GetTemplatesPath()}
 
 	// Init core functionality
 	session, err := sessions.New()
@@ -152,13 +153,16 @@ func main() {
 		logger.Fatalf("Could not get session: %v", err)
 	}
 	if err := initNodeTypes(&settings, session, logger); err != nil {
+		logger.Fatalf("Could not init node types: %v", err)
+	}
+	if err := initBlog(&settings, session, logger, &renderer); err != nil {
 		logger.Fatalf("Could not init blog: %v", err)
 	}
 	sessions.Free(session)
 
 	// Setup up httpd
 	handler := nodeHandler{
-		Renderer: template.Renderer{Root: settings.Monsti.GetTemplatesPath()},
+		Renderer: renderer,
 		Settings: &settings,
 		Log:      logger,
 		Sessions: sessions,

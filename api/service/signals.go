@@ -18,6 +18,11 @@ package service
 
 import "encoding/gob"
 
+func init() {
+	gob.RegisterName("monsti.NodeContextArgs", NodeContextArgs{})
+	gob.RegisterName("monsti.NodeContextRet", map[string]string{})
+}
+
 // SignalHandler wraps a handler for a specific signal.
 type SignalHandler interface {
 	// Name returns the name of the signal to handle.
@@ -34,14 +39,14 @@ func (r *nodeContextHandler) Name() string {
 	return "monsti.NodeContext"
 }
 
-type nodeContextArgs struct {
+type NodeContextArgs struct {
 	Request   uint
 	NodeType  string
 	EmbedNode *EmbedNode
 }
 
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
-	args_ := args.(nodeContextArgs)
+	args_ := args.(NodeContextArgs)
 	return r.f(args_.Request, args_.NodeType, args_.EmbedNode), nil
 }
 
@@ -50,7 +55,5 @@ func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 func NewNodeContextHandler(
 	cb func(Request uint, NodeType string,
 		embedNode *EmbedNode) map[string]string) SignalHandler {
-	gob.RegisterName("monsti.NodeContextArgs", nodeContextArgs{})
-	gob.RegisterName("monsti.NodeContextRet", map[string]string{})
 	return &nodeContextHandler{cb}
 }
