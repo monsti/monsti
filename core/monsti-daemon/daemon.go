@@ -160,6 +160,15 @@ func main() {
 	}
 	sessions.Free(session)
 
+	// Wait for signals
+	go func() {
+		for {
+			if err := session.Monsti().WaitSignal(); err != nil {
+				logger.Fatalf("Could not wait for signal: %v", err)
+			}
+		}
+	}()
+
 	// Setup up httpd
 	handler := nodeHandler{
 		Renderer: renderer,

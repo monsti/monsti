@@ -1,0 +1,6 @@
+<article class="{{if .Embedded}}embedded{{end}} node-type-core-Blog">
+  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <div>
+    {{.BlogPosts}}
+  </div>
+</article>

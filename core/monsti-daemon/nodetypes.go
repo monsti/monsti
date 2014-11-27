@@ -35,6 +35,16 @@ var availableLocales = []string{"en", "de"}
 
 func initNodeTypes(settings *settings, session *service.Session, logger *log.Logger) error {
 	G := func(in string) string { return in }
+	pathType := service.NodeType{
+		Id:        "core.Path",
+		AddableTo: nil,
+		Hide:      true,
+		Name:      util.GenLanguageMap(G("Path"), availableLocales),
+	}
+	if err := session.Monsti().RegisterNodeType(&pathType); err != nil {
+		return fmt.Errorf("Could not register path node type: %v", err)
+	}
+
 	documentType := service.NodeType{
 		Id:        "core.Document",
 		AddableTo: []string{"."},
@@ -102,7 +112,6 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	if err := session.Monsti().RegisterNodeType(&contactFormType); err != nil {
 		return fmt.Errorf("Could not register contactform node type: %v", err)
 	}
-
 	return nil
 }
 

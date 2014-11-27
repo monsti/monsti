@@ -17,6 +17,7 @@ package service
 
 import (
 	"testing"
+	"time"
 )
 
 func TestNodeName(t *testing.T) {
@@ -50,6 +51,55 @@ func TestFields(t *testing.T) {
 		out2 := field.Dump()
 		if out != out2 {
 			t.Errorf("Dump/Load/Dump: %q != %q", out, out2)
+		}
+	}
+}
+
+func TestGetParent(t *testing.T) {
+	tests := []struct {
+		Path, Prefix, Parent string
+	}{
+		{"/", "", "/"},
+		{"/foo", "", "/"},
+		{"/foo/bar", "", "/foo"},
+		{"/foo/bar/cruz", "bar", "/foo"},
+		{"/foo/bar/cruz", "foo/bar", "/"},
+	}
+	for _, test := range tests {
+		node := Node{
+			Path: test.Path,
+			Type: &NodeType{
+				PathPrefix: test.Prefix,
+			},
+		}
+		ret := node.GetParentPath()
+		if ret != test.Parent {
+			t.Errorf("GetParentPath for path %v, prefix %v should be %v, got %v",
+				test.Path, test.Prefix, test.Parent, ret)
+		}
+	}
+}
+
+func TestGetPathPrefix(t *testing.T) {
+	testTime := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	tests := []struct {
+		Prefix string
+		Node   Node
+		Ret    string
+	}{
+		{"", Node{}, ""},
+		{"$year", Node{PublishTime: testTime}, "2009"},
+		{"$year/$month", Node{PublishTime: testTime}, "2009/11"},
+		{"$year/$month/$day", Node{PublishTime: testTime}, "2009/11/10"},
+	}
+	for _, test := range tests {
+		test.Node.Type = &NodeType{
+			PathPrefix: test.Prefix,
+		}
+		ret := test.Node.GetPathPrefix()
+		if ret != test.Ret {
+			t.Errorf("GetPathPrefix for node %v should be %v, got %v",
+				test.Node, test.Ret, ret)
 		}
 	}
 }

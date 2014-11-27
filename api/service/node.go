@@ -269,6 +269,30 @@ func (n Node) Name() string {
 	return base
 }
 
+// GetPathPrefix returns the calculated prefix path.
+func (n Node) GetPathPrefix() string {
+	if n.Type == nil {
+		return ""
+	}
+	prefix := n.Type.PathPrefix
+	prefix = strings.Replace(prefix, "$year", n.PublishTime.Format("2006"), -1)
+	prefix = strings.Replace(prefix, "$month", n.PublishTime.Format("01"), -1)
+	prefix = strings.Replace(prefix, "$day", n.PublishTime.Format("02"), -1)
+	return prefix
+}
+
+// GetParentPath calculates the parent node's path respecting the
+// node's path prefix.
+func (n Node) GetParentPath() string {
+	prefix := n.GetPathPrefix()
+	nodePath := n.Path
+	for prefix != "" && prefix != "." && prefix != "/" {
+		prefix = path.Dir(prefix)
+		nodePath = path.Dir(nodePath)
+	}
+	return path.Dir(nodePath)
+}
+
 type NodeField struct {
 	// The Id of the field including a namespace,
 	// e.g. "namespace.somefieldype".
@@ -314,6 +338,11 @@ type NodeType struct {
 	Embed  []EmbedNode
 	// If true, never show nodes of this type in the navigation.
 	Hide bool
+	// PathPrefix defines a dynamic path that will be prepended to the
+	// node name.
+	//
+	// Supported values: $year, $month, $day
+	PathPrefix string
 }
 
 // GetLocalName returns the name of the node type in the given language.

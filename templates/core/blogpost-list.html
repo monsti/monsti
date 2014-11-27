@@ -1,0 +1,19 @@
+{{with .Posts}}
+<ul class="monsti-events--events monsti-events--events-upcoming ">
+  {{range .}}
+  <li>
+    <div class="description">
+      <div class="fancy-date-wrap">
+        <div class="fancy-date">
+          {{with .PublishTime}}
+          <span class="fancy-date-day">{{.Format "2"}}</span>
+          <span class="fancy-date-month">{{G (.Format "Jan")}}</span>
+          {{end}}
+        </div>
+      </div>
+      <a href="{{.Path}}">{{(.GetField "core.Title").RenderHTML}}</a>
+    </div>
+  </li>
+  {{end}}
+</ul>
+{{end}}

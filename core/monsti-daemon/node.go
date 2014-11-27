@@ -505,15 +505,14 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
 			node := formData.Node
 			node.Type = nodeType
-			renamed := !newNode && c.Node.Name() != "" && c.Node.Name() != formData.Name
+			pathPrefix := node.GetPathPrefix()
+			oldPath := c.Node.Path
+			parentPath := c.Node.GetParentPath()
 			if newNode {
-				node.Path = path.Join(c.Node.Path, formData.Name)
-			} else if renamed {
-				parent := path.Dir(c.Node.Path)
-				node.Path = path.Join(parent, formData.Name)
-			} else {
-				node.Path = c.Node.Path
+				parentPath = c.Node.Path
 			}
+			node.Path = path.Join(parentPath, pathPrefix, formData.Name)
+			renamed := !newNode && c.Node.Name() != "" && oldPath != node.Path
 			writeNode := true
 			if newNode || renamed {
 				existing, err := c.Serv.Monsti().GetNode(c.Site.Name, node.Path)

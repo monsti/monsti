@@ -104,7 +104,13 @@ requested node's parameter.
 
 === Core Node Types
 
-==== Image
+==== core.Path
+
+The Path node type is not written to the database. It will be returned
+by `monsti.GetChildren` to represent a subdirectory that is not a
+regular node but may contain children.
+
+==== core.Image
 
 The Image node type allows you to upload images to your Monsti
 site. As the File node type, the raw content (i.e. the image itself)

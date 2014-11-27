@@ -194,6 +194,10 @@ func getChildren(root, path string) (nodes [][]byte, err error) {
 		}
 		if node != nil {
 			nodes = append(nodes, node)
+		} else if file.IsDir() {
+			nodes = append(nodes,
+				[]byte(fmt.Sprintf(`{"Path":%q,"Type":"core.Path"}`,
+					filepath.Join(path, file.Name()))))
 		}
 	}
 	return
@@ -275,6 +279,10 @@ type RenameNodeArgs struct {
 
 func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	if err := os.MkdirAll(
+		filepath.Dir(filepath.Join(root, args.Target)), 0700); err != nil {
+		return fmt.Errorf("Can't create parent directory: %v", err)
+	}
 	if err := os.Rename(
 		filepath.Join(root, args.Source),
 		filepath.Join(root, args.Target)); err != nil {
