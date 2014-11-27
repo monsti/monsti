@@ -158,7 +158,6 @@ func main() {
 	if err := initBlog(&settings, session, logger, &renderer); err != nil {
 		logger.Fatalf("Could not init blog: %v", err)
 	}
-	sessions.Free(session)
 
 	// Wait for signals
 	go func() {

@@ -534,6 +534,11 @@ func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
 }
 
 // AddSignalHandler connects to a signal with the given signal handler.
+//
+// Currently, you can only set one handler per signal and MonstiClient.
+//
+// Be sure to wait for incoming signals by calling WaitSignal() on
+// this MonstiClient!
 func (s *MonstiClient) AddSignalHandler(handler SignalHandler) error {
 	if s.Error != nil {
 		return s.Error
@@ -596,7 +601,7 @@ func (s *MonstiClient) EmitSignal(name string, args interface{},
 
 // WaitSignal waits for the next emitted signal.
 //
-// You have to connect to some signals before. See ConnectSignal.
+// You have to connect to some signals before. See AddSignalHandler.
 // This method must not be called in parallel by the same client
 // instance.
 func (s *MonstiClient) WaitSignal() error {

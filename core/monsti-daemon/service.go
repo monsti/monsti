@@ -28,6 +28,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/chrneumann/mimemail"
 	"pkg.monsti.org/monsti/api/service"
@@ -132,8 +133,19 @@ func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
 	*ret = make([][]byte, len(m.subscriptions[args.Name]))
 	for i, id := range m.subscriptions[args.Name] {
 		retChan := make(chan []byte)
+		done := false
+		go func() {
+			time.Sleep(time.Second)
+			for !done {
+				time.Sleep(30 * time.Second)
+				m.Logger.Printf(
+					"Waiting for signal response. Signal: %v, Subscriber: %v",
+					args.Name, id)
+			}
+		}()
 		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
 		(*ret)[i] = <-retChan
+		done = true
 	}
 	return nil
 }

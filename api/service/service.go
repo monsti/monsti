@@ -17,9 +17,23 @@
 package service
 
 import (
+	"fmt"
 	"net"
 	"net/rpc"
+	"os"
+	"sync"
 )
+
+var lastConnectionId uint
+var lastConnectionMutex sync.Mutex
+
+// getConnectionId returns a new connection ID.
+func getConnectionId() string {
+	lastConnectionMutex.Lock()
+	defer lastConnectionMutex.Unlock()
+	lastConnectionId += 1
+	return fmt.Sprintf("%v#%v", os.Getpid(), lastConnectionId)
+}
 
 type Type uint
 
@@ -58,7 +72,7 @@ func (s *Client) Connect(path string) error {
 	if err != nil {
 		return err
 	}
-	s.Id = conn.LocalAddr().String()
+	s.Id = getConnectionId()
 	// TODO Fix id
 	s.RPCClient = rpc.NewClient(conn)
 	return nil
