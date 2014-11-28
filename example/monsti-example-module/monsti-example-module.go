@@ -14,58 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with Monsti.  If not, see <http://www.gnu.org/licenses/>.
 
-/*
- Monsti is a simple and resource efficient CMS.
-
- This package implements the document node type.
-*/
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
-	"os"
 
-	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
-	"pkg.monsti.org/monsti/api/util/template"
+	"pkg.monsti.org/monsti/api/util/module"
 )
-
-var logger *log.Logger
-var renderer template.Renderer
 
 var availableLocales = []string{"de", "en"}
 
-func main() {
-	// Setup module
-
-	logger = log.New(os.Stderr, "example-modu]e ", log.LstdFlags)
-	flag.Parse()
-	if flag.NArg() != 1 {
-		logger.Fatal("Expecting configuration path.")
-	}
-	cfgPath := util.GetConfigPath(flag.Arg(0))
-	settings, err := util.LoadMonstiSettings(cfgPath)
-	if err != nil {
-		logger.Fatal("Could not load settings: ", err)
-	}
-
-	gettext.DefaultLocales.Domain = "monsti-example-module"
-	gettext.DefaultLocales.LocaleDir = settings.Directories.Locale
-
-	// Setup API
-	monstiPath := settings.GetServicePath(service.MonstiService.String())
-	sessions := service.NewSessionPool(1, monstiPath)
-	session, err := sessions.New()
-	if err != nil {
-		logger.Fatalf("Could not get session: %v", err)
-	}
-	defer sessions.Free(session)
+func setup(c *module.ModuleContext) error {
+	G := func(in string) string { return in }
+	m := c.Session.Monsti()
 
 	// Register a new node type
-	G := func(in string) string { return in }
 	nodeType := service.NodeType{
 		Id:        "example.ExampleType",
 		AddableTo: []string{"."},
@@ -87,17 +52,23 @@ func main() {
 			},
 		},
 	}
-	if err := session.Monsti().RegisterNodeType(&nodeType); err != nil {
-		logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
+	if err := m.RegisterNodeType(&nodeType); err != nil {
+		c.Logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
 	}
 
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
 		func(id uint, nodeType string, embedNode *service.EmbedNode) map[string]string {
+			session, err := c.Sessions.New()
+			if err != nil {
+				c.Logger.Fatalf("Could not get session: %v", err)
+				return nil
+			}
+			defer c.Sessions.Free(session)
 			if nodeType == "example.ExampleType" {
 				req, err := session.Monsti().GetRequest(id)
 				if err != nil || req == nil {
-					logger.Fatalf("Could not get request: %v", err)
+					c.Logger.Fatalf("Could not get request: %v", err)
 				}
 				return map[string]string{
 					"SignalFoo": fmt.Sprintf("Hello Signal! Site name: %v", req.Site),
@@ -105,20 +76,13 @@ func main() {
 			}
 			return nil
 		})
-	if err := session.Monsti().AddSignalHandler(handler); err != nil {
-		logger.Fatalf("Could not add signal handler: %v", err)
+	if err := m.AddSignalHandler(handler); err != nil {
+		c.Logger.Fatalf("Could not add signal handler: %v", err)
 	}
 
-	// At the end of the initialization, every module has to call
-	// ModuleInitDone. Monsti won't complete its startup until all
-	// modules have called this method.
-	if err := session.Monsti().ModuleInitDone("example-module"); err != nil {
-		logger.Fatalf("Could not finish initialization: %v", err)
-	}
+	return nil
+}
 
-	for {
-		if err := session.Monsti().WaitSignal(); err != nil {
-			logger.Fatalf("Could not wait for signal: %v", err)
-		}
-	}
+func main() {
+	module.StartModule("example-module", setup)
 }
