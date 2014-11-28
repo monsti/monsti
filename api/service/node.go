@@ -223,7 +223,7 @@ func (n *Node) InitFields() {
 		case "HTMLArea":
 			val = new(HTMLField)
 		default:
-			panic(fmt.Sprintf("Unknown field type %v", field.Type))
+			panic(fmt.Sprintf("Unknown field type %q for node %q", field.Type, n.Path))
 		}
 		n.Fields[field.Id] = val
 	}
