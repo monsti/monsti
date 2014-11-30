@@ -1,1 +1,23 @@
-{{template "blocks/form" .Form}}
+{{with .Form}}
+<form class="form" action="{{.Action}}" method="POST"
+      accept-charset="utf-8" {{.EncTypeAttr}}>
+  <fieldset>
+    {{with .Errors}}
+    <ul class="errors">
+      {{range .}}
+      <li>{{.}}</li>
+      {{end}}
+    </ul>
+    {{end}}
+    {{range .Widgets}}
+    {{if eq .Id "Node.Hide"}}
+    {{else}}
+    {{template "blocks/widget" .}}
+    {{end}}
+    {{end}}
+    <div class="buttons">
+      <button type="submit">{{G "Submit"}}</button>
+    </div>
+  </fieldset>
+</form>
+{{end}}

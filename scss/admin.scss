@@ -1,0 +1,68 @@
+@import "compass/reset";
+@import "base";
+
+html {
+  font-family: sans-serif;
+}
+
+#admin-bar {
+  position: relative;
+  @include clearfix;
+  margin-bottom: 30px;
+}
+
+#main {
+  width: 900px;
+  margin: 0 auto;
+}
+
+fieldset {
+  border:0;
+  padding:0;
+  margin:0;
+}
+
+form {
+  .field {
+    margin: 10px 0;
+  }
+  .help {
+    display: block;
+    font-size: 80%;
+  }
+  .errors {
+    padding: 0;
+    li {
+      list-style-type: none;
+      color: #AA0000;
+    }
+  }
+}
+
+input[type=text], input[type=password], input[type=datetime-local], textarea, button, .button {
+  @include border-radius;
+  border: 1px solid $primary-color;
+  background: rgba($secondary-color, 0.1);
+  padding: 5px;
+  color: black;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  width: auto;
+}
+
+button, .button {
+  background: $primary-color;
+  color: white;
+  padding: 5px 15px;
+  &:hover {
+    background: darken($primary-color, 10);
+    text-decoration: none;
+  }
+}
+
+textarea {
+  height: 150px;
+}

@@ -1,0 +1,49 @@
+<div class="field {{if .Errors}}error{{end}} {{range .Classes}}{{.}}{{end}}">
+  <label for="{{.Id}}">{{.Label}}</label>
+  {{if eq .Template "hidden"}}
+  <input type="hidden" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+  {{else if eq .Template "select"}}
+  <select id="{{.Id}}" name="{{.Id}}">
+    {{range .Data}}
+    <option value="{{.Value}}"
+            {{if .Selected}}selected{{end}}
+            >{{.Description}}</option>
+    {{end}}
+  </select>
+
+  {{else if eq .Template "checkbox"}}
+  <input type="checkbox" id="{{.Id}}" name="{{.Id}}"
+         value="true"
+         {{if .Data}}checked{{end}}
+         >
+
+  {{else if eq .Template "text"}}
+  <input type="text" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+  {{else if eq .Template "textarea"}}
+  <textarea id="{{.Id}}" name="{{.Id}}">{{.Data}}</textarea>
+
+  {{else if eq .Template "password"}}
+  <input type="password" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+  {{else if eq .Template "file"}}
+  <input type="file" id="{{.Id}}" name="{{.Id}}">
+
+  {{else if eq .Template "time"}}
+  <input type="datetime-local" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
+
+  {{else}}
+  Unknown widget template: {{.Template}}
+  {{end}}
+
+  <span class="help">{{.Description}}</span>
+
+  {{with .Errors}}
+  <ul class="errors">
+    {{range .}}
+    <li>{{.}}</li>
+    {{end}}
+  </ul>
+  {{end}}
+</div>

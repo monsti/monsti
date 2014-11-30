@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    {{template "blocks/headers" .}}
+  </head>
+  <body>
+    {{template "blocks/admin-bar" .}}
+    <div id="main">
+      {{.Page.Content}}
+    </div>
+  </body>
+</html>

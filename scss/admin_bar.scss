@@ -1,0 +1,46 @@
+@import "base";
+
+#admin-bar {
+  font-family: sans-serif;
+  position: absolute;
+  width: 100%;
+  background: #EEE;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px solid #aaa;
+  box-shadow: 0 0 2px 1px #666;
+  @include background-image(linear-gradient(
+                              bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%));
+  &> div {
+    padding: 10px;
+  }
+  .brand {
+    float: left;
+    line-height: 30px;
+    vertical-align: middle;
+    margin: 0 20px 0 0;
+    padding: 0;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li {
+      float: left;
+      margin-left: 20px;
+      padding: 0;
+      line-height: 30px;
+      img {
+        vertical-align: middle;
+      }
+    }
+  }
+  .pull-right {
+    float: right;
+  }
+  a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 200;
+  }
+}

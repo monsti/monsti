@@ -54,6 +54,23 @@ func splitFirstDir(path string) string {
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
 	s *service.Session) string {
+	if env.Flags&EDIT_VIEW != 0 {
+		ret, err := r.Render("admin/master", template.Context{
+			"Site": template.Context{
+				"Title": site.Title,
+			},
+			"Page": template.Context{
+				"Node":     env.Node,
+				"EditView": env.Flags&EDIT_VIEW != 0,
+				"Content":  htmlT.HTML(content),
+			},
+			"Session": env.Session}, locale,
+			settings.Monsti.GetSiteTemplatesPath(site.Name))
+		if err != nil {
+			panic("Can't render: " + err.Error())
+		}
+		return ret
+	}
 	firstDir := splitFirstDir(env.Node.Path)
 	getNodeFn := func(path string) (*service.Node, error) {
 		node, err := s.Monsti().GetNode(site.Name, path)

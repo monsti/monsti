@@ -6,6 +6,8 @@
     </p>
     {{$path := .Page.Node.Path}}
     <ul class="nav">
+      <li><a href="{{$path}}"
+        ><img src="/static/img/icons/silk/layout_content.png"/> {{G "View"}}</a></li>
       <li><a href="{{pathJoin $path "@@edit"}}"
         ><img src="/static/img/icons/silk/page_white_edit.png"/> {{G "Edit"}}</a></li>
       <li><a href="{{pathJoin $path "@@add"}}"
