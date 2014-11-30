@@ -16,13 +16,13 @@ DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
-ALOHA_VERSION=1.1.2
+TINYMCE_VERSION=4.1.7
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-aloha-editor dep-jquery
+monsti: modules dep-tinymce-editor dep-jquery
 
 .PHONY: bcrypt
 bcrypt: 
@@ -112,26 +112,24 @@ test-browser: monsti
 .PHONY: clean
 clean:
 	rm go/* -Rf
-	rm static/aloha/ -Rf
+	rm static/lib/ -Rf
 	rm dist/ -Rf
 	$(MAKE) -C example/monsti-example-module clean
 
-dep-aloha-editor: static/aloha/
-static/aloha/:
-	wget -nv https://maven.gentics.com/maven2/org/alohaeditor/alohaeditor/$(ALOHA_VERSION)/alohaeditor-$(ALOHA_VERSION).zip
-	unzip -q alohaeditor-$(ALOHA_VERSION).zip
-	mkdir static/aloha
-	mv alohaeditor-$(ALOHA_VERSION)/aloha/lib static/aloha
-	mv alohaeditor-$(ALOHA_VERSION)/aloha/css static/aloha
-	mv alohaeditor-$(ALOHA_VERSION)/aloha/img static/aloha
-	mv alohaeditor-$(ALOHA_VERSION)/aloha/plugins static/aloha
-	rm alohaeditor-$(ALOHA_VERSION) -R
-	rm alohaeditor-$(ALOHA_VERSION).zip
+dep-tinymce-editor: static/lib/tinymce/
+static/lib/tinymce/:
+	wget -nv http://download.moxiecode.com/tinymce/tinymce_$(TINYMCE_VERSION).zip
+	unzip -q tinymce_$(TINYMCE_VERSION).zip
+	rm tinymce_$(TINYMCE_VERSION).zip
+	mkdir -p static/lib
+	mv tinymce/js/tinymce static/lib
+	rm tinymce -R
 
 dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
 	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
-	mv jquery-1.8.2.min.js static/js/jquery.min.js
+	mkdir -p static/lib
+	mv jquery-1.8.2.min.js static/lib/jquery.min.js
 
 locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
 
