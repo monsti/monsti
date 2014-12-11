@@ -1,7 +1,7 @@
 @import "base";
 
 #admin-bar {
-  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
   position: absolute;
   width: 100%;
   background: #EEE;
@@ -12,13 +12,17 @@
   @include background-image(linear-gradient(
                               bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%));
   &> div {
-    padding: 10px;
+    margin: 0 auto;
+    width: 900px;
+    box-sizing: border-box;
+    padding: 6px 50px;
+    @include clearfix;
   }
   .brand {
     float: left;
-    line-height: 30px;
+    line-height: 20px;
     vertical-align: middle;
-    margin: 0 20px 0 0;
+    margin: 3px 20px 0 0;
     padding: 0;
   }
   ul {

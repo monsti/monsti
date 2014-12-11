@@ -60,6 +60,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 				"Title": site.Title,
 			},
 			"Page": template.Context{
+				"Title":    env.Title,
 				"Node":     env.Node,
 				"EditView": env.Flags&EDIT_VIEW != 0,
 				"Content":  htmlT.HTML(content),

@@ -6,7 +6,12 @@
   <body>
     {{template "blocks/admin-bar" .}}
     <div id="main">
-      {{.Page.Content}}
+      <article>
+        <h1 id="page-title">{{.Page.Title}}</h1>
+        <div id="content">
+          {{.Page.Content}}
+        </div>
+      </article>
     </div>
   </body>
 </html>
