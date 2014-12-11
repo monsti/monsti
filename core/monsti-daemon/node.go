@@ -268,6 +268,9 @@ func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
+		if c.Node.Type.Id == "core.Image" || c.Node.Type.Id == "core.File" {
+			c.Res.Header().Add("Last-Modified", c.Node.Changed.Format(time.RFC1123))
+		}
 		if c.Node.Type.Id == "core.Image" {
 			sizeName := c.Req.FormValue("size")
 			var size imageSize
