@@ -320,7 +320,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 				}
 			}
 			c.Res.Write(body)
-		} else if c.Node.Type.Id == "core.File" || c.Node.Type.Id == "core.Image" {
+		} else if c.Node.Type.Id == "core.File" {
 			content, err := c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
 				"__file_core.File")
 			if err != nil {
