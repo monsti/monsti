@@ -19,7 +19,8 @@
     @include clearfix;
   }
   .brand {
-    float: left;
+    position: absolute;
+    left: 15px;
     line-height: 20px;
     vertical-align: middle;
     margin: 3px 20px 0 0;
@@ -31,11 +32,14 @@
     margin: 0;
     li {
       float: left;
-      margin-left: 20px;
+      margin-right: 20px;
       padding: 0;
       line-height: 30px;
       img {
         vertical-align: middle;
+      }
+      &:last-child {
+        margin-right: 0;
       }
     }
   }
