@@ -138,7 +138,7 @@ static/lib/webshim/:
 	unzip -q $(WEBSHIM_VERSION).zip
 	rm $(WEBSHIM_VERSION).zip
 	mkdir -p static/lib
-	mv webshim-$(WEBSHIM_VERSION)/ static/lib
+	mv webshim-$(WEBSHIM_VERSION)/ static/lib/webshim
 
 locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
 
