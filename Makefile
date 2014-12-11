@@ -17,12 +17,13 @@ DEB_VERSION=1
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
 TINYMCE_VERSION=4.1.7
+WEBSHIM_VERSION=1.15.5
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-tinymce-editor dep-jquery
+monsti: modules dep-tinymce-editor dep-jquery dep-webshim
 
 .PHONY: bcrypt
 bcrypt: 
@@ -130,6 +131,14 @@ static/js/jquery.min.js:
 	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
 	mkdir -p static/lib
 	mv jquery-1.8.2.min.js static/lib/jquery.min.js
+
+dep-webshim: static/lib/webshim/
+static/lib/webshim/:
+	wget -nv https://github.com/aFarkas/webshim/archive/$(WEBSHIM_VERSION).zip
+	unzip -q $(WEBSHIM_VERSION).zip
+	rm $(WEBSHIM_VERSION).zip
+	mkdir -p static/lib
+	mv webshim-$(WEBSHIM_VERSION)/ static/lib
 
 locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
 
