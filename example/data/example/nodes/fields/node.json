@@ -2,8 +2,8 @@
   "Order": 0,
   "Hide": false,
   "TemplateOverwrites": {
-    "core.Document/view": {
-      "Template": "foo.Fields/view"
+    "core/Document-view": {
+      "Template": "foo/Fields-view"
     }
   },
   "Embed": null,
