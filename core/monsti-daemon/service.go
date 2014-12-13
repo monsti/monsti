@@ -357,17 +357,13 @@ func findAddableNodeTypes(nodeType string,
 	nodeTypes map[string]*service.NodeType) []string {
 	types := make([]string, 0)
 	for _, otherNodeType := range nodeTypes {
-		isAddable := false
 		for _, addableTo := range otherNodeType.AddableTo {
 			if addableTo == "." ||
 				addableTo == nodeType || (addableTo[len(addableTo)-1] == '.' &&
 				nodeType[0:len(addableTo)] == addableTo) {
-				isAddable = true
+				types = append(types, otherNodeType.Id)
 				break
 			}
-		}
-		if otherNodeType.AddableTo == nil || isAddable {
-			types = append(types, otherNodeType.Id)
 		}
 	}
 	return types

@@ -154,7 +154,7 @@ func TestFindAddableNodeTypes(t *testing.T) {
 				"Foo.E": &service.NodeType{Id: "Foo.E", AddableTo: []string{"Foo."}},
 			},
 			NodeType: "Foo.B",
-			Expected: []string{"Foo.A", "Foo.B", "Foo.D", "Foo.E"},
+			Expected: []string{"Foo.B", "Foo.D", "Foo.E"},
 		},
 	}
 	for i, test := range tests {
