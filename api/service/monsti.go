@@ -139,7 +139,9 @@ func dataToNode(data []byte,
 			node.Type, err)
 	}
 
-	ret.InitFields(m, site)
+	if err = ret.InitFields(m, site); err != nil {
+		return nil, fmt.Errorf("Could not init node fields: %v", err)
+	}
 	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
 	for _, field := range nodeFields {
 		value := node.Fields.Get(field.Id)
@@ -260,6 +262,9 @@ func (s *MonstiClient) RenameNode(site, source, target string) error {
 }
 
 func getConfig(reply []byte, out interface{}) error {
+	if len(reply) == 0 {
+		return nil
+	}
 	objectV := reflect.New(
 		reflect.MapOf(reflect.TypeOf(""), reflect.TypeOf(out)))
 	err := json.Unmarshal(reply, objectV.Interface())

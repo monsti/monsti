@@ -29,14 +29,15 @@ func TestGetConfig(t *testing.T) {
 	}{
 		{`{"fookey":"foovalue"}`, "", "foovalue"},
 		{`{"fookey": null}`, "", ""},
+		{``, "", ""},
 	}
 	for _, test := range tests {
 		err := getConfig([]byte(test.Body), &test.Out)
 		if err != nil {
-			t.Error("getConfig returned error: %v", err)
+			t.Errorf("getConfig returned error: %v", err)
 		}
 		if !reflect.DeepEqual(test.Out, test.Ret) {
-			t.Error("getConfig(%q, out); out is %q, should be %q",
+			t.Errorf("getConfig(%q, out); out is %q, should be %q",
 				test.Body, test.Out, test.Ret)
 		}
 	}

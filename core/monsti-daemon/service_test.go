@@ -112,6 +112,11 @@ func TestGetConfig(t *testing.T) {
 		{"bar", `{"Value":"barvalue"}`},
 		{"unknown", `{"Value": null}`},
 	}
+	ret, err := getConfig(filepath.Join(root, "nonexisting.json"), "foo")
+	if err != nil || ret != nil {
+		t.Errorf("getConfig for non existing config file should"+
+			"return nil,nil, got %v,%v", ret, err)
+	}
 	for _, test := range tests {
 		unmarshal := func(in []byte) (out interface{}) {
 			if err = json.Unmarshal(in, &out); err != nil {

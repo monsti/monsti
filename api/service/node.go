@@ -241,7 +241,7 @@ type Node struct {
 	Changed time.Time
 }
 
-func (n *Node) InitFields(m *MonstiClient, site string) {
+func (n *Node) InitFields(m *MonstiClient, site string) error {
 	n.Fields = make(map[string]Field)
 	nodeFields := append(n.Type.Fields, n.LocalFields...)
 	for _, field := range nodeFields {
@@ -258,9 +258,13 @@ func (n *Node) InitFields(m *MonstiClient, site string) {
 		default:
 			panic(fmt.Sprintf("Unknown field type %q for node %q", field.Type, n.Path))
 		}
-		val.Init(m, site)
+		err := val.Init(m, site)
+		if err != nil {
+			return fmt.Errorf("Could not init field %q: %v", field.Id, err)
+		}
 		n.Fields[field.Id] = val
 	}
+	return nil
 }
 
 func (n Node) GetField(id string) Field {

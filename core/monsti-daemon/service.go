@@ -304,9 +304,13 @@ func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
 }
 
 // getConfig returns the configuration value or section for the given name.
+// If the file does not exist, it returns a nil slice.
 func getConfig(path, name string) ([]byte, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("Could not read configuration: %v", err)
 	}
 	var target interface{}

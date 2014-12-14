@@ -467,7 +467,10 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if newNode {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
-		formData.Node.InitFields(c.Serv.Monsti(), c.Site.Name)
+		err := formData.Node.InitFields(c.Serv.Monsti(), c.Site.Name)
+		if err != nil {
+			return fmt.Errorf("Could not init node fields: %v", err)
+		}
 		formData.Node.PublishTime = time.Now().UTC()
 		formData.Node.Public = true
 	} else {
@@ -539,7 +542,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					form.AddError("Name", G("A node with this name does already exist"))
 					writeNode = false
 				}
-				node.InitFields(c.Serv.Monsti(), c.Site.Name)
+				if err = node.InitFields(c.Serv.Monsti(), c.Site.Name); err != nil {
+					return fmt.Errorf("Could not init node fields: %v", err)
+				}
 			}
 			if writeNode {
 				if renamed {
