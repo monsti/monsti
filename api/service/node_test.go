@@ -43,7 +43,6 @@ func TestFields(t *testing.T) {
 		new(TextField),
 		new(HTMLField),
 		new(FileField),
-		new(DateTimeField),
 	}
 	for _, field := range fields {
 		out := field.Dump()

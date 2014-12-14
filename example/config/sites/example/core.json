@@ -1,1 +1,4 @@
-{"image": {"sizes": {"foo":{"Width":200, "Height":100}}}}
+{
+  "image": {"sizes": {"foo":{"Width":200, "Height":100}}},
+  "timezone": "Europe/Berlin"
+}

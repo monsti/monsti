@@ -104,9 +104,9 @@ requested node's parameter.
 
 === DateTime
 
-The DateTime field stores a point in time. Form inputs in the edit
-screen will honour the site's time zone (i.e. the user will see and
-enter times in the the configured time zone).
+The DateTime field stores a point in time. Views and form inputs will
+honour the site's time zone (i.e. the user will see and enter times in
+the the configured time zone).
 
 == Node types
 

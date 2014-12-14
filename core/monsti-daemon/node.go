@@ -467,7 +467,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if newNode {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
-		formData.Node.InitFields()
+		formData.Node.InitFields(c.Serv.Monsti(), c.Site.Name)
 		formData.Node.PublishTime = time.Now().UTC()
 		formData.Node.Public = true
 	} else {
@@ -480,8 +480,17 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation or listings (lower numbered entries appear first)."))
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
+	var timezone string
+	err := c.Serv.Monsti().GetSiteConfig(c.Site.Name, "core.timezone", &timezone)
+	if err != nil {
+		return fmt.Errorf("Could not get timezone: %v", err)
+	}
+	location, err := time.LoadLocation(timezone)
+	if err != nil {
+		location = time.UTC
+	}
 	form.AddWidget(&htmlwidgets.TimeWidget{
-		Location: c.Site.Location()}, "Node.PublishTime", G("Publish time"),
+		Location: location}, "Node.PublishTime", G("Publish time"),
 		G("The node won't be accessible to the public until it is published."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
@@ -499,10 +508,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		nodeFields = append(nodeFields, c.Node.LocalFields...)
 	}
 	for _, field := range nodeFields {
-		dateTimeField, ok := formData.Node.GetField(field.Id).(*service.DateTimeField)
-		if ok {
-			dateTimeField.Location = c.Site.Location()
-		}
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 		if field.Type == "File" {
@@ -534,7 +539,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					form.AddError("Name", G("A node with this name does already exist"))
 					writeNode = false
 				}
-				node.InitFields()
+				node.InitFields(c.Serv.Monsti(), c.Site.Name)
 			}
 			if writeNode {
 				if renamed {

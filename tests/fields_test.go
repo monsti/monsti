@@ -6,6 +6,7 @@ func TestFields(t *testing.T) {
 	b := setup(t)
 	login(*b, t)
 	Must(b.VisitLink("Fields"), "Could not open nodes", t)
+	Must(b.Contains("31. Dec 2014 23:55"), "Can't find local datetime", t)
 	Must(b.VisitLink("Edit"), "Could not open edit formular", t)
 	field, err := b.FindElement("#Fields\\.foo\\.DateTime")
 	Must(err, "Could not find datetime field", t)

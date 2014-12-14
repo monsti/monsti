@@ -68,7 +68,7 @@ func TestDataToNode(t *testing.T) {
 	]
 }`)
 	getNodeType := func(id string) (*NodeType, error) { return &nodeType, nil }
-	node, err := dataToNode(data, getNodeType)
+	node, err := dataToNode(data, getNodeType, nil, "")
 	if err != nil {
 		t.Fatalf("dataToNode returns error: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestNodeToData(t *testing.T) {
 			{"foo.BarField", nil, false, "Text"},
 		},
 	}
-	node.InitFields()
+	node.InitFields(nil, "")
 	node.Fields["foo.FooField"].Load("FooValue")
 	node.Fields["foo.BarField"].Load("BarValue")
 

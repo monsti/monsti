@@ -29,6 +29,8 @@ import (
 )
 
 type Field interface {
+	// Init initializes the field.
+	Init(*MonstiClient, string) error
 	// RenderHTML returns a string or template.HTML to be used in a html
 	// template.
 	RenderHTML() interface{}
@@ -49,6 +51,10 @@ type Field interface {
 
 // TextField is a basic unicode text field
 type TextField string
+
+func (t TextField) Init(*MonstiClient, string) error {
+	return nil
+}
 
 func (t TextField) String() string {
 	return string(t)
@@ -83,6 +89,10 @@ func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
 // HTMLField is a text area containing HTML code
 type HTMLField string
 
+func (t HTMLField) Init(*MonstiClient, string) error {
+	return nil
+}
+
 func (t HTMLField) String() string {
 	return string(t)
 }
@@ -114,6 +124,10 @@ func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
 }
 
 type FileField string
+
+func (t FileField) Init(*MonstiClient, string) error {
+	return nil
+}
 
 func (t FileField) String() string {
 	return string(t)
@@ -148,6 +162,19 @@ type DateTimeField struct {
 	Location *time.Location
 }
 
+func (t *DateTimeField) Init(m *MonstiClient, site string) error {
+	var timezone string
+	err := m.GetSiteConfig(site, "core.timezone", &timezone)
+	if err != nil {
+		return fmt.Errorf("Could not get timezone: %v", err)
+	}
+	t.Location, err = time.LoadLocation(timezone)
+	if err != nil {
+		t.Location = time.UTC
+	}
+	return nil
+}
+
 func (t DateTimeField) RenderHTML() interface{} {
 	return t.Time.String()
 }
@@ -165,7 +192,7 @@ func (t *DateTimeField) Load(in interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Could not parse the date value: %v", err)
 	}
-	*t = DateTimeField{Time: val}
+	t.Time = val.In(t.Location)
 	return nil
 }
 
@@ -214,7 +241,7 @@ type Node struct {
 	Changed time.Time
 }
 
-func (n *Node) InitFields() {
+func (n *Node) InitFields(m *MonstiClient, site string) {
 	n.Fields = make(map[string]Field)
 	nodeFields := append(n.Type.Fields, n.LocalFields...)
 	for _, field := range nodeFields {
@@ -231,6 +258,7 @@ func (n *Node) InitFields() {
 		default:
 			panic(fmt.Sprintf("Unknown field type %q for node %q", field.Type, n.Path))
 		}
+		val.Init(m, site)
 		n.Fields[field.Id] = val
 	}
 }
