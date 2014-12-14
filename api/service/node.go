@@ -144,11 +144,16 @@ func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
 }
 
 type DateTimeField struct {
-	time.Time
+	Time     time.Time
+	Location *time.Location
 }
 
 func (t DateTimeField) RenderHTML() interface{} {
-	return t.String()
+	return t.Time.String()
+}
+
+func (t DateTimeField) String() string {
+	return t.Time.String()
 }
 
 func (t *DateTimeField) Load(in interface{}) error {
@@ -165,18 +170,19 @@ func (t *DateTimeField) Load(in interface{}) error {
 }
 
 func (t DateTimeField) Dump() interface{} {
-	return t.Format(time.RFC3339)
+	return t.Time.UTC().Format(time.RFC3339)
 }
 
 func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, t.Time)
-	form.AddWidget(&htmlwidgets.TimeWidget{}, "Fields."+field.Id,
-		field.Name[locale], "")
+	form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
+		"Fields."+field.Id, field.Name[locale], "")
 }
 
 func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
-	*t = DateTimeField{Time: data.Get(field.Id).(time.Time)}
+	time := data.Get(field.Id).(time.Time)
+	*t = DateTimeField{Time: time}
 }
 
 // TemplateOverwrite specifies a template that should be used instead

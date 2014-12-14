@@ -410,6 +410,8 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
 		template = overwrite.Template
 	}
+
+	context["Site"] = c.Site
 	rendered, err := h.Renderer.Render(template, context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
@@ -466,7 +468,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
 		formData.Node.InitFields()
-		formData.Node.PublishTime = time.Now()
+		formData.Node.PublishTime = time.Now().UTC()
 		formData.Node.Public = true
 	} else {
 		formData.Node = *c.Node
@@ -478,7 +480,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation or listings (lower numbered entries appear first)."))
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
-	form.AddWidget(new(htmlwidgets.TimeWidget), "Node.PublishTime", G("Publish time"), G("The node won't be accessible to the public until it is published."))
+	form.AddWidget(&htmlwidgets.TimeWidget{
+		Location: c.Site.Location()}, "Node.PublishTime", G("Publish time"),
+		G("The node won't be accessible to the public until it is published."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
 			Regexp:          `^[-\w]+$`,
@@ -495,6 +499,10 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		nodeFields = append(nodeFields, c.Node.LocalFields...)
 	}
 	for _, field := range nodeFields {
+		dateTimeField, ok := formData.Node.GetField(field.Id).(*service.DateTimeField)
+		if ok {
+			dateTimeField.Location = c.Site.Location()
+		}
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 		if field.Type == "File" {

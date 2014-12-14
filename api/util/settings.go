@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // Site configuration.
@@ -37,6 +38,20 @@ type SiteSettings struct {
 	PasswordTokenKey string
 	// Locale used to translate monsti's web interface.
 	Locale string
+	// TimeZone is the name of the site's time zone as defined in the
+	// IANA Time Zone database.
+	TimeZone string
+}
+
+// Location returns the location for the site's time zone.
+//
+// If the time zone cannot be loaded, returns time.UTC
+func (s SiteSettings) Location() *time.Location {
+	loc, err := time.LoadLocation(s.TimeZone)
+	if err != nil {
+		return time.UTC
+	}
+	return loc
 }
 
 // MonstiSettings holds common Monsti settings.

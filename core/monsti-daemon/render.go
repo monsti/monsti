@@ -56,9 +56,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	s *service.Session) string {
 	if env.Flags&EDIT_VIEW != 0 {
 		ret, err := r.Render("admin/master", template.Context{
-			"Site": template.Context{
-				"Title": site.Title,
-			},
+			"Site": site,
 			"Page": template.Context{
 				"Title":    env.Title,
 				"Node":     env.Node,
@@ -98,9 +96,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 
 	title := getNodeTitle(env.Node)
 	ret, err := r.Render("master", template.Context{
-		"Site": template.Context{
-			"Title": site.Title,
-		},
+		"Site": site,
 		"Page": template.Context{
 			"Node":             env.Node,
 			"PrimaryNav":       prinav,

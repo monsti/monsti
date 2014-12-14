@@ -10,5 +10,6 @@
 
 <h2>DateTime</h2>
 <p>
-{{(.Node.GetField "foo.DateTime").RenderHTML}}
+{{template "utils/date" (.Node.GetValue "foo.DateTime").Time.In .Site.Location}}
+{{template "utils/time" (.Node.GetValue "foo.DateTime").Time.In .Site.Location}}
 </p>

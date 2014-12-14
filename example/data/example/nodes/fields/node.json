@@ -34,8 +34,8 @@
     }
   ],
   "Public": true,
-  "PublishTime": "2014-11-12T15:14:31.197158588Z",
-  "Changed": "2014-11-12T15:15:36.700386302+01:00",
+  "PublishTime": "2013-04-10T18:37:00+02:00",
+  "Changed": "2014-12-14T07:27:48.811879145Z",
   "Type": "core.Document",
   "Fields": {
     "core": {
@@ -43,8 +43,8 @@
       "Title": "Fields"
     },
     "foo": {
-      "DateTime": "2012-05-05T10:00:00Z",
-      "HTMLArea": "\u003cb\u003eHTML\u003c/b\u003e Area\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
+      "DateTime": "2014-12-31T22:55:00Z",
+      "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e",
       "Text": "Simple Text Field"
     }
   }

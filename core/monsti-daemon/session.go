@@ -240,7 +240,7 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 					if err != nil {
 						return fmt.Errorf("Could not hash user password: %v", err)
 					}
-					user.PasswordChanged = time.Now()
+					user.PasswordChanged = time.Now().UTC()
 					user.Password = string(hashed)
 					err = writeUser(user, h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
 					if err != nil {

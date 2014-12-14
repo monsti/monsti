@@ -100,6 +100,14 @@ embedded node. Instead, any parameters specified in the embed option
 URI are passed. At some point, it will be possible to access the
 requested node's parameter.
 
+== Field types
+
+=== DateTime
+
+The DateTime field stores a point in time. Form inputs in the edit
+screen will honour the site's time zone (i.e. the user will see and
+enter times in the the configured time zone).
+
 == Node types
 
 === Core Node Types

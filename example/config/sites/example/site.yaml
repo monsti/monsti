@@ -8,12 +8,16 @@ locale: en
 emailname: "Example site"
 emailaddress: "noreply@localhost"
 
+# The site's time zone as defined in the IANA Time Zone database.
+timezone: "Europe/Berlin"
+
 # Name and email address of site owner.
 #
 # The owner's address is used as recipient of contact form submissions.
 owner:
   name: The Owner
   email: owner@example.com
+
 # Key used for signing session cookie data. Change this!
 sessionauthkey: aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao
 # Key used for signing password request tokens. Change this!
