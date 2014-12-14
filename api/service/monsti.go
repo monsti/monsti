@@ -274,20 +274,37 @@ func getConfig(reply []byte, out interface{}) error {
 	return nil
 }
 
-// GetConfig puts the named configuration into the variable out.
-func (s *MonstiClient) GetConfig(site, module, name string,
-	out interface{}) error {
+// GetSiteConfig puts the named site local configuration into the
+// variable out.
+func (s *MonstiClient) GetSiteConfig(site, name string, out interface{}) error {
 	if s.Error != nil {
 		return s.Error
 	}
-	args := struct{ Site, Module, Name string }{site, module, name}
+	args := struct{ Site, Name string }{site, name}
 	var reply []byte
-	err := s.RPCClient.Call("Monsti.GetConfig", args, &reply)
+	err := s.RPCClient.Call("Monsti.GetSiteConfig", args, &reply)
+	if err != nil {
+		return fmt.Errorf("service: GetSiteConfig error: %v", err)
+	}
+	return getConfig(reply, out)
+}
+
+/*
+
+// GetConfig puts the named global configuration into the variable out.
+func (s *MonstiClient) GetConfig(name string, out interface{}) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.GetConfig", name, &reply)
 	if err != nil {
 		return fmt.Errorf("service: GetConfig error: %v", err)
 	}
 	return getConfig(reply, out)
 }
+
+*/
 
 // RegisterNodeType registers a new node type.
 //

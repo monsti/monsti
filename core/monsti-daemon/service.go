@@ -338,13 +338,15 @@ func getConfig(path, name string) ([]byte, error) {
 	return ret, nil
 }
 
-type GetConfigArgs struct{ Site, Module, Name string }
+type GetSiteConfigArgs struct{ Site, Name string }
 
-func (i *MonstiService) GetConfig(args *GetConfigArgs,
+func (i *MonstiService) GetSiteConfig(args *GetSiteConfigArgs,
 	reply *[]byte) error {
 	configPath := i.Settings.Monsti.GetSiteConfigPath(args.Site)
-	config, err := getConfig(filepath.Join(configPath, args.Module+".json"),
-		args.Name)
+	parts := strings.SplitN(args.Name, ".", 2)
+	module := parts[0]
+	name := parts[1]
+	config, err := getConfig(filepath.Join(configPath, module+".json"), name)
 	if err != nil {
 		reply = nil
 		return err

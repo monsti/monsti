@@ -277,8 +277,8 @@ func (h *nodeHandler) View(c *reqContext) error {
 			var body []byte
 			var err error
 			if sizeName != "" {
-				err = c.Serv.Monsti().GetConfig(c.Site.Name, "image", "sizes."+sizeName,
-					&size)
+				err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
+					"core.image.sizes."+sizeName, &size)
 				if err != nil || size.Width == 0 {
 					if err != nil {
 						h.Log.Printf("Could not get size config: %v", err)
