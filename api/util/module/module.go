@@ -79,7 +79,7 @@ func StartModule(name string, setup func(context *ModuleContext) error) {
 	}
 	for {
 		if err := session.Monsti().WaitSignal(); err != nil {
-			logger.Fatalf("Could not wait for signal: %v", err)
+			logger.Printf("Could not wait for signal: %v", err)
 		}
 	}
 }

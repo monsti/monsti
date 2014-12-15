@@ -20,9 +20,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -658,22 +660,36 @@ func (s *MonstiClient) WaitSignal() error {
 	if err != nil {
 		return fmt.Errorf("service: Could not decode signal argumens: %v", err)
 	}
-	ret, err := s.SignalHandlers[signal.Name](args_.Wrap)
-	if err != nil {
-		return fmt.Errorf("service: Signal handler for %v returned error: %v",
-			signal.Name, err)
-	}
+	var ret interface{}
+	var reterr error
+	func() {
+		defer func() {
+			if err := recover(); err != nil {
+				var buf bytes.Buffer
+				fmt.Fprintf(&buf, "error: %v\n", err)
+				buf.Write(debug.Stack())
+				reterr = errors.New(buf.String())
+			}
+		}()
+		ret, reterr = s.SignalHandlers[signal.Name](args_.Wrap)
+	}()
 	signalRet := &struct {
 		Id  string
+		Err string
 		Ret []byte
 	}{Id: s.Id}
 	buffer = &bytes.Buffer{}
-	enc := gob.NewEncoder(buffer)
-	err = enc.Encode(argWrap{ret})
-	if err != nil {
-		return fmt.Errorf("service: Could not encode signal return value: %v", err)
+	if reterr == nil {
+		enc := gob.NewEncoder(buffer)
+		err = enc.Encode(argWrap{ret})
+		if err != nil {
+			return fmt.Errorf("service: Could not encode signal return value: %v", err)
+		}
 	}
 	signalRet.Ret = buffer.Bytes()
+	if reterr != nil {
+		signalRet.Err = reterr.Error()
+	}
 	err = s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
 	if err != nil {
 		return fmt.Errorf("service: Monsti.FinishSignal error: %v", err)

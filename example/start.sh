@@ -1,4 +1,4 @@
 #!/bin/sh
 
 # Might help: killall -r monsti-
-PATH=$PATH:../go/bin monsti-daemon config
+PATH=$PATH:~/dev/monsti/go/bin:~/projekte/monsti-events/go/bin monsti-daemon config

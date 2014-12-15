@@ -37,10 +37,15 @@ import (
 type subscription struct {
 }
 
+type emitRet struct {
+	Ret   []byte
+	Error string
+}
+
 type signal struct {
 	Name string
 	Args []byte
-	Ret  chan []byte
+	Ret  chan emitRet
 }
 
 type MonstiService struct {
@@ -53,7 +58,7 @@ type MonstiService struct {
 	Handler       *nodeHandler
 	subscriptions map[string][]string
 	subscriber    map[string]chan *signal
-	subscriberRet map[string]chan []byte
+	subscriberRet map[string]chan emitRet
 }
 
 type PublishServiceArgs struct {
@@ -132,7 +137,7 @@ type Receive struct {
 func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
 	*ret = make([][]byte, len(m.subscriptions[args.Name]))
 	for i, id := range m.subscriptions[args.Name] {
-		retChan := make(chan []byte)
+		retChan := make(chan emitRet)
 		done := false
 		go func() {
 			time.Sleep(time.Second)
@@ -144,7 +149,11 @@ func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
 			}
 		}()
 		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
-		(*ret)[i] = <-retChan
+		emitRet := <-retChan
+		if len(emitRet.Error) > 0 {
+			return fmt.Errorf("Received error as signal response: %v", emitRet.Error)
+		}
+		(*ret)[i] = emitRet.Ret
 		done = true
 	}
 	return nil
@@ -160,7 +169,7 @@ func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error 
 	ret.Name = signal.Name
 	ret.Args = signal.Args
 	if m.subscriberRet == nil {
-		m.subscriberRet = make(map[string]chan []byte)
+		m.subscriberRet = make(map[string]chan emitRet)
 	}
 	m.subscriberRet[subscriber] = signal.Ret
 	return nil
@@ -168,11 +177,12 @@ func (m *MonstiService) WaitSignal(subscriber string, ret *WaitSignalRet) error 
 
 type FinishSignalArgs struct {
 	Id  string
+	Err string
 	Ret []byte
 }
 
 func (m *MonstiService) FinishSignal(args *FinishSignalArgs, _ *int) error {
-	m.subscriberRet[args.Id] <- args.Ret
+	m.subscriberRet[args.Id] <- emitRet{args.Ret, args.Err}
 	return nil
 }
 
