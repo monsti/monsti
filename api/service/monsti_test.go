@@ -98,8 +98,16 @@ func TestNodeToData(t *testing.T) {
 		},
 	}
 	node.InitFields(nil, "")
-	node.Fields["foo.FooField"].Load("FooValue")
-	node.Fields["foo.BarField"].Load("BarValue")
+	f := func(in interface{}) error {
+		*(in.(*TextField)) = "FooValue"
+		return nil
+	}
+	node.Fields["foo.FooField"].Load(f)
+	f = func(in interface{}) error {
+		*(in.(*TextField)) = "BarValue"
+		return nil
+	}
+	node.Fields["foo.BarField"].Load(f)
 
 	expected := `{
 		  "Order": 0,

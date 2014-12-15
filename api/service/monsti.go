@@ -23,10 +23,10 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/chrneumann/mimemail"
-	"pkg.monsti.org/monsti/api/util"
 )
 
 // MonstiClient represents the RPC connection to the Monsti service.
@@ -76,11 +76,20 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	var outNode nodeJSON
 	outNode.Node = *node
 	outNode.Type = node.Type.Id
-	outNode.Fields = make(util.NestedMap)
+	outNode.Fields = make(map[string]map[string]*json.RawMessage)
 
 	nodeFields := append(node.Type.Fields, node.LocalFields...)
 	for _, field := range nodeFields {
-		outNode.Fields.Set(field.Id, node.Fields[field.Id].Dump())
+		parts := strings.SplitN(field.Id, ".", 2)
+		dump, err := json.Marshal(node.Fields[field.Id].Dump())
+		if err != nil {
+			return nil, fmt.Errorf("Could not marshal field: %v", err)
+		}
+		if outNode.Fields[parts[0]] == nil {
+			outNode.Fields[parts[0]] = make(map[string]*json.RawMessage)
+		}
+		msg := json.RawMessage(dump)
+		outNode.Fields[parts[0]][parts[1]] = &msg
 	}
 
 	if indent {
@@ -116,7 +125,7 @@ func (s *MonstiClient) WriteNode(site, path string, node *Node) error {
 type nodeJSON struct {
 	Node
 	Type   string
-	Fields util.NestedMap
+	Fields map[string]map[string]*json.RawMessage
 }
 
 // dataToNode unmarshals given data
@@ -144,9 +153,13 @@ func dataToNode(data []byte,
 	}
 	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
 	for _, field := range nodeFields {
-		value := node.Fields.Get(field.Id)
+		parts := strings.SplitN(field.Id, ".", 2)
+		value := node.Fields[parts[0]][parts[1]]
 		if value != nil {
-			ret.Fields[field.Id].Load(node.Fields.Get(field.Id))
+			f := func(in interface{}) error {
+				return json.Unmarshal(*value, in)
+			}
+			ret.Fields[field.Id].Load(f)
 		}
 	}
 	return &ret, nil
