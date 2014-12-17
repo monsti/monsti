@@ -1,14 +1,16 @@
-This directory contains Selenium tests for Monsti CMS.
+This directory contains Selenium tests for Monsti.
 
 You need a recent Chrome/Chromium and ChromeDriver[1]. Other browsers should
-work too, but the Firefox driver has problems with filling out the Aloha editor
-fields.
+work too, but are not officially supported at the moment.
 
-To run the tests, you first have to start the Monsti example instance and
-ChromeDriver. After that, run "go test" in this directory.
+To run the tests, you first have to start the Monsti example instance
+(go to the example directory and run start.sh) and ChromeDriver
+(listening on the default port 9515)[2]. After that, run "make
+test-browser" in the package's root.
 
-The tests will change the example/ data files. Keep that in mind until Monsti
-gets a more sophisticated Selenium test setup ;)
+The tests will change some of the example/ data files. Keep that in
+mind when commiting any changes until Monsti gets a more sophisticated
+Selenium test setup ;)
 
 [1] http://code.google.com/p/chromedriver/downloads/list
 [2] http://code.google.com/p/selenium/wiki/ChromeDriver#Running_the_server_as_a_standalone_process
