@@ -1,59 +1,65 @@
 @import "base";
 
-body {
-  padding:0;
-  margin:0;
-}
-
-#top-wrap, #bottom-wrap {
-  max-width:960px;
-  margin:0 auto;
-  @include clearfix;
-}
-
 #primary-nav {
   ul {
-    margin:2em 0 0 -1em;
     list-style:none;
-    padding:0;
+    background: #EEE;
+    border: thin solid $border-color;
+    overflow:hidden;
+    margin-bottom: 20px;
+    padding-left: 35px;
   }
   li {
     @include inline-block;
     padding:0;
     margin:0;
+    &.active-below.child, &.active{
+      background:#ddd;
+    }
+    &:first-child a {
+    border-left:thin solid gray;
+    }
   }
   a {
+    color: #333;
     padding:0.5em 1em;
     display:block;
+    border-right:thin solid gray;
+    text-decoration:none;
+    &:hover {
+      background: $secondary-color;
+      color: white;
+    }
   }
+}
+
+#content-wrap {
+  display: table;
+  width: 100%;
+}
+
+#sidebar, #main {
+  vertical-align: top;
+  padding-bottom: 75px;
 }
 
 #sidebar {
-  width:20%;
-  float:right;
+  border-left: none;
+  box-sizing: border-box;
+  width: 33.33%;
+  display: table-cell;
+  background: #EEE;
+  padding-top: 50px;
 }
+
+#main {
+  display: table-cell;
+  width: 66.66%;
+  padding-right: 50px;
+  box-sizing: border-box;
+}
+
 
 #content {
-  width:80%;
-  float:left;
 }
 
-fieldset {
-  border:0;
-  padding:0;
-  margin:0;
-}
-
-form {
-  label, .help {
-    display:block;
-    margin-top:0.8em;
-    line-height:1.5em;
-    &:hover {
-      cursor:pointer;
-    }
-  }
-  .buttons {
-    margin-top:1em;
-  }
-}

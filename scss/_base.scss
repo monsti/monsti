@@ -1,4 +1,175 @@
 @import "compass";
+@import "compass/reset";
 
 $primary-color: #274661;
 $secondary-color: #F89B16;
+$border-color: #AAA;
+
+html {
+  font: 16px/23.3667px arial, sans-serif;
+  background: desaturate(lighten($primary-color, 70), 30);
+  position: relative;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  padding:0;
+  margin:0;
+  color: #666;
+}
+
+#site-wrap {
+  box-sizing: border-box;
+  max-width: 1200px;
+  min-width: 900px;
+  padding: 0 20px;
+  margin: 0 auto;
+  &> article {
+    padding: 70px 0 30px 0;
+  }
+}
+
+#main, #sidebar, #footer {
+  background: white;
+  border: 1px solid $border-color;
+  @include border-radius(3px);
+  padding: 20px 50px;
+
+}
+
+#bottom-wrap {
+  margin-top:3em;
+}
+
+#sidebar{
+  margin-top:2em;
+}
+
+#header{
+  margin-top:3em;
+}
+
+#site-title a{
+  display:block;
+  width:301px;
+  height:71px;
+  text-indent:-999999em;
+  background:url("/static/img/logo.png");
+  margin-bottom: 30px;
+}
+
+#top-wrap, #bottom-wrap {
+  max-width:960px;
+  margin:0 auto;
+  @include clearfix;
+}
+
+#footer {
+  margin-top: 30px;
+  @include box-shadow(#DDD 0 -20px 15px -15px);
+  border-top: 1px solid $border-color;
+}
+
+fieldset {
+  border:0;
+  padding:0;
+  margin:0;
+}
+
+form {
+  .field {
+    margin: 15px 0 10px 0;
+    label {
+      color: $primary-color;
+    }
+  }
+  .help {
+    display: block;
+    font-size: 80%;
+  }
+  .errors {
+    padding: 0;
+    li {
+      list-style-type: none;
+      color: #AA0000;
+    }
+  }
+}
+
+input[type=text], input[type=password], input[type=datetime-local], select, textarea, button, .button {
+  @include border-radius;
+  border: 1px solid $primary-color;
+  background: rgba($secondary-color, 0.05);
+  padding: 5px;
+  color: black;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 5px 0;
+}
+
+button {
+  width: auto;
+}
+
+button, .button {
+  background: $primary-color;
+  color: white;
+  padding: 5px 15px;
+  &:hover {
+    background: darken($primary-color, 10);
+    text-decoration: none;
+  }
+}
+
+textarea {
+  height: 150px;
+}
+
+h1, h2, h3, h4, h5 {
+  color: $primary-color;
+  font-weight: bold;
+}
+
+h1, h2, h3, h4 {
+  margin: 20px 0 10px;
+}
+
+h1 {
+  font-size: 120%;
+}
+
+h2 {
+  font-size: 110%;
+}
+
+h3 {
+  font-size: 105%;
+}
+
+h4 {
+  font-size: 102%;
+}
+
+p {
+  margin: 10px 0;
+}
+
+strong, b {
+  color:#444;
+}
+
+a {
+  color:#DD8403
+}
+
+#main > article {
+  padding-top: 5px;
+  &>h1, #page-title {
+    font-size: 130%;
+    border-bottom: 1px solid $border-color;
+    padding-bottom: 10px;
+  }
+}

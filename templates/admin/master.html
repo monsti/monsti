@@ -5,13 +5,15 @@
   </head>
   <body>
     {{template "blocks/admin-bar" .}}
-    <div id="main">
-      <article>
-        <h1 id="page-title">{{.Page.Title}}</h1>
-        <div id="content">
-          {{.Page.Content}}
-        </div>
-      </article>
+    <div id="site-wrap">
+      <div id="content-wrap">
+        <article>
+          <h1 id="page-title">{{.Page.Title}}</h1>
+          <div id="content">
+            {{.Page.Content}}
+          </div>
+        </article>
+      </div>
     </div>
   </body>
 </html>

@@ -3,14 +3,10 @@
 
 $default-border-radius: 2px;
 
-html {
-  font-family: 'Open Sans', sans-serif;
-  background: #EEE;
-  position: relative;
-}
-
-html, body {
-  height: 100%
+#site-wrap {
+  background: white;
+  padding: 0 50px 25px 50px;
+  min-height: 100%;
 }
 
 #admin-bar {
@@ -20,76 +16,6 @@ html, body {
   margin-bottom: 30px;
 }
 
-#main {
-  min-height: 100%;
-  box-sizing: border-box;
-  width: 900px;
-  margin: 0 auto;
-  padding: 0 50px;
-  background: white;
-  &> article {
-    padding: 70px 0 30px 0;
-  }
-}
-
-fieldset {
-  border:0;
-  padding:0;
-  margin:0;
-}
-
-form {
-  .field {
-    margin: 20px 0 10px 0;
-  }
-  .help {
-    display: block;
-    font-size: 80%;
-  }
-  .errors {
-    padding: 0;
-    li {
-      list-style-type: none;
-      color: #AA0000;
-    }
-  }
-}
-
-input[type=text], input[type=password], input[type=datetime-local], select, textarea, button, .button {
-  @include border-radius;
-  border: 1px solid $primary-color;
-  background: rgba($secondary-color, 0.05);
-  padding: 5px;
-  color: black;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 5px 0;
-}
-
-button {
-  width: auto;
-}
-
-button, .button {
-  background: $primary-color;
-  color: white;
-  padding: 5px 15px;
-  &:hover {
-    background: darken($primary-color, 10);
-    text-decoration: none;
-  }
-}
-
-textarea {
-  height: 150px;
-}
-
-h1, h2, h3, h4, h5 {
-  color: $primary-color;
-  font-weight: bold;
-}
-
-#page-title {
-  font-size: 130%;
-  margin: 15px 0;
+#content-wrap {
+  padding-top: 60px;
 }

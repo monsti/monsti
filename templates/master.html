@@ -23,17 +23,15 @@
         <div id="content-wrap">
           <div id="messages">
           </div>
+          <div id="main">
+            {{.Page.Content}}
+          </div>
           <div id="sidebar">
             {{if .Page.ShowSecondaryNav}}
             <div id="secondary-nav">
               {{template "blocks/navigation" .Page.SecondaryNav}}
             </div>
             {{end}}
-          </div>
-          <div id="content">
-            <div class="body">
-              {{.Page.Content}}
-            </div>
           </div>
         </div>
       </div>
