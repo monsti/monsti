@@ -252,7 +252,7 @@ type GetNodeDataArgs struct{ Site, Path, File string }
 func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	path := filepath.Join(site, args.Path[1:], args.File)
+	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
 	ret, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {
 		*reply = nil
@@ -270,7 +270,7 @@ type WriteNodeDataArgs struct {
 func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	path := filepath.Join(site, args.Path[1:], args.File)
+	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
 	err := os.MkdirAll(filepath.Dir(path), 0700)
 	if err != nil {
 		return fmt.Errorf("Could not create node directory: %v", err)
@@ -289,7 +289,7 @@ type RemoveNodeDataArgs struct {
 func (i *MonstiService) RemoveNodeData(args *RemoveNodeDataArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	path := filepath.Join(site, args.Path[1:], args.File)
+	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("Could not remove node data: %v", err)
 	}
