@@ -246,6 +246,20 @@ func (s *MonstiClient) WriteNodeData(site, path, file string,
 	return nil
 }
 
+// RemoveNodeData removes data of some node.
+func (s *MonstiClient) RemoveNodeData(site, path, file string) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Site, Path, File string
+	}{site, path, file}
+	if err := s.RPCClient.Call("Monsti.RemoveNodeData", &args, new(int)); err != nil {
+		return fmt.Errorf("service: RemoveNodeData error: %v", err)
+	}
+	return nil
+}
+
 // RemoveNode recursively removes the given site's node.
 func (s *MonstiClient) RemoveNode(site string, node string) error {
 	if s.Error != nil {

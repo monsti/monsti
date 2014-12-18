@@ -282,6 +282,20 @@ func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
 	return nil
 }
 
+type RemoveNodeDataArgs struct {
+	Site, Path, File string
+}
+
+func (i *MonstiService) RemoveNodeData(args *RemoveNodeDataArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	path := filepath.Join(site, args.Path[1:], args.File)
+	if err := os.Remove(path); err != nil {
+		return fmt.Errorf("Could not remove node data: %v", err)
+	}
+	return nil
+}
+
 type RemoveNodeArgs struct {
 	Site, Node string
 }
