@@ -257,6 +257,62 @@ func (s imageSize) String() string {
 	return fmt.Sprintf("%vx%v", s.Width, s.Height)
 }
 
+// viewImage sends a possibly resized image
+func (h *nodeHandler) viewImage(c *reqContext) error {
+	sizeName := c.Req.FormValue("size")
+	var size imageSize
+	var body []byte
+	var err error
+	if sizeName != "" {
+		err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
+			"core.image.sizes."+sizeName, &size)
+		if err != nil || size.Width == 0 {
+			if err != nil {
+				h.Log.Printf("Could not get size config: %v", err)
+			} else {
+				h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
+					c.Site.Name, err)
+			}
+		} else {
+			sizePath := "__image_" + size.String()
+			body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+				sizePath)
+			if err != nil || body == nil {
+				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+					"__file_core.File")
+				if err != nil {
+					return fmt.Errorf("Could not get image data: %v", err)
+				}
+				image, err := jpeg.Decode(bytes.NewBuffer(body))
+				if err != nil {
+					return fmt.Errorf("Could not decode image data: %v", err)
+				}
+				image = resize.Thumbnail(size.Width, size.Height, image,
+					resize.Lanczos3)
+				var out bytes.Buffer
+				err = jpeg.Encode(&out, image, nil)
+				body = out.Bytes()
+				if err != nil {
+					return fmt.Errorf("Could not encode resized image: %v", err)
+				}
+				if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
+					sizePath, body); err != nil {
+					return fmt.Errorf("Could not write resized image data: %v", err)
+				}
+			}
+		}
+	}
+	if body == nil {
+		body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+			"__file_core.File")
+		if err != nil {
+			return fmt.Errorf("Could not read image: %v", err)
+		}
+	}
+	c.Res.Write(body)
+	return nil
+}
+
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
 	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
@@ -272,57 +328,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 			c.Res.Header().Add("Last-Modified", c.Node.Changed.Format(time.RFC1123))
 		}
 		if c.Node.Type.Id == "core.Image" {
-			sizeName := c.Req.FormValue("size")
-			var size imageSize
-			var body []byte
-			var err error
-			if sizeName != "" {
-				err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
-					"core.image.sizes."+sizeName, &size)
-				if err != nil || size.Width == 0 {
-					if err != nil {
-						h.Log.Printf("Could not get size config: %v", err)
-					} else {
-						h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
-							c.Site.Name, err)
-					}
-				} else {
-					sizePath := "__image_" + size.String()
-					body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-						sizePath)
-					if err != nil || body == nil {
-						body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-							"__file_core.File")
-						if err != nil {
-							return fmt.Errorf("Could not get image data: %v", err)
-						}
-						image, err := jpeg.Decode(bytes.NewBuffer(body))
-						if err != nil {
-							return fmt.Errorf("Could not decode image data: %v", err)
-						}
-						image = resize.Thumbnail(size.Width, size.Height, image,
-							resize.Lanczos3)
-						var out bytes.Buffer
-						err = jpeg.Encode(&out, image, nil)
-						body = out.Bytes()
-						if err != nil {
-							return fmt.Errorf("Could not encode resized image: %v", err)
-						}
-						if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
-							sizePath, body); err != nil {
-							return fmt.Errorf("Could not write resized image data: %v", err)
-						}
-					}
-				}
-			}
-			if body == nil {
-				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-					"__file_core.File")
-				if err != nil {
-					return fmt.Errorf("Could not read image: %v", err)
-				}
-			}
-			c.Res.Write(body)
+			return h.viewImage(c)
 		} else if c.Node.Type.Id == "core.File" {
 			content, err := c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
 				"__file_core.File")
