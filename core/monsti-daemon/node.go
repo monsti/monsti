@@ -567,6 +567,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					return fmt.Errorf("Could not update node: ", err)
 				}
 
+				// Save any attached files
 				if len(fileFields) > 0 && c.Req.MultipartForm != nil {
 					for _, name := range fileFields {
 						file, _, err := c.Req.FormFile("Fields." + name)
