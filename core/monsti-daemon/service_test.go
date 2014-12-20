@@ -178,3 +178,32 @@ func TestFindAddableNodeTypes(t *testing.T) {
 		}
 	}
 }
+
+func TestNodeCache(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestNodeCache")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	err = toNodeCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"), nil)
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	err = toNodeCache(root, "/foo/bar", "foo.another_cache", []byte("test2"),
+		[]string{"/foo/bar/cruz"})
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	err = toNodeCache(root, "/foo", "foo.another_cache", []byte("test3"),
+		[]string{"/foo/bar/cruz"})
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	ret, err := fromNodeCache(root, "/foo", "foo.another_cache")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	if !reflect.DeepEqual(ret, []byte("test3")) {
+		t.Fatalf("test3 should be in cache, got %v", string(ret))
+	}
+}

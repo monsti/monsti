@@ -710,3 +710,47 @@ func (s *MonstiClient) WaitSignal() error {
 	}
 	return nil
 }
+
+// ToNodeCache caches the given data.
+//
+// Each node has a cache where arbitrary data can be stored. The data
+// may be retrieved later with the FromNodeCache method. If the node
+// or any other nodes as specified in the deps argument change, the
+// cached data will be deleted. A change of any cached data is
+// considered a change of the node itself, thus caches will be cleared
+// recursively. Each cached data is identified by an id which contains
+// a namespace prefix, e.g. `mymodule.thumbnail_large`.
+func (s *MonstiClient) ToNodeCache(node string, site string, id string,
+	content []byte, deps []string) error {
+	if s.Error != nil {
+		return nil
+	}
+	args := struct {
+		Node, Site, Id string
+		Content        []byte
+		Deps           []string
+	}{node, site, id, content, deps}
+	if err := s.RPCClient.Call("Monsti.ToNodeCache", &args, new(int)); err != nil {
+		return fmt.Errorf("service: ToNodeCache error: %v", err)
+	}
+	return nil
+}
+
+// FromNodeCache retrieves the given cached data or nil if the cache is empty.
+//
+// See ToNodeCache for more information.
+func (s *MonstiClient) FromNodeCache(node string, site string,
+	id string) ([]byte, error) {
+	if s.Error != nil {
+		return nil, s.Error
+	}
+	type FromNodeCacheArgs struct {
+	}
+	args := struct{ Path, Site, Id string }{node, site, id}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.FromNodeCache", &args, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("service: FromNodeCache error:", err)
+	}
+	return reply, nil
+}

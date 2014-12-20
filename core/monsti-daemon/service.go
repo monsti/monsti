@@ -448,3 +448,60 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 	}
 	return nil
 }
+
+func fromNodeCache(root, node, id string) ([]byte, error) {
+	path := filepath.Join(root, node[1:], ".cache",
+		filepath.Base(id))
+	ret, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	return ret, err
+}
+
+type FromNodeCacheArgs struct {
+	Node, Site, Id string
+}
+
+func (i *MonstiService) FromNodeCache(args *FromNodeCacheArgs,
+	reply *[]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	var err error
+	*reply, err = fromNodeCache(site, args.Node, args.Id)
+	return err
+}
+
+func toNodeCache(root, node, id string, content []byte, deps []string) error {
+	nodePath := filepath.Join(root, node[1:])
+	path := filepath.Join(nodePath, ".cache", filepath.Base(id))
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
+	if err := ioutil.WriteFile(path, content, 0600); err != nil {
+		return fmt.Errorf("Could not write node cache: %v", err)
+	}
+	rdepsPath := filepath.Join(nodePath, ".rdeps")
+	rdeps, err := ioutil.ReadFile(rdepsPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	for _, dep := range deps {
+		rdeps = append(rdeps, []byte(fmt.Sprintln(dep))...)
+	}
+	if err := ioutil.WriteFile(rdepsPath, rdeps, 0600); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	return nil
+}
+
+type ToNodeCacheArgs struct {
+	Node, Site, Id string
+	Content        []byte
+	Deps           []string
+}
+
+func (i *MonstiService) ToNodeCache(args *ToNodeCacheArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	return toNodeCache(site, args.Node, args.Id, args.Content, args.Deps)
+}
