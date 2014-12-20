@@ -1,4 +1,5 @@
 * unreleased
+ - Fixed positioning of admin bar.
  - Implemented RPC method Monsti.RemoveNodeData
 
 * 0.7.0 - released 2014/12/17
