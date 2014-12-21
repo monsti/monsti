@@ -467,7 +467,7 @@ func (i *MonstiService) FromNodeCache(args *FromNodeCacheArgs,
 	reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	var err error
-	*reply, err = fromNodeCache(site, args.Node, args.Id)
+	*reply, err = fromNodeCache(filepath.Join(site, ".cache"), args.Node, args.Id)
 	return err
 }
 
@@ -552,8 +552,8 @@ type ToNodeCacheArgs struct {
 func (i *MonstiService) ToNodeCache(args *ToNodeCacheArgs,
 	reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return toNodeCache(site, args.Node, args.Id, args.Content, args.RDeps,
-		args.Deps)
+	return toNodeCache(filepath.Join(site, ".cache"), args.Node, args.Id,
+		args.Content, args.RDeps, args.Deps)
 }
 
 func markDep(root string, dep service.CacheDep) error {
