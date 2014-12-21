@@ -1,8 +1,10 @@
 @import "base";
 
 #admin-bar {
-  font-family: 'Open Sans', sans-serif;
-  position: absolute;
+  font: 14px/20px arial, sans-serif;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   background: #EEE;
   padding: 0;
@@ -12,18 +14,15 @@
   @include background-image(linear-gradient(
                               bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%));
   &> div {
-    margin: 0 auto;
-    width: 900px;
     box-sizing: border-box;
-    padding: 6px 50px;
+    padding: 6px 15px;
     @include clearfix;
   }
   .brand {
-    position: absolute;
-    left: 15px;
+    float: left;
     line-height: 20px;
     vertical-align: middle;
-    margin: 3px 20px 0 0;
+    margin: 3px 40px 0 0;
     padding: 0;
   }
   ul {
