@@ -1,4 +1,5 @@
 * unreleased
+ - Implemented a cache system.
  - Fixed positioning of admin bar.
  - Implemented RPC method Monsti.RemoveNodeData
 
