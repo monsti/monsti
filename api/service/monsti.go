@@ -750,7 +750,7 @@ func (s *MonstiClient) FromCache(site string, node string,
 	if s.Error != nil {
 		return nil, s.Error
 	}
-	args := struct{ Path, Site, Id string }{node, site, id}
+	args := struct{ Node, Site, Id string }{node, site, id}
 	var reply []byte
 	err := s.RPCClient.Call("Monsti.FromNodeCache", &args, &reply)
 	if err != nil {

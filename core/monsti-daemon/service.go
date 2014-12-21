@@ -590,5 +590,5 @@ type MarkDepArgs struct {
 
 func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return markDep(site, args.Dep)
+	return markDep(filepath.Join(site, ".cache"), args.Dep)
 }
