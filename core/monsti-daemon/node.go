@@ -587,6 +587,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					}
 				}
 				http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
+				err = c.Serv.Monsti().MarkDep(
+					c.Site.Name, service.CacheDep{Node: node.Path})
+				if err != nil {
+					return fmt.Errorf("Could not mark node: %v", err)
+				}
 				return nil
 			}
 		}

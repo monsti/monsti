@@ -725,7 +725,7 @@ type CacheDep struct {
 // delete caches as specified by the rdeps argument. Each cached data
 // is identified by an id which contains a namespace prefix,
 // e.g. `mymodule.thumbnail_large`.
-func (s *MonstiClient) ToCache(node string, site string, id string,
+func (s *MonstiClient) ToCache(site, node string, id string,
 	content []byte, rdeps []CacheDep, deps []CacheDep) error {
 	if s.Error != nil {
 		return nil
@@ -745,7 +745,7 @@ func (s *MonstiClient) ToCache(node string, site string, id string,
 // FromCache retrieves the given cached data or nil if the cache is empty.
 //
 // See ToNodeCache for more information.
-func (s *MonstiClient) FromCache(node string, site string,
+func (s *MonstiClient) FromCache(site string, node string,
 	id string) ([]byte, error) {
 	if s.Error != nil {
 		return nil, s.Error
