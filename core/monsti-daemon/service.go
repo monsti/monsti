@@ -531,8 +531,10 @@ func toNodeCache(root, node, id string, content []byte,
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
 	thisDep := service.CacheDep{Node: node, Cache: id}
-	if err := appendRdeps(root, thisDep, rdeps); err != nil {
-		return fmt.Errorf("Could not write rdeps: %v", err)
+	if rdeps != nil {
+		if err := appendRdeps(root, thisDep, rdeps); err != nil {
+			return fmt.Errorf("Could not write rdeps: %v", err)
+		}
 	}
 	for _, dep := range deps {
 		err := appendRdeps(root, dep, []service.CacheDep{thisDep})
