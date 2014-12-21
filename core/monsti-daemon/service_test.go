@@ -179,28 +179,28 @@ func TestFindAddableNodeTypes(t *testing.T) {
 	}
 }
 
-func TestNodeCache(t *testing.T) {
-	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestNodeCache")
+func TestCache(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestCache")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
-	err = toNodeCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"),
+	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"),
 		nil, nil)
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	err = toNodeCache(root, "/foo/bar", "foo.another_cache", []byte("test2"),
+	err = toCache(root, "/foo/bar", "foo.another_cache", []byte("test2"),
 		nil, []service.CacheDep{{Node: "/foo/bar/cruz"}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	err = toNodeCache(root, "/foo", "foo.another_cache", []byte("test3"),
+	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
 		nil, []service.CacheDep{{Node: "/foo/bar/cruz"}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	ret, err := fromNodeCache(root, "/foo", "foo.another_cache")
+	ret, err := fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestNodeCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
-	ret, err = fromNodeCache(root, "/foo", "foo.another_cache")
+	ret, err = fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
