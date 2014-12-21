@@ -719,7 +719,7 @@ type CacheDep struct {
 // ToCache caches the given data.
 //
 // Each node has a cache where arbitrary data can be stored. The data
-// may be retrieved later with the FromNodeCache method. If the node
+// may be retrieved later with the FromCache method. If the node
 // or any other nodes as specified in the deps argument change, the
 // cached data will be deleted. A change of any cached data will
 // delete caches as specified by the rdeps argument. Each cached data
@@ -736,32 +736,32 @@ func (s *MonstiClient) ToCache(site, node string, id string,
 		RDeps          []CacheDep
 		Deps           []CacheDep
 	}{node, site, id, content, rdeps, deps}
-	if err := s.RPCClient.Call("Monsti.ToNodeCache", &args, new(int)); err != nil {
-		return fmt.Errorf("service: ToNodeCache error: %v", err)
+	if err := s.RPCClient.Call("Monsti.ToCache", &args, new(int)); err != nil {
+		return fmt.Errorf("service: ToCache error: %v", err)
 	}
 	return nil
 }
 
 // FromCache retrieves the given cached data or nil if the cache is empty.
 //
-// See ToNodeCache for more information.
+// See ToCache for more information.
 func (s *MonstiClient) FromCache(site string, node string,
 	id string) ([]byte, error) {
 	if s.Error != nil {
 		return nil, s.Error
 	}
-	args := struct{ Path, Site, Id string }{node, site, id}
+	args := struct{ Node, Site, Id string }{node, site, id}
 	var reply []byte
-	err := s.RPCClient.Call("Monsti.FromNodeCache", &args, &reply)
+	err := s.RPCClient.Call("Monsti.FromCache", &args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: FromNodeCache error:", err)
+		return nil, fmt.Errorf("service: FromCache error:", err)
 	}
 	return reply, nil
 }
 
 // MarkDep marks the given cache dependency as dirty.
 //
-// See ToNodeCache for more information.
+// See ToCache for more information.
 func (s *MonstiClient) MarkDep(site string, dep CacheDep) error {
 	if s.Error != nil {
 		return s.Error
