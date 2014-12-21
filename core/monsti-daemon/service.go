@@ -448,3 +448,147 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 	}
 	return nil
 }
+
+func fromNodeCache(root, node, id string) ([]byte, error) {
+	path := filepath.Join(root, node[1:], ".data",
+		filepath.Base(id))
+	ret, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	return ret, err
+}
+
+type FromNodeCacheArgs struct {
+	Node, Site, Id string
+}
+
+func (i *MonstiService) FromNodeCache(args *FromNodeCacheArgs,
+	reply *[]byte) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	var err error
+	*reply, err = fromNodeCache(site, args.Node, args.Id)
+	return err
+}
+
+type CacheDepPair struct {
+	Dep   service.CacheDep
+	RDeps []service.CacheDep
+}
+
+type CacheDepMap []CacheDepPair
+
+func readRdeps(root, node string) (CacheDepMap, error) {
+	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
+	content, err := ioutil.ReadFile(rdepsPath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	if content == nil {
+		return nil, nil
+	}
+	var depMap CacheDepMap
+	err = json.Unmarshal(content, &depMap)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal rdeps: %v", err)
+	}
+	return depMap, nil
+}
+
+func writeRdeps(root, node string, rdeps CacheDepMap) error {
+	content, err := json.MarshalIndent(rdeps, "", "  ")
+	if err != nil {
+		return fmt.Errorf("Could not marshal rdeps: %v", err)
+	}
+	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
+	if err := ioutil.WriteFile(rdepsPath, content, 0600); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	return nil
+}
+
+func appendRdeps(root string, dep service.CacheDep,
+	rdeps []service.CacheDep) error {
+	depMap, err := readRdeps(root, dep.Node)
+	if err != nil {
+		return fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	depMap = append(depMap, CacheDepPair{dep, rdeps})
+	if err := writeRdeps(root, dep.Node, depMap); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	return nil
+}
+
+func toNodeCache(root, node, id string, content []byte,
+	rdeps, deps []service.CacheDep) error {
+	nodePath := filepath.Join(root, node[1:])
+	path := filepath.Join(nodePath, ".data", filepath.Base(id))
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
+	if err := ioutil.WriteFile(path, content, 0600); err != nil {
+		return fmt.Errorf("Could not write node cache: %v", err)
+	}
+	thisDep := service.CacheDep{Node: node, Cache: id}
+	if err := appendRdeps(root, thisDep, rdeps); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	for _, dep := range deps {
+		err := appendRdeps(root, dep, []service.CacheDep{thisDep})
+		if err != nil {
+			return fmt.Errorf("Could not write rdeps: %v", err)
+		}
+	}
+	return nil
+}
+
+type ToNodeCacheArgs struct {
+	Node, Site, Id string
+	Content        []byte
+	RDeps, Deps    []service.CacheDep
+}
+
+func (i *MonstiService) ToNodeCache(args *ToNodeCacheArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	return toNodeCache(site, args.Node, args.Id, args.Content, args.RDeps,
+		args.Deps)
+}
+
+func markDep(root string, dep service.CacheDep) error {
+	rdeps, err := readRdeps(root, dep.Node)
+	if err != nil {
+		return fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	if dep.Cache != "" {
+		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("Could not remove cached data: %v", err)
+		}
+	}
+	var newDeps CacheDepMap
+	for _, rdep := range rdeps {
+		if rdep.Dep == dep {
+			for _, nested := range rdep.RDeps {
+				markDep(root, nested)
+			}
+		} else {
+			newDeps = append(newDeps, rdep)
+		}
+	}
+	if err := writeRdeps(root, dep.Node, newDeps); err != nil {
+		return fmt.Errorf("Could not write new rdeps: %v", err)
+	}
+	return nil
+}
+
+type MarkDepArgs struct {
+	Site string
+	Dep  service.CacheDep
+}
+
+func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
+	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	return markDep(site, args.Dep)
+}
