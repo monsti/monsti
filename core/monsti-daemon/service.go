@@ -449,7 +449,7 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 	return nil
 }
 
-func fromNodeCache(root, node, id string) ([]byte, error) {
+func fromCache(root, node, id string) ([]byte, error) {
 	path := filepath.Join(root, node[1:], ".data",
 		filepath.Base(id))
 	ret, err := ioutil.ReadFile(path)
@@ -459,15 +459,14 @@ func fromNodeCache(root, node, id string) ([]byte, error) {
 	return ret, err
 }
 
-type FromNodeCacheArgs struct {
+type FromCacheArgs struct {
 	Node, Site, Id string
 }
 
-func (i *MonstiService) FromNodeCache(args *FromNodeCacheArgs,
-	reply *[]byte) error {
+func (i *MonstiService) FromCache(args *FromCacheArgs, reply *[]byte) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	var err error
-	*reply, err = fromNodeCache(filepath.Join(site, ".cache"), args.Node, args.Id)
+	*reply, err = fromCache(filepath.Join(site, ".cache"), args.Node, args.Id)
 	return err
 }
 
@@ -520,7 +519,7 @@ func appendRdeps(root string, dep service.CacheDep,
 	return nil
 }
 
-func toNodeCache(root, node, id string, content []byte,
+func toCache(root, node, id string, content []byte,
 	rdeps, deps []service.CacheDep) error {
 	nodePath := filepath.Join(root, node[1:])
 	path := filepath.Join(nodePath, ".data", filepath.Base(id))
@@ -531,8 +530,10 @@ func toNodeCache(root, node, id string, content []byte,
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
 	thisDep := service.CacheDep{Node: node, Cache: id}
-	if err := appendRdeps(root, thisDep, rdeps); err != nil {
-		return fmt.Errorf("Could not write rdeps: %v", err)
+	if rdeps != nil {
+		if err := appendRdeps(root, thisDep, rdeps); err != nil {
+			return fmt.Errorf("Could not write rdeps: %v", err)
+		}
 	}
 	for _, dep := range deps {
 		err := appendRdeps(root, dep, []service.CacheDep{thisDep})
@@ -543,16 +544,15 @@ func toNodeCache(root, node, id string, content []byte,
 	return nil
 }
 
-type ToNodeCacheArgs struct {
+type ToCacheArgs struct {
 	Node, Site, Id string
 	Content        []byte
 	RDeps, Deps    []service.CacheDep
 }
 
-func (i *MonstiService) ToNodeCache(args *ToNodeCacheArgs,
-	reply *int) error {
+func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return toNodeCache(filepath.Join(site, ".cache"), args.Node, args.Id,
+	return toCache(filepath.Join(site, ".cache"), args.Node, args.Id,
 		args.Content, args.RDeps, args.Deps)
 }
 
@@ -590,5 +590,5 @@ type MarkDepArgs struct {
 
 func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return markDep(site, args.Dep)
+	return markDep(filepath.Join(site, ".cache"), args.Dep)
 }
