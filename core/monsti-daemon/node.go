@@ -274,10 +274,12 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 					c.Site.Name, err)
 			}
 		} else {
-			sizePath := "__image_" + size.String()
-			body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-				sizePath)
-			if err != nil || body == nil {
+			cacheId := "core.image.thumbnail." + size.String()
+			body, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path, cacheId)
+			if err != nil {
+				return fmt.Errorf("Could not get thumbnail from cache: %v", err)
+			}
+			if body == nil {
 				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
 					"__file_core.File")
 				if err != nil {
@@ -295,9 +297,10 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 				if err != nil {
 					return fmt.Errorf("Could not encode resized image: %v", err)
 				}
-				if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
-					sizePath, body); err != nil {
-					return fmt.Errorf("Could not write resized image data: %v", err)
+				if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+					cacheId, body, nil,
+					[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+					return fmt.Errorf("Could not cache resized image data: %v", err)
 				}
 			}
 		}
