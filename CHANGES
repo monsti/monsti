@@ -1,4 +1,5 @@
 * unreleased
+ - Wait for all modules to finish initialization.
  - Fix thumbnail generation.
  - Implemented a cache system.
  - Fixed positioning of admin bar.
