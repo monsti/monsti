@@ -151,7 +151,7 @@ func dataToNode(data []byte,
 	}
 
 	if err = ret.InitFields(m, site); err != nil {
-		return nil, fmt.Errorf("Could not init node fields: %v", err)
+		return nil, fmt.Errorf("Could not init node fields (node: %q): %v", ret, err)
 	}
 	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
 	for _, field := range nodeFields {

@@ -176,7 +176,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.UserSession.Locale = c.Site.Locale
 	c.Node, err = c.Serv.Monsti().GetNode(c.Site.Name, nodePath)
 	if err != nil {
-		serveError("Error getting node: %v", err)
+		serveError("Error getting node %v of site %v: %v",
+			nodePath, c.Site.Name, err)
 	}
 	if c.Node == nil ||
 		(c.UserSession.User == nil &&
