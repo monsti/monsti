@@ -131,6 +131,10 @@ func main() {
 		}
 	}()
 
+	monsti.moduleInit = make(map[string]chan bool)
+	for _, module := range settings.Modules {
+		monsti.moduleInit[module] = make(chan bool)
+	}
 	// Start modules
 	for _, module := range settings.Modules {
 		logger.Println("Starting module", module)
@@ -143,6 +147,13 @@ func main() {
 			}
 		}()
 	}
+	// Wait until all modules called ModuleInitDone
+	logger.Println("Waiting for modules to finish initialization...")
+	for _, module := range settings.Modules {
+		logger.Printf("Waiting for %v...", module)
+		<-monsti.moduleInit[module]
+	}
+	logger.Println("All modules done.")
 
 	sessions := service.NewSessionPool(1, monstiPath)
 	renderer := template.Renderer{Root: settings.Monsti.GetTemplatesPath()}
