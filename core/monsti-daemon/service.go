@@ -56,6 +56,7 @@ type MonstiService struct {
 	Settings      *settings
 	Logger        *log.Logger
 	Handler       *nodeHandler
+	moduleInit    map[string]chan bool
 	subscriptions map[string][]string
 	subscriber    map[string]chan *signal
 	subscriberRet map[string]chan emitRet
@@ -86,7 +87,9 @@ func (i *MonstiService) PublishService(args PublishServiceArgs,
 }
 
 func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
-	// TODO Implement me
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	i.moduleInit[args] <- true
 	return nil
 }
 
