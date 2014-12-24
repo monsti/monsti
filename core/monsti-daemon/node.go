@@ -356,9 +356,15 @@ func (h *nodeHandler) View(c *reqContext) error {
 	}
 
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
-	var content []byte
-	content = []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
+	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
+	if c.UserSession.User == nil {
+		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+			"core.page.full", content, nil,
+			[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+			return fmt.Errorf("Could not cache page: %v", err)
+		}
+	}
 
 	c.Res.Write(content)
 	return nil
@@ -588,7 +594,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
 				err = c.Serv.Monsti().MarkDep(
-					c.Site.Name, service.CacheDep{Node: node.Path})
+					c.Site.Name, service.CacheDep{Node: path.Clean(node.Path)})
 				if err != nil {
 					return fmt.Errorf("Could not mark node: %v", err)
 				}

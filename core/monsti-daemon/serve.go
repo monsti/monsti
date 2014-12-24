@@ -174,6 +174,16 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		serveError("Could not get client session: %v", err)
 	}
 	c.UserSession.Locale = c.Site.Locale
+
+	if c.UserSession.User == nil && c.Action == service.ViewAction {
+		content, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
+			"core.page.full")
+		if err == nil && content != nil {
+			c.Res.Write(content)
+			return
+		}
+	}
+
 	c.Node, err = c.Serv.Monsti().GetNode(c.Site.Name, nodePath)
 	if err != nil {
 		serveError("Error getting node %v of site %v: %v",
