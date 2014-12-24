@@ -113,7 +113,6 @@ func main() {
 	var waitGroup sync.WaitGroup
 
 	// Start service handler
-	logger.Println("Setting up service")
 	monstiPath := settings.Monsti.GetServicePath(service.MonstiService.String())
 	monsti := new(MonstiService)
 	monsti.Settings = &settings
@@ -130,30 +129,6 @@ func main() {
 			logger.Fatalf("Could not accept at service: %v", err)
 		}
 	}()
-
-	monsti.moduleInit = make(map[string]chan bool)
-	for _, module := range settings.Modules {
-		monsti.moduleInit[module] = make(chan bool)
-	}
-	// Start modules
-	for _, module := range settings.Modules {
-		logger.Println("Starting module", module)
-		executable := "monsti-" + module
-		cmd := exec.Command(executable, cfgPath)
-		cmd.Stderr = moduleLog{module, logger}
-		go func() {
-			if err := cmd.Run(); err != nil {
-				logger.Fatalf("Module %q failed: %v", module, err)
-			}
-		}()
-	}
-	// Wait until all modules called ModuleInitDone
-	logger.Println("Waiting for modules to finish initialization...")
-	for _, module := range settings.Modules {
-		logger.Printf("Waiting for %v...", module)
-		<-monsti.moduleInit[module]
-	}
-	logger.Println("All modules done.")
 
 	sessions := service.NewSessionPool(1, monstiPath)
 	renderer := template.Renderer{Root: settings.Monsti.GetTemplatesPath()}
@@ -178,6 +153,27 @@ func main() {
 			}
 		}
 	}()
+
+	// Start modules
+	monsti.moduleInit = make(map[string]chan bool)
+	for _, module := range settings.Modules {
+		monsti.moduleInit[module] = make(chan bool)
+	}
+	for _, module := range settings.Modules {
+		executable := "monsti-" + module
+		cmd := exec.Command(executable, cfgPath)
+		cmd.Stderr = moduleLog{module, logger}
+		go func() {
+			if err := cmd.Run(); err != nil {
+				logger.Fatalf("Module %q failed: %v", module, err)
+			}
+		}()
+	}
+	logger.Println("Waiting for modules to finish initialization...")
+	for _, module := range settings.Modules {
+		logger.Printf("Waiting for %q...", module)
+		<-monsti.moduleInit[module]
+	}
 
 	// Setup up httpd
 	handler := nodeHandler{
@@ -207,7 +203,7 @@ func main() {
 		waitGroup.Done()
 	}()
 
-	logger.Printf("Monsti is up and running, listening on %q", settings.Listen)
+	logger.Printf("Monsti is up and running, listening on %q.", settings.Listen)
 	waitGroup.Wait()
 	logger.Println("Monsti is shutting down.")
 }
