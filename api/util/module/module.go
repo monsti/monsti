@@ -74,7 +74,7 @@ func StartModule(name string, setup func(context *ModuleContext) error) {
 	}); err != nil {
 		logger.Fatalf("Could not setup module: %v", err)
 	}
-	if err := session.Monsti().ModuleInitDone("example-module"); err != nil {
+	if err := session.Monsti().ModuleInitDone(name); err != nil {
 		logger.Fatalf("Could not finish initialization: %v", err)
 	}
 	for {
