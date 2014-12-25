@@ -24,6 +24,7 @@ import (
 	"log"
 	"net/smtp"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -503,6 +504,9 @@ func writeRdeps(root, node string, rdeps CacheDepMap) error {
 		return fmt.Errorf("Could not marshal rdeps: %v", err)
 	}
 	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
+	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
 	if err := ioutil.WriteFile(rdepsPath, content, 0600); err != nil {
 		return fmt.Errorf("Could not write rdeps: %v", err)
 	}
@@ -559,12 +563,14 @@ func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
 		args.Content, args.RDeps, args.Deps)
 }
 
-func markDep(root string, dep service.CacheDep) error {
+func markDep(root string, dep service.CacheDep, level int) error {
+	//	log.Println("markdep", dep, level)
 	rdeps, err := readRdeps(root, dep.Node)
 	if err != nil {
 		return fmt.Errorf("Could not read rdeps: %v", err)
 	}
 	if dep.Cache != "" {
+		//		log.Println("Removing cache", dep.Cache)
 		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("Could not remove cached data: %v", err)
@@ -572,16 +578,30 @@ func markDep(root string, dep service.CacheDep) error {
 	}
 	var newDeps CacheDepMap
 	for _, rdep := range rdeps {
-		if rdep.Dep == dep {
+		//log.Println(rdep)
+		descend := rdep.Dep.Descend
+		rdep.Dep.Descend = 0
+		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
+		if descend == -1 || descend >= level && rdep.Dep == dep {
+			//log.Println("Match!")
 			for _, nested := range rdep.RDeps {
-				markDep(root, nested)
+				markDep(root, nested, 0)
 			}
 		} else {
+			rdep.Dep.Descend = descend
 			newDeps = append(newDeps, rdep)
 		}
 	}
 	if err := writeRdeps(root, dep.Node, newDeps); err != nil {
 		return fmt.Errorf("Could not write new rdeps: %v", err)
+	}
+
+	if dep.Node != "/" {
+		//log.Printf("Marking parent. Old dep: %+v", dep)
+		dep.Node = path.Dir(dep.Node)
+		if err := markDep(root, dep, level+1); err != nil {
+			return fmt.Errorf("Could not mark parent: %v", err)
+		}
 	}
 	return nil
 }
@@ -593,5 +613,5 @@ type MarkDepArgs struct {
 
 func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return markDep(filepath.Join(site, ".cache"), args.Dep)
+	return markDep(filepath.Join(site, ".cache"), args.Dep, 0)
 }

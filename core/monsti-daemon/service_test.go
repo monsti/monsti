@@ -207,7 +207,7 @@ func TestCache(t *testing.T) {
 	if !reflect.DeepEqual(ret, []byte("test3")) {
 		t.Fatalf("test3 should be in cache, got %v", string(ret))
 	}
-	err = markDep(root, service.CacheDep{Node: "/foo/bar/cruz"})
+	err = markDep(root, service.CacheDep{Node: "/foo/bar/cruz"}, 0)
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
@@ -217,5 +217,71 @@ func TestCache(t *testing.T) {
 	}
 	if ret != nil {
 		t.Fatalf("Cache should be nil, got %v", string(ret))
+	}
+}
+
+func TestCacheMarkDescend(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestCache")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"),
+		nil, nil)
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	err = toCache(root, "/foo/bar", "foo.some_cache", []byte("test2"),
+		nil, nil)
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+
+	// Descend one level
+	var ret []byte
+	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
+		nil, []service.CacheDep{{Node: "/foo", Descend: 1}})
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	err = markDep(root, service.CacheDep{Node: "/foo/bar/cruz"}, 0)
+	if err != nil {
+		t.Fatalf("Could not mark dep: %v", err)
+	}
+	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	if ret == nil {
+		t.Errorf("Cache should not be nil")
+	}
+	err = markDep(root, service.CacheDep{Node: "/foo/bar"}, 0)
+	if err != nil {
+		t.Fatalf("Could not mark dep: %v", err)
+	}
+	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	if ret != nil {
+		t.Errorf("Cache should be nil, got %v", string(ret))
+	}
+
+	// Descend all levels
+	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
+		nil, []service.CacheDep{{Node: "/foo", Descend: -1}})
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	err = markDep(root, service.CacheDep{Node: "/foo/bar/cruz"}, 0)
+	if err != nil {
+		t.Fatalf("Could not mark dep: %v", err)
+	}
+	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	if ret != nil {
+		t.Errorf("Cache should be nil, got %v", string(ret))
 	}
 }

@@ -341,22 +341,41 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.RenderNode(c, nil)
-	if err != nil {
-		return fmt.Errorf("Could not render node: %v", err)
+	var rendered []byte
+	var err error
+	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
+		rendered, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path,
+			"core.page.partial")
+		if err != nil {
+			return fmt.Errorf("Could not get partial cache: %v", err)
+		}
+	}
+	if rendered == nil {
+		rendered, err = h.RenderNode(c, nil)
+		if err != nil {
+			return fmt.Errorf("Could not render node: %v", err)
+		}
+		if c.UserSession.User == nil {
+			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+				"core.page.partial", rendered, nil,
+				[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+				return fmt.Errorf("Could not cache page: %v", err)
+			}
+		}
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
-
 	if c.UserSession.User == nil {
 		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 			"core.page.full", content, nil,
-			[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+			[]service.CacheDep{
+				{Node: c.Node.Path, Descend: -1},
+				{Node: c.Node.Path, Cache: "core.page.partial"},
+			}); err != nil {
 			return fmt.Errorf("Could not cache page: %v", err)
 		}
 	}
-
 	c.Res.Write(content)
 	return nil
 }

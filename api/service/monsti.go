@@ -712,8 +712,13 @@ func (s *MonstiClient) WaitSignal() error {
 }
 
 type CacheDep struct {
-	Node  string
-	Cache string
+	// Path to the node.
+	Node string
+	// Cache ID.
+	Cache string `json:",omitempty"`
+	// On how many child levels does this dependency apply? -1 for the
+	// whole subtree. 0 for this node only.
+	Descend int `json:",omitempty"`
 }
 
 // ToCache caches the given data.
@@ -754,7 +759,7 @@ func (s *MonstiClient) FromCache(site string, node string,
 	var reply []byte
 	err := s.RPCClient.Call("Monsti.FromCache", &args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: FromCache error:", err)
+		return nil, fmt.Errorf("service: FromCache error: %v", err)
 	}
 	return reply, nil
 }
@@ -771,7 +776,7 @@ func (s *MonstiClient) MarkDep(site string, dep CacheDep) error {
 		Dep  CacheDep
 	}{site, dep}
 	if err := s.RPCClient.Call("Monsti.MarkDep", &args, new(int)); err != nil {
-		return fmt.Errorf("service: MarkDep error:", err)
+		return fmt.Errorf("service: MarkDep error: %v", err)
 	}
 	return nil
 }
