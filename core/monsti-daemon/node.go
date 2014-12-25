@@ -370,7 +370,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 			"core.page.full", content, nil,
 			[]service.CacheDep{
-				{Node: c.Node.Path, Descend: -1},
+				{Node: "/", Descend: -1},
 				{Node: c.Node.Path, Cache: "core.page.partial"},
 			}); err != nil {
 			return fmt.Errorf("Could not cache page: %v", err)

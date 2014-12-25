@@ -260,7 +260,9 @@ func (s *MonstiClient) RemoveNodeData(site, path, file string) error {
 	return nil
 }
 
-// RemoveNode recursively removes the given site's node.
+// RemoveNode removes the given site's node and all its descendants.
+//
+// All reverse cache dependencies of removed nodes will be marked.
 func (s *MonstiClient) RemoveNode(site string, node string) error {
 	if s.Error != nil {
 		return nil
@@ -276,7 +278,8 @@ func (s *MonstiClient) RemoveNode(site string, node string) error {
 
 // RenameNode renames (moves) the given site's node.
 //
-// Source and target path must be absolute
+// Source and target path must be absolute. TODO: All reverse cache
+// dependencies of moved nodes will be marked.
 func (s *MonstiClient) RenameNode(site, source, target string) error {
 	if s.Error != nil {
 		return nil

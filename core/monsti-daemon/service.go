@@ -307,6 +307,39 @@ type RemoveNodeArgs struct {
 func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	nodePath := filepath.Join(root, args.Node[1:])
+	// Mark all reverse deps.
+	walker := func(path string, info os.FileInfo, err error) error {
+		log.Println("walk", path)
+		if err != nil {
+			return err
+		}
+		if info.Name() == ".cache" {
+			return filepath.SkipDir
+			log.Println("skip cache")
+		}
+		if info.Name() == "node.json" {
+			cacheRoot := filepath.Join(root, ".cache")
+			cacheNodePath, err := filepath.Rel(root, filepath.Dir(path))
+			if err != nil {
+				return err
+			}
+			rdeps, err := readRdeps(cacheRoot, "/"+cacheNodePath)
+			if err != nil {
+				return err
+			}
+			for _, rdep := range rdeps {
+				log.Println("check", rdep)
+				err := markDep(cacheRoot, rdep.Dep, 0)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	if err := filepath.Walk(nodePath, walker); err != nil {
+		return fmt.Errorf("Could not walk to be removed subtree: %v", err)
+	}
 	if err := os.RemoveAll(nodePath); err != nil {
 		return fmt.Errorf("Can't remove node: %v", err)
 	}
@@ -572,10 +605,11 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	if dep.Cache != "" {
 		//		log.Println("Removing cache", dep.Cache)
 		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
-		if err := os.Remove(path); err != nil {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("Could not remove cached data: %v", err)
 		}
 	}
+	toBeMarked := make([]service.CacheDep, 0)
 	var newDeps CacheDepMap
 	for _, rdep := range rdeps {
 		//log.Println(rdep)
@@ -584,9 +618,7 @@ func markDep(root string, dep service.CacheDep, level int) error {
 		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
 		if descend == -1 || descend >= level && rdep.Dep == dep {
 			//log.Println("Match!")
-			for _, nested := range rdep.RDeps {
-				markDep(root, nested, 0)
-			}
+			toBeMarked = append(toBeMarked, rdep.RDeps...)
 		} else {
 			rdep.Dep.Descend = descend
 			newDeps = append(newDeps, rdep)
@@ -594,6 +626,9 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	}
 	if err := writeRdeps(root, dep.Node, newDeps); err != nil {
 		return fmt.Errorf("Could not write new rdeps: %v", err)
+	}
+	for _, dep := range toBeMarked {
+		markDep(root, dep, 0)
 	}
 
 	if dep.Node != "/" {
