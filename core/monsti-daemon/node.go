@@ -225,9 +225,6 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	case "GET":
 		data.Confirm = "ok"
 	case "POST":
-		if err := c.Req.ParseForm(); err != nil {
-			return err
-		}
 		if form.Fill(c.Req.Form) && data.Confirm == "ok" {
 			if err := c.Serv.Monsti().RemoveNode(c.Site.Name, c.Node.Path); err != nil {
 				return fmt.Errorf("Could not remove node: %v", err)
@@ -318,12 +315,6 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
-	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
-
-	if err := c.Req.ParseForm(); err != nil {
-		return err
-	}
-
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
@@ -354,10 +345,10 @@ func (h *nodeHandler) View(c *reqContext) error {
 	if err != nil {
 		return fmt.Errorf("Could not render node: %v", err)
 	}
-
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
+
 	if c.UserSession.User == nil {
 		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 			"core.page.full", content, nil,
@@ -445,7 +436,6 @@ type editFormData struct {
 // EditNode handles node edits.
 func (h *nodeHandler) Edit(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
-	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	if err := c.Req.ParseMultipartForm(1024 * 1024); err != nil {
 		if err != http.ErrNotMultipart {

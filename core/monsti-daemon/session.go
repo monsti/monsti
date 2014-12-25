@@ -54,7 +54,6 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		c.Req.ParseForm()
 		if form.Fill(c.Req.Form) {
 			user, err := getUser(data.Login,
 				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
@@ -108,7 +107,6 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 	form.AddWidget(new(htmlwidgets.TextWidget), "User", G("Login"), "")
 
 	sent := false
-	c.Req.ParseForm()
 	switch c.Req.Method {
 	case "GET":
 		if _, ok := c.Req.Form["sent"]; ok {
@@ -193,7 +191,6 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 	}, "Password", G("New Password"), "")
 	var token string
 	tokenInvalid := false
-	c.Req.ParseForm()
 	var user *service.User
 	if !authenticated {
 		if tokens, ok := c.Req.Form["token"]; ok {

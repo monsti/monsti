@@ -175,9 +175,16 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.UserSession.Locale = c.Site.Locale
 
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	if err := c.Req.ParseForm(); err != nil {
+		serveError("Could not parse form: %v", err)
+	}
+
 	// Try to serve page from cache
 	if c.UserSession.User == nil && c.Action == service.ViewAction &&
-		nodePath[len(nodePath)-1] == '/' {
+		nodePath[len(nodePath)-1] == '/' &&
+		len(c.Req.Form) == 0 {
 		content, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
 			"core.page.full")
 		if err == nil && content != nil {
