@@ -175,7 +175,9 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.UserSession.Locale = c.Site.Locale
 
-	if c.UserSession.User == nil && c.Action == service.ViewAction {
+	// Try to serve page from cache
+	if c.UserSession.User == nil && c.Action == service.ViewAction &&
+		nodePath[len(nodePath)-1] == '/' {
 		content, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
 			"core.page.full")
 		if err == nil && content != nil {
