@@ -727,27 +727,28 @@ type CacheDep struct {
 // ToCache caches the given data.
 //
 // Each node has a cache where arbitrary data can be stored. The data
-// may be retrieved later with the FromCache method. If the node
-// or any other nodes as specified in the deps argument change, the
-// cached data will be deleted. A change of any cached data will
-// delete caches as specified by the rdeps argument. Each cached data
-// is identified by an id which contains a namespace prefix,
+// may be retrieved later with the FromCache method. If the node or
+// any other nodes as specified in the deps argument change, the
+// cached data will be deleted. Each cached data is identified by an
+// id which contains a namespace prefix,
 // e.g. `mymodule.thumbnail_large`.
+//
+// On success, ToCache will return a `CacheDep` identifying the given
+// cache.
 func (s *MonstiClient) ToCache(site, node string, id string,
-	content []byte, rdeps []CacheDep, deps []CacheDep) error {
+	content []byte, deps []CacheDep) (*CacheDep, error) {
 	if s.Error != nil {
-		return nil
+		return nil, s.Error
 	}
 	args := struct {
 		Node, Site, Id string
 		Content        []byte
-		RDeps          []CacheDep
 		Deps           []CacheDep
-	}{node, site, id, content, rdeps, deps}
+	}{node, site, id, content, deps}
 	if err := s.RPCClient.Call("Monsti.ToCache", &args, new(int)); err != nil {
-		return fmt.Errorf("service: ToCache error: %v", err)
+		return nil, fmt.Errorf("service: ToCache error: %v", err)
 	}
-	return nil
+	return &CacheDep{Node: node, Cache: id}, nil
 }
 
 // FromCache retrieves the given cached data or nil if the cache is empty.

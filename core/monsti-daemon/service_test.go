@@ -185,18 +185,17 @@ func TestCache(t *testing.T) {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
-	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"),
-		nil, nil)
+	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"), nil)
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
 	err = toCache(root, "/foo/bar", "foo.another_cache", []byte("test2"),
-		nil, []service.CacheDep{{Node: "/foo/bar/cruz"}})
+		[]service.CacheDep{{Node: "/foo/bar/cruz"}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
 	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
-		nil, []service.CacheDep{{Node: "/foo/bar/cruz"}})
+		[]service.CacheDep{{Node: "/foo/bar/cruz"}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
@@ -226,13 +225,11 @@ func TestCacheMarkDescend(t *testing.T) {
 		t.Fatalf("Could not create directory tree: ", err)
 	}
 	defer cleanup()
-	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"),
-		nil, nil)
+	err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"), nil)
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	err = toCache(root, "/foo/bar", "foo.some_cache", []byte("test2"),
-		nil, nil)
+	err = toCache(root, "/foo/bar", "foo.some_cache", []byte("test2"), nil)
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
@@ -240,7 +237,7 @@ func TestCacheMarkDescend(t *testing.T) {
 	// Descend one level
 	var ret []byte
 	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
-		nil, []service.CacheDep{{Node: "/foo", Descend: 1}})
+		[]service.CacheDep{{Node: "/foo", Descend: 1}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
@@ -269,7 +266,7 @@ func TestCacheMarkDescend(t *testing.T) {
 
 	// Descend all levels
 	err = toCache(root, "/foo", "foo.another_cache", []byte("test3"),
-		nil, []service.CacheDep{{Node: "/foo", Descend: -1}})
+		[]service.CacheDep{{Node: "/foo", Descend: -1}})
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}

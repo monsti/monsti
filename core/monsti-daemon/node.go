@@ -294,9 +294,8 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 				if err != nil {
 					return fmt.Errorf("Could not encode resized image: %v", err)
 				}
-				if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-					cacheId, body, nil,
-					[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+				if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+					cacheId, body, []service.CacheDep{{Node: c.Node.Path}}); err != nil {
 					return fmt.Errorf("Could not cache resized image data: %v", err)
 				}
 			}
@@ -356,8 +355,8 @@ func (h *nodeHandler) View(c *reqContext) error {
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-				"core.page.partial", rendered, nil,
+			if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+				"core.page.partial", rendered,
 				[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
 				return fmt.Errorf("Could not cache page: %v", err)
 			}
@@ -367,8 +366,8 @@ func (h *nodeHandler) View(c *reqContext) error {
 	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-			"core.page.full", content, nil,
+		if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+			"core.page.full", content,
 			[]service.CacheDep{
 				{Node: "/", Descend: -1},
 				{Node: c.Node.Path, Cache: "core.page.partial"},
