@@ -355,7 +355,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		if err != nil {
 			return fmt.Errorf("Could not render node: %v", err)
 		}
-		if c.UserSession.User == nil {
+		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
 			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 				"core.page.partial", rendered, nil,
 				[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
@@ -366,7 +366,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
-	if c.UserSession.User == nil {
+	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
 		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 			"core.page.full", content, nil,
 			[]service.CacheDep{
