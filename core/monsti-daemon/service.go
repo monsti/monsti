@@ -560,7 +560,7 @@ func appendRdeps(root string, dep service.CacheDep,
 }
 
 func toCache(root, node, id string, content []byte,
-	deps []service.CacheDep) error {
+	mods *service.CacheMods) error {
 	nodePath := filepath.Join(root, node[1:])
 	path := filepath.Join(nodePath, ".data", filepath.Base(id))
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
@@ -570,10 +570,12 @@ func toCache(root, node, id string, content []byte,
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
 	thisDep := service.CacheDep{Node: node, Cache: id}
-	for _, dep := range deps {
-		err := appendRdeps(root, dep, []service.CacheDep{thisDep})
-		if err != nil {
-			return fmt.Errorf("Could not write rdeps: %v", err)
+	if mods != nil {
+		for _, dep := range mods.Deps {
+			err := appendRdeps(root, dep, []service.CacheDep{thisDep})
+			if err != nil {
+				return fmt.Errorf("Could not write rdeps: %v", err)
+			}
 		}
 	}
 	return nil
@@ -582,13 +584,13 @@ func toCache(root, node, id string, content []byte,
 type ToCacheArgs struct {
 	Node, Site, Id string
 	Content        []byte
-	Deps           []service.CacheDep
+	Mods           *service.CacheMods
 }
 
 func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	return toCache(filepath.Join(site, ".cache"), args.Node, args.Id,
-		args.Content, args.Deps)
+		args.Content, args.Mods)
 }
 
 func markDep(root string, dep service.CacheDep, level int) error {

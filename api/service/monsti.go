@@ -685,6 +685,8 @@ type CacheMods struct {
 	Deps []CacheDep
 	// Don't write to the cache.
 	Skip bool
+	// The cache expires at this time.
+	Expire *time.Time
 }
 
 // CacheDep identifies something a cache may depend on and which can
@@ -721,8 +723,8 @@ func (s *MonstiClient) ToCache(site, node string, id string,
 	args := struct {
 		Node, Site, Id string
 		Content        []byte
-		Deps           []CacheDep
-	}{node, site, id, content, mods.Deps}
+		Mods           *CacheMods
+	}{node, site, id, content, mods}
 	if err := s.RPCClient.Call("Monsti.ToCache", &args, new(int)); err != nil {
 		return fmt.Errorf("service: ToCache error: %v", err)
 	}
