@@ -18,9 +18,20 @@ package service
 
 import "encoding/gob"
 
+type NodeContextArgs struct {
+	Request   uint
+	NodeType  string
+	EmbedNode *EmbedNode
+}
+
+type NodeContextRet struct {
+	Context map[string]string
+	Mods    *CacheMods
+}
+
 func init() {
 	gob.RegisterName("monsti.NodeContextArgs", NodeContextArgs{})
-	gob.RegisterName("monsti.NodeContextRet", map[string]string{})
+	gob.RegisterName("monsti.NodeContextRet", NodeContextRet{})
 }
 
 // SignalHandler wraps a handler for a specific signal.
@@ -32,28 +43,24 @@ type SignalHandler interface {
 }
 
 type nodeContextHandler struct {
-	f func(Request uint, NodeType string, embedNode *EmbedNode) map[string]string
+	f func(Request uint, NodeType string, embedNode *EmbedNode) (
+		map[string]string, *CacheMods, error)
 }
 
 func (r *nodeContextHandler) Name() string {
 	return "monsti.NodeContext"
 }
 
-type NodeContextArgs struct {
-	Request   uint
-	NodeType  string
-	EmbedNode *EmbedNode
-}
-
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 	args_ := args.(NodeContextArgs)
-	return r.f(args_.Request, args_.NodeType, args_.EmbedNode), nil
+	context, mods, err := r.f(args_.Request, args_.NodeType, args_.EmbedNode)
+	return NodeContextRet{context, mods}, err
 }
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
 func NewNodeContextHandler(
 	cb func(Request uint, NodeType string,
-		embedNode *EmbedNode) map[string]string) SignalHandler {
+		embedNode *EmbedNode) (map[string]string, *CacheMods, error)) SignalHandler {
 	return &nodeContextHandler{cb}
 }

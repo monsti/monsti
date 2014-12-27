@@ -294,8 +294,9 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 				if err != nil {
 					return fmt.Errorf("Could not encode resized image: %v", err)
 				}
-				if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-					cacheId, body, []service.CacheDep{{Node: c.Node.Path}}); err != nil {
+				if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+					cacheId, body,
+					&service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}); err != nil {
 					return fmt.Errorf("Could not cache resized image data: %v", err)
 				}
 			}
@@ -355,9 +356,9 @@ func (h *nodeHandler) View(c *reqContext) error {
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-			if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 				"core.page.partial", rendered,
-				[]service.CacheDep{{Node: c.Node.Path}}); err != nil {
+				&service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}); err != nil {
 				return fmt.Errorf("Could not cache page: %v", err)
 			}
 		}
@@ -366,12 +367,12 @@ func (h *nodeHandler) View(c *reqContext) error {
 	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv))
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-		if _, err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
 			"core.page.full", content,
-			[]service.CacheDep{
+			&service.CacheMods{Deps: []service.CacheDep{
 				{Node: "/", Descend: -1},
 				{Node: c.Node.Path, Cache: "core.page.partial"},
-			}); err != nil {
+			}}); err != nil {
 			return fmt.Errorf("Could not cache page: %v", err)
 		}
 	}
@@ -418,14 +419,14 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	}
 	context["Embedded"] = embedNode != nil
 
-	var ret []map[string]string
+	var ret []service.NodeContextRet
 	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext",
 		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &ret)
 	if err != nil {
 		return nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
 	for i, _ := range ret {
-		for key, value := range ret[i] {
+		for key, value := range ret[i].Context {
 			context[key] = template.HTML(value)
 		}
 	}

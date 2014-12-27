@@ -468,44 +468,6 @@ func (s *MonstiClient) GetRequest(id uint) (*Request, error) {
 	return &req, nil
 }
 
-/*
-// Response to a node request.
-type Response struct {
-	// The html content to be embedded in the root template.
-	Body []byte
-	// Raw must be set to true if Body should not be embedded in the root
-	// template. The content type will be automatically detected.
-	Raw bool
-	// If set, redirect to this target using error 303 'see other'.
-	Redirect string
-	// The node as received by GetRequest, possibly with some fields
-	// updated (e.g. modified title).
-	//
-	// If nil, the original node data is used.
-	Node *Node
-}
-*/
-
-/*
-// Write appends the given bytes to the body of the response.
-func (r *Response) Write(p []byte) (n int, err error) {
-	r.Body = append(r.Body, p...)
-	return len(p), nil
-}
-*/
-
-/*
-// Request performs the given request.
-func (s *MonstiClient) Request(req *Request) (*Response, error) {
-	var res Response
-	err := s.RPCClient.Call("Monsti.Request", req, &res)
-	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
-	}
-	return &res, nil
-}
-*/
-
 // GetNodeType returns all supported node types.
 func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 	if s.Error != nil {
@@ -714,8 +676,21 @@ func (s *MonstiClient) WaitSignal() error {
 	return nil
 }
 
+// CacheMods describes how a cache should be modified.
+//
+// It's usually returned from functions to modify caches that are
+// written to higher in the call graph.
+type CacheMods struct {
+	// Dependencies.
+	Deps []CacheDep
+	// Don't write to the cache.
+	Skip bool
+}
+
+// CacheDep identifies something a cache may depend on and which can
+// be marked.
 type CacheDep struct {
-	// Path to the node.
+	// Path to the node or subtree.
 	Node string
 	// Cache ID.
 	Cache string `json:",omitempty"`
@@ -733,22 +708,26 @@ type CacheDep struct {
 // id which contains a namespace prefix,
 // e.g. `mymodule.thumbnail_large`.
 //
-// On success, ToCache will return a `CacheDep` identifying the given
-// cache.
+// On success, ToCache will replace the CacheMods deps with a CacheDep
+// describing this cache.
 func (s *MonstiClient) ToCache(site, node string, id string,
-	content []byte, deps []CacheDep) (*CacheDep, error) {
+	content []byte, mods *CacheMods) error {
+	if mods.Skip {
+		return nil
+	}
 	if s.Error != nil {
-		return nil, s.Error
+		return s.Error
 	}
 	args := struct {
 		Node, Site, Id string
 		Content        []byte
 		Deps           []CacheDep
-	}{node, site, id, content, deps}
+	}{node, site, id, content, mods.Deps}
 	if err := s.RPCClient.Call("Monsti.ToCache", &args, new(int)); err != nil {
-		return nil, fmt.Errorf("service: ToCache error: %v", err)
+		return fmt.Errorf("service: ToCache error: %v", err)
 	}
-	return &CacheDep{Node: node, Cache: id}, nil
+	mods.Deps = []CacheDep{{Node: node, Cache: id}}
+	return nil
 }
 
 // FromCache retrieves the given cached data or nil if the cache is empty.
