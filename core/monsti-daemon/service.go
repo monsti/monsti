@@ -643,11 +643,13 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	}
 	toBeMarked := make([]service.CacheDep, 0)
 	var newDeps CacheDepMap
+	dep.Node = filepath.Clean(dep.Node)
 	for _, rdep := range rdeps {
 		//log.Println(rdep)
 		descend := rdep.Dep.Descend
 		rdep.Dep.Descend = 0
 		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
+		rdep.Dep.Node = filepath.Clean(rdep.Dep.Node)
 		if descend == -1 || descend >= level && rdep.Dep == dep {
 			//log.Println("Match!")
 			toBeMarked = append(toBeMarked, rdep.RDeps...)
