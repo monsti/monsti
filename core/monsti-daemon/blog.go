@@ -149,16 +149,17 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
 		func(req uint, nodeType string,
-			embedNode *service.EmbedNode) map[string]string {
+			embedNode *service.EmbedNode) (
+			map[string]string, *service.CacheMods, error) {
 			switch nodeType {
 			case "core.Blog":
 				ctx, err := getBlogContext(req, embedNode, session, settings, renderer)
 				if err != nil {
-					logger.Printf("Could not get blog context: %v", err)
+					return nil, nil, fmt.Errorf("Could not get blog context: %v", err)
 				}
-				return ctx
+				return ctx, nil, nil
 			default:
-				return nil
+				return nil, nil, nil
 			}
 		})
 	if err := session.Monsti().AddSignalHandler(handler); err != nil {
