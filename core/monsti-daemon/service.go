@@ -488,36 +488,44 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 }
 
 type cacheData struct {
-	Expire time.Time
-	Data   []byte
+	CacheMods *service.CacheMods
+	Data      []byte
 }
 
-func fromCache(root, node, id string) ([]byte, error) {
+func fromCache(root, node, id string) ([]byte, *service.CacheMods, error) {
 	path := filepath.Join(root, node[1:], ".data",
 		filepath.Base(id))
 	raw, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {
-		return nil, nil
+		return nil, nil, nil
 	}
 	dec := gob.NewDecoder(bytes.NewReader(raw))
 	var data cacheData
 	if err = dec.Decode(&data); err != nil {
-		return nil, fmt.Errorf("Could not decode cache data: %v", err)
+		return nil, nil, fmt.Errorf("Could not decode cache data: %v", err)
 	}
-	if !data.Expire.IsZero() && data.Expire.Before(time.Now()) {
-		return nil, nil
+	if !data.CacheMods.Expire.IsZero() &&
+		data.CacheMods.Expire.Before(time.Now()) {
+		return nil, nil, nil
 	}
-	return data.Data, err
+	return data.Data, data.CacheMods, err
 }
 
 type FromCacheArgs struct {
 	Node, Site, Id string
 }
 
-func (i *MonstiService) FromCache(args *FromCacheArgs, reply *[]byte) error {
+type FromCacheRet struct {
+	CacheMods *service.CacheMods
+	Data      []byte
+}
+
+func (i *MonstiService) FromCache(args *FromCacheArgs,
+	reply *FromCacheRet) error {
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	var err error
-	*reply, err = fromCache(filepath.Join(site, ".cache"), args.Node, args.Id)
+	content, mods, err := fromCache(filepath.Join(site, ".cache"), args.Node, args.Id)
+	*reply = FromCacheRet{mods, content}
 	return err
 }
 
@@ -575,25 +583,7 @@ func appendRdeps(root string, dep service.CacheDep,
 
 func toCache(root, node, id string, content []byte,
 	mods *service.CacheMods) error {
-	nodePath := filepath.Join(root, node[1:])
-	path := filepath.Join(nodePath, ".data", filepath.Base(id))
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return fmt.Errorf("Could not create node cache directory: %v", err)
-	}
-
-	var raw bytes.Buffer
-	enc := gob.NewEncoder(&raw)
-	data := cacheData{Data: content}
-	if mods != nil {
-		data.Expire = mods.Expire
-	}
-	if err := enc.Encode(&data); err != nil {
-		return fmt.Errorf("Could not encode cache data: %v", err)
-	}
-	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
-		return fmt.Errorf("Could not write node cache: %v", err)
-	}
-
+	// Write deps to filesystem.
 	thisDep := service.CacheDep{Node: node, Cache: id}
 	if mods != nil {
 		for _, dep := range mods.Deps {
@@ -603,6 +593,26 @@ func toCache(root, node, id string, content []byte,
 			}
 		}
 	}
+
+	// Write cache to filesystem.
+	nodePath := filepath.Join(root, node[1:])
+	path := filepath.Join(nodePath, ".data", filepath.Base(id))
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
+	if mods != nil {
+		mods.Deps = nil
+	}
+	var raw bytes.Buffer
+	enc := gob.NewEncoder(&raw)
+	data := cacheData{Data: content, CacheMods: mods}
+	if err := enc.Encode(&data); err != nil {
+		return fmt.Errorf("Could not encode cache data: %v", err)
+	}
+	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
+		return fmt.Errorf("Could not write node cache: %v", err)
+	}
+
 	return nil
 }
 

@@ -200,7 +200,7 @@ func TestCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	ret, err := fromCache(root, "/foo", "foo.another_cache")
+	ret, _, err := fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
@@ -211,7 +211,7 @@ func TestCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
-	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	ret, _, err = fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
@@ -246,7 +246,7 @@ func TestCacheMarkDescend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
-	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	ret, _, err = fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
@@ -257,7 +257,7 @@ func TestCacheMarkDescend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
-	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	ret, _, err = fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
@@ -275,12 +275,35 @@ func TestCacheMarkDescend(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not mark dep: %v", err)
 	}
-	ret, err = fromCache(root, "/foo", "foo.another_cache")
+	ret, _, err = fromCache(root, "/foo", "foo.another_cache")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}
 	if ret != nil {
 		t.Errorf("Cache should be nil, got %v", string(ret))
+	}
+}
+
+func TestCacheMods(t *testing.T) {
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestCache")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	mods := &service.CacheMods{
+		Deps:   []service.CacheDep{{Node: "/foo/bar"}},
+		Expire: time.Now().AddDate(1, 0, 0)}
+	err = toCache(root, "/foo", "foo.foo", []byte("test"), mods)
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	_, retMods, err := fromCache(root, "/foo", "foo.foo")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	mods.Deps = nil
+	if !reflect.DeepEqual(mods, retMods) {
+		t.Errorf("Returned cachemods should be %v, got %v", mods, retMods)
 	}
 }
 
@@ -295,7 +318,7 @@ func TestCacheExpire(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not cache data: %v", err)
 	}
-	ret, err := fromCache(root, "/foo", "foo.foo")
+	ret, _, err := fromCache(root, "/foo", "foo.foo")
 	if err != nil {
 		t.Fatalf("Could not get cached data: %v", err)
 	}

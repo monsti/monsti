@@ -755,12 +755,15 @@ func (s *MonstiClient) FromCache(site string, node string,
 		return nil, nil, s.Error
 	}
 	args := struct{ Node, Site, Id string }{node, site, id}
-	var reply []byte
+	var reply struct {
+		CacheMods *CacheMods
+		Data      []byte
+	}
 	err := s.RPCClient.Call("Monsti.FromCache", &args, &reply)
 	if err != nil {
 		return nil, nil, fmt.Errorf("service: FromCache error: %v", err)
 	}
-	return reply, new(CacheMods), nil
+	return reply.Data, reply.CacheMods, nil
 }
 
 // MarkDep marks the given cache dependency as dirty.
