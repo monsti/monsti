@@ -689,6 +689,20 @@ type CacheMods struct {
 	Expire time.Time
 }
 
+// Join joins the given cache mods into the current cache mods.
+//
+// Deps will be appended, Skip will be ored, and Expire will be
+// minimized. If right is nil, nothing will change.
+func (c *CacheMods) Join(right *CacheMods) {
+	if right != nil {
+		c.Deps = append(c.Deps, right.Deps...)
+		c.Skip = c.Skip || right.Skip
+		if right.Expire.Before(c.Expire) {
+			c.Expire = right.Expire
+		}
+	}
+}
+
 // CacheDep identifies something a cache may depend on and which can
 // be marked.
 type CacheDep struct {
@@ -736,17 +750,17 @@ func (s *MonstiClient) ToCache(site, node string, id string,
 //
 // See ToCache for more information.
 func (s *MonstiClient) FromCache(site string, node string,
-	id string) ([]byte, error) {
+	id string) ([]byte, *CacheMods, error) {
 	if s.Error != nil {
-		return nil, s.Error
+		return nil, nil, s.Error
 	}
 	args := struct{ Node, Site, Id string }{node, site, id}
 	var reply []byte
 	err := s.RPCClient.Call("Monsti.FromCache", &args, &reply)
 	if err != nil {
-		return nil, fmt.Errorf("service: FromCache error: %v", err)
+		return nil, nil, fmt.Errorf("service: FromCache error: %v", err)
 	}
-	return reply, nil
+	return reply, new(CacheMods), nil
 }
 
 // MarkDep marks the given cache dependency as dirty.

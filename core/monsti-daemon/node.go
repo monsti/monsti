@@ -206,8 +206,9 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -243,8 +244,9 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -272,7 +274,7 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 			}
 		} else {
 			cacheId := "core.image.thumbnail." + size.String()
-			body, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path, cacheId)
+			body, _, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path, cacheId)
 			if err != nil {
 				return fmt.Errorf("Could not get thumbnail from cache: %v", err)
 			}
@@ -343,36 +345,33 @@ func (h *nodeHandler) View(c *reqContext) error {
 
 	var rendered []byte
 	var err error
+	mods := new(service.CacheMods)
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-		rendered, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path,
+		rendered, mods, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path,
 			"core.page.partial")
 		if err != nil {
 			return fmt.Errorf("Could not get partial cache: %v", err)
 		}
 	}
 	if rendered == nil {
-		rendered, err = h.RenderNode(c, nil)
+		rendered, mods, err = h.RenderNode(c, nil)
 		if err != nil {
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
 			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-				"core.page.partial", rendered,
-				&service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}); err != nil {
+				"core.page.partial", rendered, mods); err != nil {
 				return fmt.Errorf("Could not cache page: %v", err)
 			}
 		}
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
-	content := []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	content, renderMods := renderInMaster(h.Renderer, rendered, env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	mods.Join(renderMods)
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
 		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
-			"core.page.full", content,
-			&service.CacheMods{Deps: []service.CacheDep{
-				{Node: "/", Descend: -1},
-				{Node: c.Node.Path, Cache: "core.page.partial"},
-			}}); err != nil {
+			"core.page.full", content, mods); err != nil {
 			return fmt.Errorf("Could not cache page: %v", err)
 		}
 	}
@@ -385,17 +384,18 @@ func (h *nodeHandler) View(c *reqContext) error {
 // If embedNode is not null, render the given node that is embedded
 // into the node given by the request.
 func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
-	[]byte, error) {
+	[]byte, *service.CacheMods, error) {
+	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}
 	reqNode := c.Node
 	if embedNode != nil {
 		embedURL, err := url.Parse(embedNode.URI)
 		if err != nil {
-			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
+			return nil, nil, fmt.Errorf("Could not parse embed URI: %v", err)
 		}
 		embedPath := path.Join(reqNode.Path, embedURL.Path)
 		reqNode, err = c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
 		if err != nil || reqNode == nil {
-			return nil, fmt.Errorf("Could not find node to embed: %v", err)
+			return nil, nil, fmt.Errorf("Could not find node to embed: %v", err)
 		}
 	}
 	context := make(mtemplate.Context)
@@ -403,9 +403,10 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	// Embed nodes
 	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
 	for _, embed := range embedNodes {
-		rendered, err := h.RenderNode(c, &embed)
+		rendered, renderMods, err := h.RenderNode(c, &embed)
+		mods.Join(renderMods)
 		if err != nil {
-			return nil, fmt.Errorf("Could not render embed node: %v", err)
+			return nil, nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
 		context["Embed"].(map[string]template.HTML)[embed.Id] =
 			template.HTML(rendered)
@@ -414,7 +415,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	switch reqNode.Type.Id {
 	case "core.ContactForm":
 		if err := renderContactForm(c, context, c.Req.Form, h); err != nil {
-			return nil, fmt.Errorf("Could not render contact form: %v", err)
+			return nil, nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}
 	context["Embedded"] = embedNode != nil
@@ -423,7 +424,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext",
 		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &ret)
 	if err != nil {
-		return nil, fmt.Errorf("Could not emit signal: %v", err)
+		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
 	for i, _ := range ret {
 		for key, value := range ret[i].Context {
@@ -440,9 +441,9 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	rendered, err := h.Renderer.Render(template, context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		return nil, fmt.Errorf("Could not render template: %v", err)
+		return nil, nil, fmt.Errorf("Could not render template: %v", err)
 	}
-	return []byte(rendered), nil
+	return rendered, mods, nil
 }
 
 type editFormData struct {
@@ -621,8 +622,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		return fmt.Errorf("Could not render template: %v", err)
 	}
 
-	content := []byte(renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	content, _ := renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
 
 	err = c.Session.Save(c.Req, c.Res)
 	if err != nil {

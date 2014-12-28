@@ -25,7 +25,7 @@ type NodeContextArgs struct {
 }
 
 type NodeContextRet struct {
-	Context map[string]string
+	Context map[string][]byte
 	Mods    *CacheMods
 }
 
@@ -44,7 +44,7 @@ type SignalHandler interface {
 
 type nodeContextHandler struct {
 	f func(Request uint, NodeType string, embedNode *EmbedNode) (
-		map[string]string, *CacheMods, error)
+		map[string][]byte, *CacheMods, error)
 }
 
 func (r *nodeContextHandler) Name() string {
@@ -61,6 +61,6 @@ func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 // template context for rendering a node.
 func NewNodeContextHandler(
 	cb func(Request uint, NodeType string,
-		embedNode *EmbedNode) (map[string]string, *CacheMods, error)) SignalHandler {
+		embedNode *EmbedNode) (map[string][]byte, *CacheMods, error)) SignalHandler {
 	return &nodeContextHandler{cb}
 }
