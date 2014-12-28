@@ -53,7 +53,8 @@ func splitFirstDir(path string) string {
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site util.SiteSettings, locale string,
-	s *service.Session) string {
+	s *service.Session) ([]byte, *service.CacheMods) {
+	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: "/", Descend: -1}}}
 	if env.Flags&EDIT_VIEW != 0 {
 		ret, err := r.Render("admin/master", template.Context{
 			"Site": site,
@@ -68,7 +69,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		if err != nil {
 			panic("Can't render: " + err.Error())
 		}
-		return ret
+		return ret, nil
 	}
 	firstDir := splitFirstDir(env.Node.Path)
 	getNodeFn := func(path string) (*service.Node, error) {
@@ -110,5 +111,5 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	if err != nil {
 		panic("Can't render: " + err.Error())
 	}
-	return ret
+	return ret, mods
 }

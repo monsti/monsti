@@ -59,7 +59,7 @@ func setup(c *module.ModuleContext) error {
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
 		func(id uint, nodeType string, embedNode *service.EmbedNode) (
-			map[string]string, *service.CacheMods, error) {
+			map[string][]byte, *service.CacheMods, error) {
 			session, err := c.Sessions.New()
 			if err != nil {
 				return nil, nil, fmt.Errorf("Could not get session: %v", err)
@@ -70,8 +70,8 @@ func setup(c *module.ModuleContext) error {
 				if err != nil || req == nil {
 					return nil, nil, fmt.Errorf("Could not get request: %v", err)
 				}
-				return map[string]string{
-					"SignalFoo": fmt.Sprintf("Hello Signal! Site name: %v", req.Site),
+				return map[string][]byte{
+					"SignalFoo": []byte(fmt.Sprintf("Hello Signal! Site name: %v", req.Site)),
 				}, nil, nil
 			}
 			return nil, nil, nil

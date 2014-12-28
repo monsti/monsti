@@ -96,7 +96,7 @@ func getIncludes(roots []string, name string) ([]string, error) {
 //
 // Returns the rendered template.
 func (r Renderer) Render(name string, context interface{},
-	locale string, siteTemplates string) (string, error) {
+	locale string, siteTemplates string) ([]byte, error) {
 	tmpl := template.New(name)
 	G, GN, GD, GDN := gettext.DefaultLocales.Use("", locale)
 	funcs := template.FuncMap{
@@ -115,23 +115,23 @@ func (r Renderer) Render(name string, context interface{},
 	tmpl.Funcs(funcs)
 	err := parse(name, tmpl, r.Root, siteTemplates)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	includes, err := getIncludes([]string{r.Root, siteTemplates}, name)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	for _, v := range includes {
 		err := parse(v, tmpl.New(v), r.Root, siteTemplates)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 	out := bytes.Buffer{}
 	if err := tmpl.Execute(&out, context); err != nil {
-		return "", fmt.Errorf("Could not execute template: %v", err)
+		return nil, fmt.Errorf("Could not execute template: %v", err)
 	}
-	return out.String(), nil
+	return out.Bytes(), nil
 }
 
 // Parse the named template and add to the existing template structure.

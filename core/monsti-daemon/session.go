@@ -81,8 +81,9 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -166,8 +167,9 @@ This is an automatically generated email. Please don't reply to it.
 		Session: c.UserSession,
 		Title:   G("Request new password"),
 		Flags:   EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -267,8 +269,9 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 		Session: c.UserSession,
 		Title:   G("Change password"),
 		Flags:   EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 

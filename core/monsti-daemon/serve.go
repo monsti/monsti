@@ -185,7 +185,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.UserSession.User == nil && c.Action == service.ViewAction &&
 		nodePath[len(nodePath)-1] == '/' &&
 		len(c.Req.Form) == 0 {
-		content, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
+		content, _, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
 			"core.page.full")
 		if err == nil && content != nil {
 			c.Res.Write(content)
