@@ -6,7 +6,7 @@ mainly designed for web projects like personal, small business, or
 small NGO websites.
 
 It provides a simple web frontend for basic site building and editing
-features. More advanced tasks like adding new content types have to be
+tasks. More advanced tasks like adding new content types have to be
 done by writing `modules` in Go that communicate to Monsti via RPC
 using a high level API.
 
