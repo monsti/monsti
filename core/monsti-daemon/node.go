@@ -427,6 +427,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
 	for i, _ := range ret {
+		mods.Join(ret[i].Mods)
 		for key, value := range ret[i].Context {
 			context[key] = template.HTML(value)
 		}

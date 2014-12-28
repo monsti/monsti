@@ -697,7 +697,8 @@ func (c *CacheMods) Join(right *CacheMods) {
 	if right != nil {
 		c.Deps = append(c.Deps, right.Deps...)
 		c.Skip = c.Skip || right.Skip
-		if right.Expire.Before(c.Expire) {
+		if c.Expire.IsZero() ||
+			!right.Expire.IsZero() && right.Expire.Before(c.Expire) {
 			c.Expire = right.Expire
 		}
 	}
