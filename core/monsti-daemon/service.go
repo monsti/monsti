@@ -18,6 +18,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -486,14 +487,27 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 	return nil
 }
 
+type cacheData struct {
+	Expire time.Time
+	Data   []byte
+}
+
 func fromCache(root, node, id string) ([]byte, error) {
 	path := filepath.Join(root, node[1:], ".data",
 		filepath.Base(id))
-	ret, err := ioutil.ReadFile(path)
+	raw, err := ioutil.ReadFile(path)
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
-	return ret, err
+	dec := gob.NewDecoder(bytes.NewReader(raw))
+	var data cacheData
+	if err = dec.Decode(&data); err != nil {
+		return nil, fmt.Errorf("Could not decode cache data: %v", err)
+	}
+	if !data.Expire.IsZero() && data.Expire.Before(time.Now()) {
+		return nil, nil
+	}
+	return data.Data, err
 }
 
 type FromCacheArgs struct {
@@ -566,9 +580,20 @@ func toCache(root, node, id string, content []byte,
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("Could not create node cache directory: %v", err)
 	}
-	if err := ioutil.WriteFile(path, content, 0600); err != nil {
+
+	var raw bytes.Buffer
+	enc := gob.NewEncoder(&raw)
+	data := cacheData{Data: content}
+	if mods != nil {
+		data.Expire = mods.Expire
+	}
+	if err := enc.Encode(&data); err != nil {
+		return fmt.Errorf("Could not encode cache data: %v", err)
+	}
+	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
+
 	thisDep := service.CacheDep{Node: node, Cache: id}
 	if mods != nil {
 		for _, dep := range mods.Deps {

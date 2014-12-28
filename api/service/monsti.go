@@ -685,8 +685,8 @@ type CacheMods struct {
 	Deps []CacheDep
 	// Don't write to the cache.
 	Skip bool
-	// The cache expires at this time.
-	Expire *time.Time
+	// The cache expires at this time (unless it's the zero value).
+	Expire time.Time
 }
 
 // CacheDep identifies something a cache may depend on and which can

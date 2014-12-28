@@ -22,6 +22,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"path/filepath"
 	"pkg.monsti.org/monsti/api/service"
@@ -284,19 +285,21 @@ func TestCacheMarkDescend(t *testing.T) {
 }
 
 func TestCacheExpire(t *testing.T) {
-	/*
-		root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestCache")
-		if err != nil {
-			t.Fatalf("Could not create directory tree: ", err)
-		}
-		defer cleanup()
-		err = toCache(root, "/foo/bar/cruz", "foo.some_cache", []byte("test"), nil)
-		if err != nil {
-			t.Fatalf("Could not cache data: %v", err)
-		}
-		ret, err := fromCache(root, "/foo", "foo.another_cache")
-		if err != nil {
-			t.Fatalf("Could not get cached data: %v", err)
-		}
-	*/
+	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{}, "TestCache")
+	if err != nil {
+		t.Fatalf("Could not create directory tree: ", err)
+	}
+	defer cleanup()
+	err = toCache(root, "/foo", "foo.foo", []byte("test"),
+		&service.CacheMods{Expire: time.Now().AddDate(-1, 0, 0)})
+	if err != nil {
+		t.Fatalf("Could not cache data: %v", err)
+	}
+	ret, err := fromCache(root, "/foo", "foo.foo")
+	if err != nil {
+		t.Fatalf("Could not get cached data: %v", err)
+	}
+	if ret != nil {
+		t.Errorf("Cache should have been expired.")
+	}
 }
