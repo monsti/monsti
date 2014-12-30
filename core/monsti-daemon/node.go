@@ -20,7 +20,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"image"
+	_ "image/gif"
 	"image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -284,14 +287,19 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 				if err != nil {
 					return fmt.Errorf("Could not get image data: %v", err)
 				}
-				image, err := jpeg.Decode(bytes.NewBuffer(body))
+				image, format, err := image.Decode(bytes.NewBuffer(body))
 				if err != nil {
 					return fmt.Errorf("Could not decode image data: %v", err)
 				}
 				image = resize.Thumbnail(size.Width, size.Height, image,
 					resize.Lanczos3)
 				var out bytes.Buffer
-				err = jpeg.Encode(&out, image, nil)
+				switch format {
+				case "png", "gif":
+					err = png.Encode(&out, image)
+				default:
+					err = jpeg.Encode(&out, image, nil)
+				}
 				body = out.Bytes()
 				if err != nil {
 					return fmt.Errorf("Could not encode resized image: %v", err)
@@ -572,6 +580,24 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					return fmt.Errorf("Could not init node fields: %v", err)
 				}
 			}
+
+			// Check file format for image nodes.
+			if nodeType.Id == "core.Image" {
+				file, _, err := c.Req.FormFile("Fields.core.File")
+				if err == nil {
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						return fmt.Errorf("Could not read multipart file: %v", err)
+					}
+					if _, _, err := image.Decode(bytes.NewBuffer(content)); err != nil {
+						form.AddError("Fields.core.File",
+							G("Unsupported image format. Try GIF, JPEG, or PNG."))
+						writeNode = false
+					}
+				}
+
+			}
+
 			if writeNode {
 				if renamed {
 					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
