@@ -24,7 +24,7 @@ import (
 
 	"path"
 	"github.com/chrneumann/htmlwidgets"
-	"github.com/chrneumann/mimemail"
+	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util"
 	"pkg.monsti.org/monsti/api/util/template"
@@ -139,14 +139,20 @@ func renderContactForm(c *reqContext, context template.Context,
 		}
 	case "POST":
 		if form.Fill(formValues) {
-			mail := mimemail.Mail{
-				From:    mimemail.Address{data.Name, data.Email},
-				Subject: data.Subject,
-				Body:    []byte(data.Message)}
+			mail := gomail.NewMessage()
 			site := h.Settings.Monsti.Sites[c.Site.Name]
-			owner := mimemail.Address{site.Owner.Name, site.Owner.Email}
-			mail.To = []mimemail.Address{owner}
-			err := c.Serv.Monsti().SendMail(&mail)
+			mail.SetAddressHeader("From", site.EmailAddress, site.EmailName)
+			mail.SetAddressHeader("To", site.Owner.Email, site.Owner.Name)
+			mail.SetAddressHeader("Reply-To", data.Email, data.Name)
+			mail.SetHeader("Subject", data.Subject)
+			body := fmt.Sprintf("%v\n%v\n\n%v",
+				fmt.Sprintf(G("Received from contact form at %v"), c.Site.Title),
+				fmt.Sprintf(G("Name: %v | Email: %v"), data.Name, data.Email),
+				data.Message)
+			mail.SetBody("text/plain", body)
+			mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
+				c.Serv.Monsti().SendMailFunc()))
+			err := mailer.Send(mail)
 			if err != nil {
 				return fmt.Errorf("Could not send mail: %v", err)
 			}

@@ -1,4 +1,6 @@
 * unreleased
+ - Fixed content and sender of contact form mails.
+ - Refactored Monsti.SendMail.
  - Fixed image upload and decoding.
  - Fixed StartModule in api/util/module.
  - Wait for all modules to finish initialization.

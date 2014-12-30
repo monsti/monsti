@@ -30,8 +30,8 @@ import (
 	"crypto/sha256"
 	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/chrneumann/htmlwidgets"
-	"github.com/chrneumann/mimemail"
 	"github.com/gorilla/sessions"
+	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -124,10 +124,13 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 				site := h.Settings.Monsti.Sites[c.Site.Name]
 				link := getRequestPasswordToken(c.Site.Name, data.User,
 					site.PasswordTokenKey)
-				mail := mimemail.Mail{
-					From:    mimemail.Address{site.EmailName, site.EmailAddress},
-					Subject: G("Password request"),
-					Body: []byte(fmt.Sprintf(`Hello,
+
+				// Send email to user
+				mail := gomail.NewMessage()
+				mail.SetAddressHeader("From", site.EmailAddress, site.EmailName)
+				mail.SetAddressHeader("To", user.Email, user.Login)
+				mail.SetHeader("Subject", G("Password request"))
+				mail.SetBody("text/plain", fmt.Sprintf(`Hello,
 
 someone, possibly you, requested a new password for your account %v at
 "%v".
@@ -137,12 +140,14 @@ If you did not request a new password, you may ignore this email.
 %v
 
 This is an automatically generated email. Please don't reply to it.
-`, data.User, site.Title, site.BaseURL+"/@@change-password?token="+link))}
-				mail.To = []mimemail.Address{mimemail.Address{user.Login, user.Email}}
-				err := c.Serv.Monsti().SendMail(&mail)
+`, data.User, site.Title, site.BaseURL+"/@@change-password?token="+link))
+				mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
+					c.Serv.Monsti().SendMailFunc()))
+				err := mailer.Send(mail)
 				if err != nil {
 					return fmt.Errorf("Could not send mail: %v", err)
 				}
+
 				http.Redirect(c.Res, c.Req, "@@request-password-token?sent",
 					http.StatusSeeOther)
 				return nil

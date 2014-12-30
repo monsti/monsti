@@ -22,13 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/smtp"
 	"net/url"
 	"reflect"
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"github.com/chrneumann/mimemail"
 )
 
 // MonstiClient represents the RPC connection to the Monsti service.
@@ -537,16 +536,35 @@ type UserSession struct {
 	Locale string
 }
 
-// Send given Monsti.
-func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
+// SendMails sends the given mail.
+func (s *MonstiClient) SendMail(from string, to []string, msg []byte) error {
 	if s.Error != nil {
 		return s.Error
 	}
+	args := struct {
+		From string
+		To   []string
+		Msg  []byte
+	}{from, to, msg}
 	var reply int
-	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
+	if err := s.RPCClient.Call("Monsti.SendMail", args, &reply); err != nil {
 		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
 	}
 	return nil
+}
+
+// SendMailFunc returns a function to send mails using SendMail.
+//
+// The function has a signature compatible to smtp.SendMail. It can be
+// used with packages like `gomail`.
+//
+// The first two arguments (address and auth) will be ignored.
+func (s *MonstiClient) SendMailFunc() func(
+	string, smtp.Auth, string, []string, []byte) error {
+	return func(_ string, _ smtp.Auth, from string, to []string,
+		msg []byte) error {
+		return s.SendMail(from, to, msg)
+	}
 }
 
 // AddSignalHandler connects to a signal with the given signal handler.

@@ -31,8 +31,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/chrneumann/mimemail"
 	"pkg.monsti.org/monsti/api/service"
 )
 
@@ -95,25 +93,28 @@ func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
 	return nil
 }
 
-func (m *MonstiService) SendMail(mail mimemail.Mail, reply *int) error {
+type SendMailArgs struct {
+	From string
+	To   []string
+	Msg  []byte
+}
+
+func (m *MonstiService) SendMail(args SendMailArgs, reply *int) error {
 	if !m.Settings.Mail.Debug {
 		auth := smtp.PlainAuth("", m.Settings.Mail.Username,
 			m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 		if err := smtp.SendMail(m.Settings.Mail.Host, auth,
-			mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
+			args.From, args.To, args.Msg); err != nil {
 			return fmt.Errorf("monsti: Could not send email: %v", err)
 		}
 	} else {
 		m.Logger.Printf(`SendMail debug:
-From: %v
-To: %v
-Cc: %v
-Bcc: %v
-Subject: %v
--- Body Start --
+Mail from: %v
+Recipients: %v
+-- Msg Start --
 %v
--- Body End --`,
-			mail.From, mail.To, mail.Cc, mail.Bcc, mail.Subject, string(mail.Body))
+-- Msg End --`,
+			args.From, args.To, string(args.Msg))
 	}
 	return nil
 }
