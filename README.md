@@ -25,7 +25,8 @@ Features
    your websites almost as fast as statically generated ones!
  - Low armortized (i.e. for many hosted sites) resource usage
  - No database system required; configuration and content is stored in
-   human readable files.
+   human readable files. Xapian integration is planned for searching
+   and indexing.
  - Internationalization ready (Included languages: de, en).
  - Easy to use (albeit basic at the current stage of development) web
    frontend.
