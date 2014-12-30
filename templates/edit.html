@@ -10,10 +10,7 @@
     </ul>
     {{end}}
     {{range .Widgets}}
-    {{if eq .Id "Node.Hide"}}
-    {{else}}
     {{template "blocks/widget" .}}
-    {{end}}
     {{end}}
     <div class="buttons">
       <button type="submit">{{G "Submit"}}</button>
