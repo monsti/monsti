@@ -19,3 +19,33 @@ $default-border-radius: 2px;
 #content-wrap {
   padding-top: 60px;
 }
+
+.node-table {
+  .node-table-actions li {
+    @include inline-block;
+  }
+}
+
+.alert {
+  border: 1px solid black;
+  padding: 15px 20px;
+  @include border-radius(5px);
+  margin: 20px 0;
+}
+
+@mixin alert($color) {
+  background: $color;
+  border-color: darken($color, 10);
+  color: darken($color, 60);
+  strong {
+    color: darken($color, 70);
+  }
+}
+
+.alert-success {
+  @include alert(#DFF0D8);
+}
+
+.alert-warning {
+  @include alert(#FCF8E3);
+}

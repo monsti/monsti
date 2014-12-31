@@ -29,6 +29,7 @@ import (
 	"net/url"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -515,7 +516,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if !nodeType.Hide {
 		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
 	}
-	form.AddWidget(new(htmlwidgets.IntegerWidget), "Node.Order", G("Order"), G("Order in navigation or listings (lower numbered entries appear first)."))
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
 	var timezone string
 	err := c.Serv.Monsti().GetSiteConfig(c.Site.Name, "core.timezone", &timezone)
@@ -657,6 +657,58 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		return fmt.Errorf("Could not save user session: %v", err)
 	}
 	c.Res.Write(content)
+	return nil
+}
+
+// List handles list requests.
+func (h *nodeHandler) List(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
+	m := c.Serv.Monsti()
+	children, err := m.GetChildren(c.Site.Name, c.Node.Path)
+	if err != nil {
+		return fmt.Errorf("Could not get children of node: %v", err)
+	}
+	switch c.Req.Method {
+	case "GET":
+	case "POST":
+		for _, child := range children {
+			if vals, ok := c.Req.Form["order-"+child.Name()]; ok && len(vals) == 1 {
+				if order, err := strconv.Atoi(vals[0]); err == nil {
+					child.Order = order
+				}
+				err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
+				if err != nil {
+					return fmt.Errorf("Could not update node: ", err)
+				}
+			}
+		}
+		http.Redirect(c.Res, c.Req, path.Join(c.Node.Path, "/@@list?saved=1"),
+			http.StatusSeeOther)
+	default:
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
+	}
+	var parent interface{}
+	parentPath := path.Dir(c.Node.Path)
+	if parentPath != c.Node.Path {
+		var err error
+		if parent, err = m.GetNode(c.Site.Name, parentPath); err != nil {
+			return fmt.Errorf("Could not get parent of node: %v", err)
+		}
+	}
+	body, err := h.Renderer.Render("actions/list", mtemplate.Context{
+		"Saved":    c.Req.Form.Get("saved"),
+		"Parent":   parent,
+		"Children": children,
+		"Node":     c.Node},
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	if err != nil {
+		return fmt.Errorf("Can't render node list: %v", err)
+	}
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
+		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("List \"%v\""), c.Node.Name())}
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 

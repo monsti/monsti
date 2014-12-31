@@ -3,8 +3,10 @@
       accept-charset="utf-8" {{.EncTypeAttr}}>
 
   <div class="control-group">
-		<p class="alert alert-error">{{G "WARNING: You are about to remove this content and all content below."}}
-			{{G "The removed content will be lost, so be careful!"}}</p>
+		<div class="alert alert-warning">
+      <strong>{{G "Warning!"}}</strong>
+      {{G "You are about to remove this content and all content below."}}
+			{{G "The removed content will be lost, so be careful!"}}</div>
 	</div>
   <fieldset>
     {{with .Errors}}
