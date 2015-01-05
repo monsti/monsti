@@ -1,13 +1,17 @@
 * unreleased
- - Fixed content and sender of contact form mails.
- - Refactored Monsti.SendMail.
- - Fixed image upload and decoding.
- - Fixed StartModule in api/util/module.
- - Wait for all modules to finish initialization.
- - Fix thumbnail generation.
- - Implemented a cache system.
- - Fixed positioning of admin bar.
- - Implemented RPC method Monsti.RemoveNodeData
+ - New features:
+    + Implemented a cache system.
+    + Implemented RPC method Monsti.RemoveNodeData
+ - Changes:
+    + Refactored Monsti.SendMail.
+    + Wait for all modules to finish initialization.
+ - Bugfixes:
+    + Fixed content and sender of contact form mails.
+    + Fixed StartModule in api/util/module.
+    + Fixed image upload and decoding.
+    + Fixed login for image node types.
+    + Fixed positioning of admin bar.
+    + Fixed thumbnail generation.
 
 * 0.7.0 - released 2014/12/17
  - Too many changes to list here. Back to frequent releases!
