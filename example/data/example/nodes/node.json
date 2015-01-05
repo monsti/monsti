@@ -5,12 +5,12 @@
   "Embed": null,
   "LocalFields": null,
   "Public": true,
-  "PublishTime": "2014-11-12T15:14:31.196943571Z",
-  "Changed": "2014-11-12T17:28:44.626660312+01:00",
+  "PublishTime": "2014-11-12T16:14:00+01:00",
+  "Changed": "2015-01-05T18:06:23.743982128Z",
   "Type": "core.Document",
   "Fields": {
     "core": {
-      "Body": "\u003cp style=\"\"\u003e\u003cb\u003eHello World!\u003c/b\u003e\u003c/p\u003e\u003cp style=\"\"\u003eAccess the admin interface via \u003ca href=\"/@@login\" class=\"aloha-link-text\"\u003e/@@login\u003c/a\u003e\u003c/p\u003e\u003cp style=\"\"\u003e\u003cb\u003eUser:\u003c/b\u003e admin \u003cb\u003ePassword:\u003c/b\u003e foofoo\u003c/p\u003e",
+      "Body": "\u003cp\u003e\u003cstrong\u003eHello World!\u003c/strong\u003e\u003c/p\u003e\r\n\u003cp\u003eAccess the admin interface via \u003ca class=\"aloha-link-text\" href=\"@@login\"\u003e/@@login\u003c/a\u003e\u003c/p\u003e\r\n\u003cp\u003e\u003cstrong\u003eUser:\u003c/strong\u003e admin \u003cstrong\u003ePassword:\u003c/strong\u003e foofoo\u003c/p\u003e",
       "Title": "Home"
     }
   }

@@ -63,7 +63,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 			if user != nil && passwordEqual(user.Password, data.Password) {
 				c.Session.Values["login"] = user.Login
 				c.Session.Save(c.Req, c.Res)
-				http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
+				http.Redirect(c.Res, c.Req, c.Node.Path+"/", http.StatusSeeOther)
 				return nil
 			}
 			form.AddError("", G("Wrong login or password."))
