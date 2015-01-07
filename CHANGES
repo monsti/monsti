@@ -14,6 +14,7 @@
     + Fixed login for image node types.
     + Fixed positioning of admin bar.
     + Fixed thumbnail generation.
+    + Fixed use of absolute paths in embed URIs.
 
 * 0.7.0 - released 2014/12/17
  - Too many changes to list here. Back to frequent releases!
