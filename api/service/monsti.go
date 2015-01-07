@@ -424,6 +424,7 @@ const (
 	RemoveAction
 	RequestPasswordTokenAction
 	ChangePasswordAction
+	ListAction
 )
 
 // A request to be processed by a nodes service.

@@ -1,0 +1,55 @@
+<article>
+  <h1>{{.Page.Title}}</h1>
+  {{if .Saved}}
+  <div class="alert alert-success" role="alert">
+    {{G "Changes have been saved."}}
+  </div>
+  {{end}}
+  {{if .Parent}}
+  <p><strong>{{G "Node path:"}}</strong> {{.Node.Path}}
+    <br>
+    <strong>{{G "Parent node:"}}</strong>
+    <a href="{{pathJoin .Parent.Path "@@list"}}">
+      {{with .Parent.GetField "core.Title"}}{{.RenderHTML}}{{else}}
+      {{with .Parent.Name}}[{{.}}]{{else}}/{{end}}
+      {{end}}</a>
+  {{end}}
+  </p>
+  <h2>{{G "Child nodes"}}</h2>
+  {{with .Children}}
+  <form method="POST">
+    <table class="node-table">
+      <thead>
+        <tr>
+          <th>{{G "Name"}}</th>
+          <th>{{G "Title"}}</th>
+          <th class="node-table-order">{{G "Order"}}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{range .}}
+      <tr class="node-table-child">
+        <td>
+          <a href="{{pathJoin .Path "@@list"}}">{{.Name}}</a>
+        </td>
+        <td>
+          {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+        </td>
+        <td class="node-table-order">
+          <input type="text" name="order-{{.Name}}" value="{{.Order}}" size="2">
+        </td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+    <button name="submit">{{G "Submit"}}</button>
+  </form>
+  {{else}}
+  {{G "This node doesn't have any child nodes."}}
+  <img src="/static/img/icons/silk/page_white_add.png"/>
+  <a href="{{pathJoin .Node.Path "@@add"}}"
+    >{{G "Add a new child node."}}</a>
+  {{end}}
+
+  <script type="text/javascript" src="/static/js/list-order.js"></script>
+</article>

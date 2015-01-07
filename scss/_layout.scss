@@ -139,6 +139,7 @@ h1 {
 
 h2 {
   font-size: 110%;
+  font-weight: normal;
 }
 
 h3 {
@@ -169,4 +170,16 @@ a {
     border-bottom: 1px solid $border-color;
     padding-bottom: 10px;
   }
+}
+
+table {
+  margin: 20px 0;
+  th {
+    font-weight: bold;
+    background: #FAFAFA;
+  }
+  th, td {
+    padding: 3px 10px;
+  }
+  margin-left: -10px;
 }

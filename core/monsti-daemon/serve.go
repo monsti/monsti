@@ -149,6 +149,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Action = map[string]service.Action{
 		"view":                   service.ViewAction,
 		"edit":                   service.EditAction,
+		"list":                   service.ListAction,
 		"login":                  service.LoginAction,
 		"logout":                 service.LogoutAction,
 		"add":                    service.AddAction,
@@ -221,6 +222,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.Remove(&c)
 	case service.EditAction:
 		err = h.Edit(&c)
+	case service.ListAction:
+		err = h.List(&c)
 	case service.RequestPasswordTokenAction:
 		err = h.RequestPasswordToken(&c)
 	case service.ChangePasswordAction:

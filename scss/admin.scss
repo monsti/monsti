@@ -19,3 +19,77 @@ $default-border-radius: 2px;
 #content-wrap {
   padding-top: 60px;
 }
+
+.node-table {
+  .node-table-actions li {
+    @include inline-block;
+  }
+  tr[draggable=true] {
+    & * {
+      pointer-events: none;
+    }
+  }
+  .drag-active tr[draggable=true] {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    &.drag-over{
+      &.drag-after, &.drag-before {
+        position: relative;
+        td:first-child {
+          &::after, &::before {
+            display: none;
+            position: absolute;
+            left: 10px;
+            content: "";
+            height: 15px;
+            width: 100%;
+            border: 1px dotted $primary-color;
+            background: #EEE;
+          }
+        }
+      }
+      &.drag-after {
+        td {
+          padding-bottom: 20px;
+        }
+        td:first-child::after {
+          display: block;
+          bottom: 0;
+        }
+      }
+      &.drag-before {
+        td {
+          padding-top: 20px;
+        }
+        td:first-child::before {
+          display: block;
+          top: 0;
+        }
+      }
+    }
+  }
+}
+
+.alert {
+  border: 1px solid black;
+  padding: 15px 20px;
+  @include border-radius(5px);
+  margin: 20px 0;
+}
+
+@mixin alert($color) {
+  background: $color;
+  border-color: darken($color, 10);
+  color: darken($color, 60);
+  strong {
+    color: darken($color, 70);
+  }
+}
+
+.alert-success {
+  @include alert(#DFF0D8);
+}
+
+.alert-warning {
+  @include alert(#FCF8E3);
+}

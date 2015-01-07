@@ -7,9 +7,14 @@
     {{$path := .Page.Node.Path}}
     <ul class="nav">
       <li><a href="{{$path}}"
-        ><img src="/static/img/icons/silk/layout_content.png"/> {{G "View"}}</a></li>
+             ><img src="/static/img/icons/silk/layout_content.png"/>
+        {{G "View"}}</a></li>
       <li><a href="{{pathJoin $path "@@edit"}}"
-        ><img src="/static/img/icons/silk/page_white_edit.png"/> {{G "Edit"}}</a></li>
+        ><img src="/static/img/icons/silk/page_white_edit.png"/>
+        {{G "Edit"}}</a></li>
+      <li><a href="{{pathJoin $path "@@list"}}"
+        ><img src="/static/img/icons/silk/page_white_stack.png"/>
+        {{G "List"}}</a></li>
       <li><a href="{{pathJoin $path "@@add"}}"
         ><img src="/static/img/icons/silk/page_white_add.png"/>
         {{G "Add"}}</a></li>
@@ -19,9 +24,11 @@
     </ul>
     <ul class="nav pull-right">
       <li><a href="{{pathJoin $path "@@change-password"}}"
-        ><img src="/static/img/icons/silk/key.png"/> {{G "Change password"}}</a></li>
+        ><img src="/static/img/icons/silk/key.png"/>
+        {{G "Change password"}}</a></li>
       <li><a href="{{pathJoin $path "@@logout"}}"
-        ><img src="/static/img/icons/silk/stop.png"/> {{G "Logout"}}</a></li>
+        ><img src="/static/img/icons/silk/stop.png"/>
+        {{G "Logout"}}</a></li>
     </ul>
   </div>
 </div>
