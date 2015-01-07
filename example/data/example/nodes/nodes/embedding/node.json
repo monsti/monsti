@@ -10,6 +10,10 @@
     {
       "Id": "fooEmbed",
       "URI": "child-node"
+    },
+    {
+      "Id": "blog",
+      "URI": "/types/blog"
     }
   ],
   "LocalFields": null,
