@@ -388,6 +388,19 @@ func (h *nodeHandler) View(c *reqContext) error {
 	return nil
 }
 
+// calcEmbedPath calculates the embed path for the given node path and
+// embed URI.
+func calcEmbedPath(nodePath, embedURI string) (string, error) {
+	embedURL, err := url.Parse(embedURI)
+	if err != nil {
+		return "", fmt.Errorf("Could not parse embed URI: %v", err)
+	}
+	if path.IsAbs(embedURL.Path) {
+		return embedURL.Path, nil
+	}
+	return path.Join(nodePath, embedURL.Path), nil
+}
+
 // RenderNode renders a requested node.
 //
 // If embedNode is not null, render the given node that is embedded
@@ -397,14 +410,14 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}
 	reqNode := c.Node
 	if embedNode != nil {
-		embedURL, err := url.Parse(embedNode.URI)
+		embedPath, err := calcEmbedPath(reqNode.Path, embedNode.URI)
 		if err != nil {
-			return nil, nil, fmt.Errorf("Could not parse embed URI: %v", err)
+			return nil, nil, fmt.Errorf("Could not get calculate path: %v", err)
 		}
-		embedPath := path.Join(reqNode.Path, embedURL.Path)
 		reqNode, err = c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
 		if err != nil || reqNode == nil {
-			return nil, nil, fmt.Errorf("Could not find node to embed: %v", err)
+			return nil, nil, fmt.Errorf("Could not find node %q to embed: %v",
+				embedPath, err)
 		}
 	}
 	context := make(mtemplate.Context)

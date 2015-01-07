@@ -8,7 +8,8 @@ import (
 
 // Login to Monsti.
 func login(b Browser, t *testing.T) {
-	if err := b.Go(appURL + "/@@login"); err != nil {
+	// types/image/@@login must not redirect to the raw data
+	if err := b.Go(appURL + "/types/image/@@login"); err != nil {
 		t.Fatal("Could not visit login formular: ", err)
 	}
 	if err := b.SubmitForm(map[string]string{
@@ -18,6 +19,9 @@ func login(b Browser, t *testing.T) {
 	}
 	if _, err := b.wd.FindElement(selenium.ById, "admin-bar"); err != nil {
 		t.Fatal("Could not find admin bar. Login failed?")
+	}
+	if err := b.Go(appURL); err != nil {
+		t.Fatal("Could not visit main page: ", err)
 	}
 }
 
