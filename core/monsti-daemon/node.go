@@ -673,6 +673,20 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	return nil
 }
 
+type orderedNodes []*service.Node
+
+func (n orderedNodes) Len() int {
+	return len(n)
+}
+
+func (n orderedNodes) Less(i, j int) bool {
+	return n[i].Order < n[j].Order
+}
+
+func (n orderedNodes) Swap(i, j int) {
+	n[i], n[j] = n[j], n[i]
+}
+
 // List handles list requests.
 func (h *nodeHandler) List(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
@@ -708,6 +722,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 			return fmt.Errorf("Could not get parent of node: %v", err)
 		}
 	}
+	sort.Sort(orderedNodes(children))
 	body, err := h.Renderer.Render("actions/list", mtemplate.Context{
 		"Saved":    c.Req.Form.Get("saved"),
 		"Parent":   parent,
