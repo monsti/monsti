@@ -1,0 +1,35 @@
+<article>
+  <h1>{{.Page.Title}}</h1>
+  {{if .Parent}}
+  <p><strong>{{G "Node path:"}}</strong> {{.Node.Path}}
+    <br>
+    <strong>{{G "Parent node:"}}</strong>
+    <a href="{{pathJoin .Parent.Path "@@browse"}}">
+      {{with .Parent.GetField "core.Title"}}{{.RenderHTML}}{{else}}
+      {{with .Parent.Name}}[{{.}}]{{else}}/{{end}}
+      {{end}}</a>
+  {{end}}
+  </p>
+  <h2>{{G "Child nodes"}}</h2>
+  {{with .Children}}
+  <ul class="node-browse">
+    {{range .}}
+    <li>
+      <div class="node-browse-inner-wrap">
+        <span class="node-browse-name">
+          <a href="{{pathJoin .Path "@@browse"}}">{{.Name}}</a>
+        </span>
+        <span class="node-browse-title">
+          {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+        </span>
+        <button data-path="{{.Path}}" class="node-browse-select">{{G "Select"}}</button>
+      </div>
+    </li>
+    {{end}}
+  </ul>
+  {{else}}
+  {{G "This node doesn't have any child nodes."}}
+  {{end}}
+
+  <script type="text/javascript" src="/static/js/browse.js"></script>
+</article>
