@@ -700,12 +700,15 @@ func (h *nodeHandler) List(c *reqContext) error {
 	case "POST":
 		for _, child := range children {
 			if vals, ok := c.Req.Form["order-"+child.Name()]; ok && len(vals) == 1 {
+				oldOrder := child.Order
 				if order, err := strconv.Atoi(vals[0]); err == nil {
 					child.Order = order
 				}
-				err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
-				if err != nil {
-					return fmt.Errorf("Could not update node: ", err)
+				if oldOrder != child.Order {
+					err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
+					if err != nil {
+						return fmt.Errorf("Could not update node: ", err)
+					}
 				}
 			}
 		}
