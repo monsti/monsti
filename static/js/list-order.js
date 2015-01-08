@@ -1,20 +1,21 @@
 // Enable list action order dragging
 (function() {
-  var nodeTable = document.querySelector(".node-table tbody");
-  var orderColumns = nodeTable.querySelectorAll(".node-table-order");
-  var getOrderInput = function(row) {
-    return row.querySelector(".node-table-order input");
+  var nodeList = document.querySelector(".node-list");
+  var orderColumns = nodeList.querySelectorAll(".node-list-order");
+  var getOrderInput = function(item) {
+    return item.querySelector(".node-list-order");
   }
-  var childRows = [];
+  var childItems = [];
   var resetFn = function(changeOrder) {
-    childRows = [].slice.call(nodeTable.querySelectorAll("tr"), 0);
+    childItems = [].slice.call(nodeList.querySelectorAll("li"), 0);
     var order = 0;
-    for (var i = 0; i < childRows.length; i++) {
-      childRows[i].classList.remove("drag-before");
-      childRows[i].classList.remove("drag-after");
-      childRows[i].classList.remove("drag-over");
+    for (var i = 0; i < childItems.length; i++) {
+      childItems[i].classList.remove("drag-before");
+      childItems[i].classList.remove("drag-after");
+      childItems[i].classList.remove("drag-over");
+      childItems[i].classList.remove("drag-start");
       if (changeOrder) {
-        getOrderInput(childRows[i]).value = order;
+        getOrderInput(childItems[i]).value = order;
       }
       order += 1;
     }
@@ -23,49 +24,50 @@
   for (var i = 0; i < orderColumns.length; i++) {
 //    orderColumns[i].style.display = "none";
   }
-  for (var i = 0; i < childRows.length; i++) {
-    childRows[i].setAttribute("draggable", "true");
+  for (var i = 0; i < childItems.length; i++) {
+    childItems[i].setAttribute("draggable", "true");
 
-    childRows[i].addEventListener("dragstart", function(event) {
-      var current = childRows.indexOf(event.target);
+    childItems[i].addEventListener("dragstart", function(event) {
+      var current = childItems.indexOf(event.target);
+      event.target.classList.add("drag-start");
       event.dataTransfer.setData(
         "application/x-monsti-list-order-node", current);
-      for (var j = 0; j < childRows.length; j++) {
+      for (var j = 0; j < childItems.length; j++) {
         if (j < current) {
-          childRows[j].classList.add("drag-before");
+          childItems[j].classList.add("drag-before");
         }
         if (j > current) {
-          childRows[j].classList.add("drag-after");
+          childItems[j].classList.add("drag-after");
         }
       }
-      nodeTable.classList.add("drag-active");
+      nodeList.classList.add("drag-active");
     }, false);
 
-    childRows[i].addEventListener("dragend", function(event) {
-      nodeTable.classList.remove("drag-active");
+    childItems[i].addEventListener("dragend", function(event) {
+      nodeList.classList.remove("drag-active");
       resetFn();
     }, false);
 
-    childRows[i].addEventListener("dragenter", function(event) {
+    childItems[i].addEventListener("dragenter", function(event) {
       event.target.classList.add("drag-over");
       event.preventDefault();
     }, false);
-    childRows[i].addEventListener("dragover", function(event) {
+    childItems[i].addEventListener("dragover", function(event) {
       event.preventDefault();
     }, false);
 
-    childRows[i].addEventListener("dragleave", function(event) {
+    childItems[i].addEventListener("dragleave", function(event) {
       event.target.classList.remove("drag-over");
     }, false);
 
-    childRows[i].addEventListener("drop", function(event) {
-      var current = childRows.indexOf(event.target);
+    childItems[i].addEventListener("drop", function(event) {
+      var current = childItems.indexOf(event.target);
       var dragged = parseInt(event.dataTransfer.getData(
         "application/x-monsti-list-order-node"));
       if (dragged > current) {
-        nodeTable.insertBefore(childRows[dragged], childRows[current]);
+        nodeList.insertBefore(childItems[dragged], childItems[current]);
       }else if (dragged < current) {
-        nodeTable.insertBefore(childRows[dragged], childRows[current].nextSibling);
+        nodeList.insertBefore(childItems[dragged], childItems[current].nextSibling);
       }
       resetFn(true);
     }, false);

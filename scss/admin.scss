@@ -20,50 +20,66 @@ $default-border-radius: 2px;
   padding-top: 60px;
 }
 
-.node-table {
-  .node-table-actions li {
+.node-list {
+  .node-list-actions li {
     @include inline-block;
   }
-  tr[draggable=true] {
-    & * {
-      pointer-events: none;
+  li {
+    margin: 15px 0;
+    .node-list-inner-wrap {
+      background: $widget-background;
+      border: 1px solid $border-color;
+      padding: 10px;
+    }
+    .node-list-order {
+      display: none;
+    }
+    .node-list-name {
+      @include inline-block;
+      width: 30%;
+      a {
+        text-decoration: none;
+      }
     }
   }
-  .drag-active tr[draggable=true] {
+  li[draggable=true] {
+    cursor: move;
+  }
+  &.drag-active li[draggable=true] {
+    * {
+      pointer-events: none;
+    }
     padding-top: 0px;
     padding-bottom: 0px;
+    &.drag-start {
+      opacity: 0.5;
+    }
     &.drag-over{
+      $list-item-height: 15px;
       &.drag-after, &.drag-before {
         position: relative;
-        td:first-child {
-          &::after, &::before {
-            display: none;
-            position: absolute;
-            left: 10px;
-            content: "";
-            height: 15px;
-            width: 100%;
-            border: 1px dotted $primary-color;
-            background: #EEE;
-          }
+        &::after, &::before {
+          display: none;
+          position: absolute;
+          content: "";
+          height: $list-item-height;
+          width: 100%;
+          border: 1px dotted $primary-color;
+          background: #EEE;
         }
       }
       &.drag-after {
-        td {
-          padding-bottom: 20px;
-        }
-        td:first-child::after {
+        margin-bottom: $list-item-height + 10px;
+        &::after {
           display: block;
-          bottom: 0;
+          bottom: -$list-item-height - 5px;
         }
       }
       &.drag-before {
-        td {
-          padding-top: 20px;
-        }
-        td:first-child::before {
+        margin-top: $list-item-height + 10px;
+        &::before {
           display: block;
-          top: 0;
+          top: -$list-item-height - 5px;
         }
       }
     }

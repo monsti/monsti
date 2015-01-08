@@ -1,10 +1,5 @@
 <article>
   <h1>{{.Page.Title}}</h1>
-  {{if .Saved}}
-  <div class="alert alert-success" role="alert">
-    {{G "Changes have been saved."}}
-  </div>
-  {{end}}
   {{if .Parent}}
   <p><strong>{{G "Node path:"}}</strong> {{.Node.Path}}
     <br>
@@ -18,30 +13,22 @@
   <h2>{{G "Child nodes"}}</h2>
   {{with .Children}}
   <form method="POST">
-    <table class="node-table">
-      <thead>
-        <tr>
-          <th>{{G "Name"}}</th>
-          <th>{{G "Title"}}</th>
-          <th class="node-table-order">{{G "Order"}}</th>
-        </tr>
-      </thead>
-      <tbody>
+    <ul class="node-list">
       {{range .}}
-      <tr class="node-table-child">
-        <td>
-          <a href="{{pathJoin .Path "@@list"}}">{{.Name}}</a>
-        </td>
-        <td>
-          {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
-        </td>
-        <td class="node-table-order">
-          <input type="text" name="order-{{.Name}}" value="{{.Order}}" size="2">
-        </td>
-      </tr>
+      <li>
+        <div class="node-list-inner-wrap">
+          <span class="node-list-name">
+            <a href="{{pathJoin .Path "@@list"}}">{{.Name}}</a>
+          </span>
+          <span class="node-list-title">
+            {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+          </span>
+          <input class="node-list-order" type="text" name="order-{{.Name}}"
+                 value="{{.Order}}" size="2">
+        </div>
+      </li>
       {{end}}
-      </tbody>
-    </table>
+    </ul>
     <button name="submit">{{G "Submit"}}</button>
   </form>
   {{else}}
