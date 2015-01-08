@@ -1,4 +1,4 @@
 go/
 static/lib/
 dist/
-example/data/example/nodes/.cache/
+example/data/example/cache/
