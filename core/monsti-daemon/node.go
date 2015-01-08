@@ -709,8 +709,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 				}
 			}
 		}
-		http.Redirect(c.Res, c.Req, path.Join(c.Node.Path, "/@@list?saved=1"),
-			http.StatusSeeOther)
+		http.Redirect(c.Res, c.Req, path.Join(c.Node.Path, "/"), http.StatusSeeOther)
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
@@ -724,7 +723,6 @@ func (h *nodeHandler) List(c *reqContext) error {
 	}
 	sort.Sort(orderedNodes(children))
 	body, err := h.Renderer.Render("actions/list", mtemplate.Context{
-		"Saved":    c.Req.Form.Get("saved"),
 		"Parent":   parent,
 		"Children": children,
 		"Node":     c.Node},
