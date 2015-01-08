@@ -31,6 +31,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 	"pkg.monsti.org/monsti/api/service"
 )
 
@@ -308,19 +309,14 @@ type RemoveNodeArgs struct {
 
 func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	nodePath := filepath.Join(root, args.Node[1:])
 	// Mark all reverse deps.
 	walker := func(path string, info os.FileInfo, err error) error {
-		log.Println("walk", path)
 		if err != nil {
 			return err
 		}
-		if info.Name() == ".cache" {
-			return filepath.SkipDir
-			log.Println("skip cache")
-		}
 		if info.Name() == "node.json" {
-			cacheRoot := filepath.Join(root, ".cache")
 			cacheNodePath, err := filepath.Rel(root, filepath.Dir(path))
 			if err != nil {
 				return err
@@ -523,9 +519,9 @@ type FromCacheRet struct {
 
 func (i *MonstiService) FromCache(args *FromCacheArgs,
 	reply *FromCacheRet) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	var err error
-	content, mods, err := fromCache(filepath.Join(site, ".cache"), args.Node, args.Id)
+	content, mods, err := fromCache(cacheRoot, args.Node, args.Id)
 	*reply = FromCacheRet{mods, content}
 	return err
 }
@@ -624,9 +620,8 @@ type ToCacheArgs struct {
 }
 
 func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return toCache(filepath.Join(site, ".cache"), args.Node, args.Id,
-		args.Content, args.Mods)
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
+	return toCache(cacheRoot, args.Node, args.Id, args.Content, args.Mods)
 }
 
 func markDep(root string, dep service.CacheDep, level int) error {
@@ -682,6 +677,6 @@ type MarkDepArgs struct {
 }
 
 func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
-	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
-	return markDep(filepath.Join(site, ".cache"), args.Dep, 0)
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
+	return markDep(cacheRoot, args.Dep, 0)
 }

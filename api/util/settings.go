@@ -71,6 +71,11 @@ func (s MonstiSettings) GetSiteConfigPath(site string) string {
 	return filepath.Join(s.Directories.Config, "sites", site)
 }
 
+// GetSiteCachePath returns the path to the given site's cache directory.
+func (s MonstiSettings) GetSiteCachePath(site string) string {
+	return filepath.Join(s.Directories.Data, site, "cache")
+}
+
 // GetSiteNodesPath returns the path to the given site's node directory.
 func (s MonstiSettings) GetSiteNodesPath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "nodes")
