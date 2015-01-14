@@ -1,7 +1,6 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-File">
   <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
-
-  {{with .Image}}
-  <img src="{{.Path}}/?raw=1" alt="{{.Title}}" title="{{.Description}}">
-  {{end}}
+  <p>
+    <a href="../{{.Node.Name}}">Download</a>
+  </a>
 </article>
