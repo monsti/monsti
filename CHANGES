@@ -3,6 +3,7 @@
     + Implemented a cache system.
     + Implemented RPC method Monsti.RemoveNodeData
  - Changes:
+    + Go <=1.2 is no longer supported.
     + Refactored Monsti.SendMail.
     + Wait for all modules to finish initialization.
     + Changed init script to run monsti as unprivileged user.
