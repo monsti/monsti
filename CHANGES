@@ -9,6 +9,7 @@
  - Changes:
     + Refactored Monsti.SendMail.
     + Wait for all modules to finish initialization.
+    + Changed init script to run monsti as unprivileged user.
  - Bugfixes:
     + Fixed content and sender of contact form mails.
     + Fixed StartModule in api/util/module.
