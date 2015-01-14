@@ -546,8 +546,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		G("The node won't be accessible to the public until it is published."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
-			Regexp:          `^[-\w]+$`,
-			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'")},
+			Regexp:          `^[-\w.]+$`,
+			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9, '.', and '-'")},
 			"Name", G("Name"), G("The name as it should appear in the URL."))
 	}
 	if !newNode {

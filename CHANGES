@@ -2,6 +2,7 @@
  - New features:
     + Added list action to view and order node children.
  - Changes:
+    + Accepting dots in node names.
     + Removed body field from core.File node type.
  - Fixed:
     + core.File template.
