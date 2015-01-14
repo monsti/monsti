@@ -527,9 +527,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	form := htmlwidgets.NewForm(&formData)
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
 	if !nodeType.Hide {
-		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
+		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"),
+			G("Don't show node in navigation."))
 	}
-	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
+	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"),
+		G("Is the node accessible by every visitor?"))
 	var timezone string
 	err := c.Serv.Monsti().GetSiteConfig(c.Site.Name, "core.timezone", &timezone)
 	if err != nil {
