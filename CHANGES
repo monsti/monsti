@@ -1,6 +1,8 @@
 * unreleased
  - New features:
     + Added list action to view and order node children.
+ - Changes:
+    + Removed body field from core.File node type.
 
 * 0.8.0 - unreleased
  - New features:
