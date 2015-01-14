@@ -18,19 +18,20 @@ package main
 
 import (
 	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/smtp"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/chrneumann/mimemail"
 	"pkg.monsti.org/monsti/api/service"
 )
 
@@ -56,6 +57,7 @@ type MonstiService struct {
 	Settings      *settings
 	Logger        *log.Logger
 	Handler       *nodeHandler
+	moduleInit    map[string]chan bool
 	subscriptions map[string][]string
 	subscriber    map[string]chan *signal
 	subscriberRet map[string]chan emitRet
@@ -86,29 +88,34 @@ func (i *MonstiService) PublishService(args PublishServiceArgs,
 }
 
 func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
-	// TODO Implement me
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	i.moduleInit[args] <- true
 	return nil
 }
 
-func (m *MonstiService) SendMail(mail mimemail.Mail, reply *int) error {
+type SendMailArgs struct {
+	From string
+	To   []string
+	Msg  []byte
+}
+
+func (m *MonstiService) SendMail(args SendMailArgs, reply *int) error {
 	if !m.Settings.Mail.Debug {
 		auth := smtp.PlainAuth("", m.Settings.Mail.Username,
 			m.Settings.Mail.Password, strings.Split(m.Settings.Mail.Host, ":")[0])
 		if err := smtp.SendMail(m.Settings.Mail.Host, auth,
-			mail.Sender(), mail.Recipients(), mail.Message()); err != nil {
+			args.From, args.To, args.Msg); err != nil {
 			return fmt.Errorf("monsti: Could not send email: %v", err)
 		}
 	} else {
 		m.Logger.Printf(`SendMail debug:
-From: %v
-To: %v
-Cc: %v
-Bcc: %v
-Subject: %v
--- Body Start --
+Mail from: %v
+Recipients: %v
+-- Msg Start --
 %v
--- Body End --`,
-			mail.From, mail.To, mail.Cc, mail.Bcc, mail.Subject, string(mail.Body))
+-- Msg End --`,
+			args.From, args.To, string(args.Msg))
 	}
 	return nil
 }
@@ -302,7 +309,35 @@ type RemoveNodeArgs struct {
 
 func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	nodePath := filepath.Join(root, args.Node[1:])
+	// Mark all reverse deps.
+	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.Name() == "node.json" {
+			cacheNodePath, err := filepath.Rel(root, filepath.Dir(path))
+			if err != nil {
+				return err
+			}
+			rdeps, err := readRdeps(cacheRoot, "/"+cacheNodePath)
+			if err != nil {
+				return err
+			}
+			for _, rdep := range rdeps {
+				log.Println("check", rdep)
+				err := markDep(cacheRoot, rdep.Dep, 0)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	if err := filepath.Walk(nodePath, walker); err != nil {
+		return fmt.Errorf("Could not walk to be removed subtree: %v", err)
+	}
 	if err := os.RemoveAll(nodePath); err != nil {
 		return fmt.Errorf("Can't remove node: %v", err)
 	}
@@ -447,4 +482,201 @@ func (i *MonstiService) GetRequest(id uint, req *service.Request) error {
 		*req = *r
 	}
 	return nil
+}
+
+type cacheData struct {
+	CacheMods *service.CacheMods
+	Data      []byte
+}
+
+func fromCache(root, node, id string) ([]byte, *service.CacheMods, error) {
+	path := filepath.Join(root, node[1:], ".data",
+		filepath.Base(id))
+	raw, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		return nil, nil, nil
+	}
+	dec := gob.NewDecoder(bytes.NewReader(raw))
+	var data cacheData
+	if err = dec.Decode(&data); err != nil {
+		return nil, nil, fmt.Errorf("Could not decode cache data: %v", err)
+	}
+	if !data.CacheMods.Expire.IsZero() &&
+		data.CacheMods.Expire.Before(time.Now()) {
+		return nil, nil, nil
+	}
+	return data.Data, data.CacheMods, err
+}
+
+type FromCacheArgs struct {
+	Node, Site, Id string
+}
+
+type FromCacheRet struct {
+	CacheMods *service.CacheMods
+	Data      []byte
+}
+
+func (i *MonstiService) FromCache(args *FromCacheArgs,
+	reply *FromCacheRet) error {
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
+	var err error
+	content, mods, err := fromCache(cacheRoot, args.Node, args.Id)
+	*reply = FromCacheRet{mods, content}
+	return err
+}
+
+type CacheDepPair struct {
+	Dep   service.CacheDep
+	RDeps []service.CacheDep
+}
+
+type CacheDepMap []CacheDepPair
+
+func readRdeps(root, node string) (CacheDepMap, error) {
+	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
+	content, err := ioutil.ReadFile(rdepsPath)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	if content == nil {
+		return nil, nil
+	}
+	var depMap CacheDepMap
+	err = json.Unmarshal(content, &depMap)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal rdeps: %v", err)
+	}
+	return depMap, nil
+}
+
+func writeRdeps(root, node string, rdeps CacheDepMap) error {
+	content, err := json.MarshalIndent(rdeps, "", "  ")
+	if err != nil {
+		return fmt.Errorf("Could not marshal rdeps: %v", err)
+	}
+	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
+	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
+	if err := ioutil.WriteFile(rdepsPath, content, 0600); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	return nil
+}
+
+func appendRdeps(root string, dep service.CacheDep,
+	rdeps []service.CacheDep) error {
+	depMap, err := readRdeps(root, dep.Node)
+	if err != nil {
+		return fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	depMap = append(depMap, CacheDepPair{dep, rdeps})
+	if err := writeRdeps(root, dep.Node, depMap); err != nil {
+		return fmt.Errorf("Could not write rdeps: %v", err)
+	}
+	return nil
+}
+
+func toCache(root, node, id string, content []byte,
+	mods *service.CacheMods) error {
+	// Write deps to filesystem.
+	thisDep := service.CacheDep{Node: node, Cache: id}
+	if mods != nil {
+		for _, dep := range mods.Deps {
+			err := appendRdeps(root, dep, []service.CacheDep{thisDep})
+			if err != nil {
+				return fmt.Errorf("Could not write rdeps: %v", err)
+			}
+		}
+	}
+
+	// Write cache to filesystem.
+	nodePath := filepath.Join(root, node[1:])
+	path := filepath.Join(nodePath, ".data", filepath.Base(id))
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("Could not create node cache directory: %v", err)
+	}
+	if mods != nil {
+		mods.Deps = nil
+	}
+	var raw bytes.Buffer
+	enc := gob.NewEncoder(&raw)
+	data := cacheData{Data: content, CacheMods: mods}
+	if err := enc.Encode(&data); err != nil {
+		return fmt.Errorf("Could not encode cache data: %v", err)
+	}
+	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
+		return fmt.Errorf("Could not write node cache: %v", err)
+	}
+
+	return nil
+}
+
+type ToCacheArgs struct {
+	Node, Site, Id string
+	Content        []byte
+	Mods           *service.CacheMods
+}
+
+func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
+	return toCache(cacheRoot, args.Node, args.Id, args.Content, args.Mods)
+}
+
+func markDep(root string, dep service.CacheDep, level int) error {
+	//	log.Println("markdep", dep, level)
+	rdeps, err := readRdeps(root, dep.Node)
+	if err != nil {
+		return fmt.Errorf("Could not read rdeps: %v", err)
+	}
+	if dep.Cache != "" {
+		//		log.Println("Removing cache", dep.Cache)
+		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("Could not remove cached data: %v", err)
+		}
+	}
+	toBeMarked := make([]service.CacheDep, 0)
+	var newDeps CacheDepMap
+	dep.Node = filepath.Clean(dep.Node)
+	for _, rdep := range rdeps {
+		//log.Println(rdep)
+		descend := rdep.Dep.Descend
+		rdep.Dep.Descend = 0
+		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
+		rdep.Dep.Node = filepath.Clean(rdep.Dep.Node)
+		if descend == -1 || descend >= level && rdep.Dep == dep {
+			//log.Println("Match!")
+			toBeMarked = append(toBeMarked, rdep.RDeps...)
+		} else {
+			rdep.Dep.Descend = descend
+			newDeps = append(newDeps, rdep)
+		}
+	}
+	if err := writeRdeps(root, dep.Node, newDeps); err != nil {
+		return fmt.Errorf("Could not write new rdeps: %v", err)
+	}
+	for _, dep := range toBeMarked {
+		markDep(root, dep, 0)
+	}
+
+	if dep.Node != "/" {
+		//log.Printf("Marking parent. Old dep: %+v", dep)
+		dep.Node = path.Dir(dep.Node)
+		if err := markDep(root, dep, level+1); err != nil {
+			return fmt.Errorf("Could not mark parent: %v", err)
+		}
+	}
+	return nil
+}
+
+type MarkDepArgs struct {
+	Site string
+	Dep  service.CacheDep
+}
+
+func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
+	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
+	return markDep(cacheRoot, args.Dep, 0)
 }

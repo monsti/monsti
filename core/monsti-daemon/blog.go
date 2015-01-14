@@ -79,7 +79,7 @@ func getBlogPosts(req *service.Request, blogPath string, s *service.Session,
 
 func getBlogContext(reqId uint, embed *service.EmbedNode,
 	s *service.Session, settings *settings, renderer *mtemplate.Renderer) (
-	map[string]string, error) {
+	map[string][]byte, error) {
 	req, err := s.Monsti().GetRequest(reqId)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get request: %v", err)
@@ -112,7 +112,7 @@ func getBlogContext(reqId uint, embed *service.EmbedNode,
 	if err != nil {
 		return nil, fmt.Errorf("Could not render template: %v", err)
 	}
-	return map[string]string{"BlogPosts": rendered}, nil
+	return map[string][]byte{"BlogPosts": rendered}, nil
 }
 
 func initBlog(settings *settings, session *service.Session, logger *log.Logger,
@@ -149,16 +149,17 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
 		func(req uint, nodeType string,
-			embedNode *service.EmbedNode) map[string]string {
+			embedNode *service.EmbedNode) (
+			map[string][]byte, *service.CacheMods, error) {
 			switch nodeType {
 			case "core.Blog":
 				ctx, err := getBlogContext(req, embedNode, session, settings, renderer)
 				if err != nil {
-					logger.Printf("Could not get blog context: %v", err)
+					return nil, nil, fmt.Errorf("Could not get blog context: %v", err)
 				}
-				return ctx
+				return ctx, nil, nil
 			default:
-				return nil
+				return nil, nil, nil
 			}
 		})
 	if err := session.Monsti().AddSignalHandler(handler); err != nil {

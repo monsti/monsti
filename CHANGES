@@ -1,5 +1,19 @@
 * unreleased
- - Implemented RPC method Monsti.RemoveNodeData
+ - New features:
+    + Implemented a cache system.
+    + Implemented RPC method Monsti.RemoveNodeData
+ - Changes:
+    + Refactored Monsti.SendMail.
+    + Wait for all modules to finish initialization.
+    + Changed init script to run monsti as unprivileged user.
+ - Bugfixes:
+    + Fixed content and sender of contact form mails.
+    + Fixed StartModule in api/util/module.
+    + Fixed image upload and decoding.
+    + Fixed login for image node types.
+    + Fixed positioning of admin bar.
+    + Fixed thumbnail generation.
+    + Fixed use of absolute paths in embed URIs.
 
 * 0.7.0 - released 2014/12/17
  - Too many changes to list here. Back to frequent releases!

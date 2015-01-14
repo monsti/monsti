@@ -38,22 +38,10 @@ func getConnectionId() string {
 type Type uint
 
 // Monsti service types.
+//go:generate stringer -type=Type
 const (
 	MonstiService Type = iota
-	/*
-		InfoService Type = iota
-		DataService
-		LoginService
-		NodeService
-		MailService
-	*/
 )
-
-func (t Type) String() string {
-	serviceNames := [...]string{
-		"Monsti"}
-	return serviceNames[t]
-}
 
 // Client represents the rpc connection to a service.
 type Client struct {

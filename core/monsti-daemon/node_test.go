@@ -133,3 +133,23 @@ func TestNavigationMakeAbsolute(t *testing.T) {
 			nav, expected)
 	}
 }
+
+func TestCalcEmbedPath(t *testing.T) {
+	tests := []struct {
+		Path, URI, Expected string
+	}{
+		{"/", "foo", "/foo"},
+		{"/", "/foo", "/foo"},
+		{"/foo/bar", "/foo", "/foo"},
+		{"/foo/bar", "foo", "/foo/bar/foo"},
+		{"/foo/bar/", "/foo", "/foo"},
+		{"/foo/bar/", "foo", "/foo/bar/foo"},
+	}
+	for _, test := range tests {
+		ret, err := calcEmbedPath(test.Path, test.URI)
+		if err != nil || ret != test.Expected {
+			t.Errorf(`calcEmbedPath(%q,%q) = (%q,%v), should be %q, nil`,
+				test.Path, test.URI, ret, err, test.Expected)
+		}
+	}
+}

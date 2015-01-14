@@ -20,7 +20,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"image"
+	_ "image/gif"
 	"image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -206,8 +209,9 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("Add content")}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -225,9 +229,6 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	case "GET":
 		data.Confirm = "ok"
 	case "POST":
-		if err := c.Req.ParseForm(); err != nil {
-			return err
-		}
 		if form.Fill(c.Req.Form) && data.Confirm == "ok" {
 			if err := c.Serv.Monsti().RemoveNode(c.Site.Name, c.Node.Path); err != nil {
 				return fmt.Errorf("Could not remove node: %v", err)
@@ -246,8 +247,9 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -257,14 +259,72 @@ func (s imageSize) String() string {
 	return fmt.Sprintf("%vx%v", s.Width, s.Height)
 }
 
+// viewImage sends a possibly resized image
+func (h *nodeHandler) viewImage(c *reqContext) error {
+	sizeName := c.Req.FormValue("size")
+	var size imageSize
+	var body []byte
+	var err error
+	if sizeName != "" {
+		err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
+			"core.image.sizes."+sizeName, &size)
+		if err != nil || size.Width == 0 {
+			if err != nil {
+				h.Log.Printf("Could not get size config: %v", err)
+			} else {
+				h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
+					c.Site.Name, err)
+			}
+		} else {
+			cacheId := "core.image.thumbnail." + size.String()
+			body, _, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path, cacheId)
+			if err != nil {
+				return fmt.Errorf("Could not get thumbnail from cache: %v", err)
+			}
+			if body == nil {
+				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+					"__file_core.File")
+				if err != nil {
+					return fmt.Errorf("Could not get image data: %v", err)
+				}
+				image, format, err := image.Decode(bytes.NewBuffer(body))
+				if err != nil {
+					return fmt.Errorf("Could not decode image data: %v", err)
+				}
+				image = resize.Thumbnail(size.Width, size.Height, image,
+					resize.Lanczos3)
+				var out bytes.Buffer
+				switch format {
+				case "png", "gif":
+					err = png.Encode(&out, image)
+				default:
+					err = jpeg.Encode(&out, image, nil)
+				}
+				body = out.Bytes()
+				if err != nil {
+					return fmt.Errorf("Could not encode resized image: %v", err)
+				}
+				if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+					cacheId, body,
+					&service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}); err != nil {
+					return fmt.Errorf("Could not cache resized image data: %v", err)
+				}
+			}
+		}
+	}
+	if body == nil {
+		body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+			"__file_core.File")
+		if err != nil {
+			return fmt.Errorf("Could not read image: %v", err)
+		}
+	}
+	c.Res.Write(body)
+	return nil
+}
+
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
-	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
-
-	if err := c.Req.ParseForm(); err != nil {
-		return err
-	}
-
 	// Redirect if trailing slash is missing and if this is not a file
 	// node (in which case we write out the file's content).
 	if c.Node.Path[len(c.Node.Path)-1] != '/' {
@@ -272,57 +332,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 			c.Res.Header().Add("Last-Modified", c.Node.Changed.Format(time.RFC1123))
 		}
 		if c.Node.Type.Id == "core.Image" {
-			sizeName := c.Req.FormValue("size")
-			var size imageSize
-			var body []byte
-			var err error
-			if sizeName != "" {
-				err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
-					"core.image.sizes."+sizeName, &size)
-				if err != nil || size.Width == 0 {
-					if err != nil {
-						h.Log.Printf("Could not get size config: %v", err)
-					} else {
-						h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
-							c.Site.Name, err)
-					}
-				} else {
-					sizePath := "__image_" + size.String()
-					body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-						sizePath)
-					if err != nil || body == nil {
-						body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-							"__file_core.File")
-						if err != nil {
-							return fmt.Errorf("Could not get image data: %v", err)
-						}
-						image, err := jpeg.Decode(bytes.NewBuffer(body))
-						if err != nil {
-							return fmt.Errorf("Could not decode image data: %v", err)
-						}
-						image = resize.Thumbnail(size.Width, size.Height, image,
-							resize.Lanczos3)
-						var out bytes.Buffer
-						err = jpeg.Encode(&out, image, nil)
-						body = out.Bytes()
-						if err != nil {
-							return fmt.Errorf("Could not encode resized image: %v", err)
-						}
-						if err := c.Serv.Monsti().WriteNodeData(c.Site.Name, c.Node.Path,
-							sizePath, body); err != nil {
-							return fmt.Errorf("Could not write resized image data: %v", err)
-						}
-					}
-				}
-			}
-			if body == nil {
-				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
-					"__file_core.File")
-				if err != nil {
-					return fmt.Errorf("Could not read image: %v", err)
-				}
-			}
-			c.Res.Write(body)
+			return h.viewImage(c)
 		} else if c.Node.Type.Id == "core.File" {
 			content, err := c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
 				"__file_core.File")
@@ -341,18 +351,53 @@ func (h *nodeHandler) View(c *reqContext) error {
 		return nil
 	}
 
-	rendered, err := h.RenderNode(c, nil)
-	if err != nil {
-		return fmt.Errorf("Could not render node: %v", err)
+	var rendered []byte
+	var err error
+	mods := new(service.CacheMods)
+	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
+		rendered, mods, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path,
+			"core.page.partial")
+		if err != nil {
+			return fmt.Errorf("Could not get partial cache: %v", err)
+		}
 	}
-
+	if rendered == nil {
+		rendered, mods, err = h.RenderNode(c, nil)
+		if err != nil {
+			return fmt.Errorf("Could not render node: %v", err)
+		}
+		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
+			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+				"core.page.partial", rendered, mods); err != nil {
+				return fmt.Errorf("Could not cache page: %v", err)
+			}
+		}
+	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
-	var content []byte
-	content = []byte(renderInMaster(h.Renderer, rendered, env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
-
+	content, renderMods := renderInMaster(h.Renderer, rendered, env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	mods.Join(renderMods)
+	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
+		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+			"core.page.full", content, mods); err != nil {
+			return fmt.Errorf("Could not cache page: %v", err)
+		}
+	}
 	c.Res.Write(content)
 	return nil
+}
+
+// calcEmbedPath calculates the embed path for the given node path and
+// embed URI.
+func calcEmbedPath(nodePath, embedURI string) (string, error) {
+	embedURL, err := url.Parse(embedURI)
+	if err != nil {
+		return "", fmt.Errorf("Could not parse embed URI: %v", err)
+	}
+	if path.IsAbs(embedURL.Path) {
+		return embedURL.Path, nil
+	}
+	return path.Join(nodePath, embedURL.Path), nil
 }
 
 // RenderNode renders a requested node.
@@ -360,17 +405,18 @@ func (h *nodeHandler) View(c *reqContext) error {
 // If embedNode is not null, render the given node that is embedded
 // into the node given by the request.
 func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
-	[]byte, error) {
+	[]byte, *service.CacheMods, error) {
+	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}
 	reqNode := c.Node
 	if embedNode != nil {
-		embedURL, err := url.Parse(embedNode.URI)
+		embedPath, err := calcEmbedPath(reqNode.Path, embedNode.URI)
 		if err != nil {
-			return nil, fmt.Errorf("Could not parse embed URI: %v", err)
+			return nil, nil, fmt.Errorf("Could not get calculate path: %v", err)
 		}
-		embedPath := path.Join(reqNode.Path, embedURL.Path)
 		reqNode, err = c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
 		if err != nil || reqNode == nil {
-			return nil, fmt.Errorf("Could not find node to embed: %v", err)
+			return nil, nil, fmt.Errorf("Could not find node %q to embed: %v",
+				embedPath, err)
 		}
 	}
 	context := make(mtemplate.Context)
@@ -378,9 +424,10 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	// Embed nodes
 	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
 	for _, embed := range embedNodes {
-		rendered, err := h.RenderNode(c, &embed)
+		rendered, renderMods, err := h.RenderNode(c, &embed)
+		mods.Join(renderMods)
 		if err != nil {
-			return nil, fmt.Errorf("Could not render embed node: %v", err)
+			return nil, nil, fmt.Errorf("Could not render embed node: %v", err)
 		}
 		context["Embed"].(map[string]template.HTML)[embed.Id] =
 			template.HTML(rendered)
@@ -389,19 +436,20 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	switch reqNode.Type.Id {
 	case "core.ContactForm":
 		if err := renderContactForm(c, context, c.Req.Form, h); err != nil {
-			return nil, fmt.Errorf("Could not render contact form: %v", err)
+			return nil, nil, fmt.Errorf("Could not render contact form: %v", err)
 		}
 	}
 	context["Embedded"] = embedNode != nil
 
-	var ret []map[string]string
+	var ret []service.NodeContextRet
 	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext",
 		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &ret)
 	if err != nil {
-		return nil, fmt.Errorf("Could not emit signal: %v", err)
+		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
 	for i, _ := range ret {
-		for key, value := range ret[i] {
+		mods.Join(ret[i].Mods)
+		for key, value := range ret[i].Context {
 			context[key] = template.HTML(value)
 		}
 	}
@@ -415,9 +463,9 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	rendered, err := h.Renderer.Render(template, context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		return nil, fmt.Errorf("Could not render template: %v", err)
+		return nil, nil, fmt.Errorf("Could not render template: %v", err)
 	}
-	return []byte(rendered), nil
+	return rendered, mods, nil
 }
 
 type editFormData struct {
@@ -430,7 +478,6 @@ type editFormData struct {
 // EditNode handles node edits.
 func (h *nodeHandler) Edit(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
-	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
 
 	if err := c.Req.ParseMultipartForm(1024 * 1024); err != nil {
 		if err != http.ErrNotMultipart {
@@ -546,6 +593,24 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					return fmt.Errorf("Could not init node fields: %v", err)
 				}
 			}
+
+			// Check file format for image nodes.
+			if nodeType.Id == "core.Image" {
+				file, _, err := c.Req.FormFile("Fields.core.File")
+				if err == nil {
+					content, err := ioutil.ReadAll(file)
+					if err != nil {
+						return fmt.Errorf("Could not read multipart file: %v", err)
+					}
+					if _, _, err := image.Decode(bytes.NewBuffer(content)); err != nil {
+						form.AddError("Fields.core.File",
+							G("Unsupported image format. Try GIF, JPEG, or PNG."))
+						writeNode = false
+					}
+				}
+
+			}
+
 			if writeNode {
 				if renamed {
 					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
@@ -561,6 +626,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					return fmt.Errorf("Could not update node: ", err)
 				}
 
+				// Save any attached files
 				if len(fileFields) > 0 && c.Req.MultipartForm != nil {
 					for _, name := range fileFields {
 						file, _, err := c.Req.FormFile("Fields." + name)
@@ -577,6 +643,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					}
 				}
 				http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
+				err = c.Serv.Monsti().MarkDep(
+					c.Site.Name, service.CacheDep{Node: path.Clean(node.Path)})
+				if err != nil {
+					return fmt.Errorf("Could not mark node: %v", err)
+				}
 				return nil
 			}
 		}
@@ -591,8 +662,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		return fmt.Errorf("Could not render template: %v", err)
 	}
 
-	content := []byte(renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	content, _ := renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
 
 	err = c.Session.Save(c.Req, c.Res)
 	if err != nil {

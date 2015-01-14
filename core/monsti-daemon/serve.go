@@ -174,9 +174,29 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		serveError("Could not get client session: %v", err)
 	}
 	c.UserSession.Locale = c.Site.Locale
+
+	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+
+	if err := c.Req.ParseForm(); err != nil {
+		serveError("Could not parse form: %v", err)
+	}
+
+	// Try to serve page from cache
+	if c.UserSession.User == nil && c.Action == service.ViewAction &&
+		nodePath[len(nodePath)-1] == '/' &&
+		len(c.Req.Form) == 0 {
+		content, _, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
+			"core.page.full")
+		if err == nil && content != nil {
+			c.Res.Write(content)
+			return
+		}
+	}
+
 	c.Node, err = c.Serv.Monsti().GetNode(c.Site.Name, nodePath)
 	if err != nil {
-		serveError("Error getting node: %v", err)
+		serveError("Error getting node %v of site %v: %v",
+			nodePath, c.Site.Name, err)
 	}
 	if c.Node == nil ||
 		(c.UserSession.User == nil &&

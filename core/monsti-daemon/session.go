@@ -30,8 +30,8 @@ import (
 	"crypto/sha256"
 	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/chrneumann/htmlwidgets"
-	"github.com/chrneumann/mimemail"
 	"github.com/gorilla/sessions"
+	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
 	"pkg.monsti.org/monsti/api/util"
@@ -54,7 +54,6 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		c.Req.ParseForm()
 		if form.Fill(c.Req.Form) {
 			user, err := getUser(data.Login,
 				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
@@ -64,7 +63,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 			if user != nil && passwordEqual(user.Password, data.Password) {
 				c.Session.Values["login"] = user.Login
 				c.Session.Save(c.Req, c.Res)
-				http.Redirect(c.Res, c.Req, c.Node.Path, http.StatusSeeOther)
+				http.Redirect(c.Res, c.Req, c.Node.Path+"/", http.StatusSeeOther)
 				return nil
 			}
 			form.AddError("", G("Wrong login or password."))
@@ -82,8 +81,9 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession, Title: G("Login"),
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -108,7 +108,6 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 	form.AddWidget(new(htmlwidgets.TextWidget), "User", G("Login"), "")
 
 	sent := false
-	c.Req.ParseForm()
 	switch c.Req.Method {
 	case "GET":
 		if _, ok := c.Req.Form["sent"]; ok {
@@ -125,10 +124,13 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 				site := h.Settings.Monsti.Sites[c.Site.Name]
 				link := getRequestPasswordToken(c.Site.Name, data.User,
 					site.PasswordTokenKey)
-				mail := mimemail.Mail{
-					From:    mimemail.Address{site.EmailName, site.EmailAddress},
-					Subject: G("Password request"),
-					Body: []byte(fmt.Sprintf(`Hello,
+
+				// Send email to user
+				mail := gomail.NewMessage()
+				mail.SetAddressHeader("From", site.EmailAddress, site.EmailName)
+				mail.SetAddressHeader("To", user.Email, user.Login)
+				mail.SetHeader("Subject", G("Password request"))
+				mail.SetBody("text/plain", fmt.Sprintf(`Hello,
 
 someone, possibly you, requested a new password for your account %v at
 "%v".
@@ -138,12 +140,14 @@ If you did not request a new password, you may ignore this email.
 %v
 
 This is an automatically generated email. Please don't reply to it.
-`, data.User, site.Title, site.BaseURL+"/@@change-password?token="+link))}
-				mail.To = []mimemail.Address{mimemail.Address{user.Login, user.Email}}
-				err := c.Serv.Monsti().SendMail(&mail)
+`, data.User, site.Title, site.BaseURL+"/@@change-password?token="+link))
+				mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
+					c.Serv.Monsti().SendMailFunc()))
+				err := mailer.Send(mail)
 				if err != nil {
 					return fmt.Errorf("Could not send mail: %v", err)
 				}
+
 				http.Redirect(c.Res, c.Req, "@@request-password-token?sent",
 					http.StatusSeeOther)
 				return nil
@@ -168,8 +172,9 @@ This is an automatically generated email. Please don't reply to it.
 		Session: c.UserSession,
 		Title:   G("Request new password"),
 		Flags:   EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 
@@ -193,7 +198,6 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 	}, "Password", G("New Password"), "")
 	var token string
 	tokenInvalid := false
-	c.Req.ParseForm()
 	var user *service.User
 	if !authenticated {
 		if tokens, ok := c.Req.Form["token"]; ok {
@@ -270,8 +274,9 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 		Session: c.UserSession,
 		Title:   G("Change password"),
 		Flags:   EDIT_VIEW}
-	fmt.Fprint(c.Res, renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv))
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
 	return nil
 }
 

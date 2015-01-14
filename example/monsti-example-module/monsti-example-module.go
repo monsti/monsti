@@ -58,23 +58,23 @@ func setup(c *module.ModuleContext) error {
 
 	// Add a signal handler
 	handler := service.NewNodeContextHandler(
-		func(id uint, nodeType string, embedNode *service.EmbedNode) map[string]string {
+		func(id uint, nodeType string, embedNode *service.EmbedNode) (
+			map[string][]byte, *service.CacheMods, error) {
 			session, err := c.Sessions.New()
 			if err != nil {
-				c.Logger.Fatalf("Could not get session: %v", err)
-				return nil
+				return nil, nil, fmt.Errorf("Could not get session: %v", err)
 			}
 			defer c.Sessions.Free(session)
 			if nodeType == "example.ExampleType" {
 				req, err := session.Monsti().GetRequest(id)
 				if err != nil || req == nil {
-					c.Logger.Fatalf("Could not get request: %v", err)
+					return nil, nil, fmt.Errorf("Could not get request: %v", err)
 				}
-				return map[string]string{
-					"SignalFoo": fmt.Sprintf("Hello Signal! Site name: %v", req.Site),
-				}
+				return map[string][]byte{
+					"SignalFoo": []byte(fmt.Sprintf("Hello Signal! Site name: %v", req.Site)),
+				}, nil, nil
 			}
-			return nil
+			return nil, nil, nil
 		})
 	if err := m.AddSignalHandler(handler); err != nil {
 		c.Logger.Fatalf("Could not add signal handler: %v", err)

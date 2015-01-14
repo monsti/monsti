@@ -22,13 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/smtp"
 	"net/url"
 	"reflect"
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"github.com/chrneumann/mimemail"
 )
 
 // MonstiClient represents the RPC connection to the Monsti service.
@@ -151,7 +150,7 @@ func dataToNode(data []byte,
 	}
 
 	if err = ret.InitFields(m, site); err != nil {
-		return nil, fmt.Errorf("Could not init node fields: %v", err)
+		return nil, fmt.Errorf("Could not init node fields (node: %q): %v", ret, err)
 	}
 	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
 	for _, field := range nodeFields {
@@ -260,7 +259,9 @@ func (s *MonstiClient) RemoveNodeData(site, path, file string) error {
 	return nil
 }
 
-// RemoveNode recursively removes the given site's node.
+// RemoveNode removes the given site's node and all its descendants.
+//
+// All reverse cache dependencies of removed nodes will be marked.
 func (s *MonstiClient) RemoveNode(site string, node string) error {
 	if s.Error != nil {
 		return nil
@@ -276,7 +277,8 @@ func (s *MonstiClient) RemoveNode(site string, node string) error {
 
 // RenameNode renames (moves) the given site's node.
 //
-// Source and target path must be absolute
+// Source and target path must be absolute. TODO: All reverse cache
+// dependencies of moved nodes will be marked.
 func (s *MonstiClient) RenameNode(site, source, target string) error {
 	if s.Error != nil {
 		return nil
@@ -465,44 +467,6 @@ func (s *MonstiClient) GetRequest(id uint) (*Request, error) {
 	return &req, nil
 }
 
-/*
-// Response to a node request.
-type Response struct {
-	// The html content to be embedded in the root template.
-	Body []byte
-	// Raw must be set to true if Body should not be embedded in the root
-	// template. The content type will be automatically detected.
-	Raw bool
-	// If set, redirect to this target using error 303 'see other'.
-	Redirect string
-	// The node as received by GetRequest, possibly with some fields
-	// updated (e.g. modified title).
-	//
-	// If nil, the original node data is used.
-	Node *Node
-}
-*/
-
-/*
-// Write appends the given bytes to the body of the response.
-func (r *Response) Write(p []byte) (n int, err error) {
-	r.Body = append(r.Body, p...)
-	return len(p), nil
-}
-*/
-
-/*
-// Request performs the given request.
-func (s *MonstiClient) Request(req *Request) (*Response, error) {
-	var res Response
-	err := s.RPCClient.Call("Monsti.Request", req, &res)
-	if err != nil {
-		return nil, fmt.Errorf("service: RPC error for Request: %v", err)
-	}
-	return &res, nil
-}
-*/
-
 // GetNodeType returns all supported node types.
 func (s *MonstiClient) GetNodeTypes() ([]string, error) {
 	if s.Error != nil {
@@ -572,16 +536,35 @@ type UserSession struct {
 	Locale string
 }
 
-// Send given Monsti.
-func (s *MonstiClient) SendMail(m *mimemail.Mail) error {
+// SendMails sends the given mail.
+func (s *MonstiClient) SendMail(from string, to []string, msg []byte) error {
 	if s.Error != nil {
 		return s.Error
 	}
+	args := struct {
+		From string
+		To   []string
+		Msg  []byte
+	}{from, to, msg}
 	var reply int
-	if err := s.RPCClient.Call("Monsti.SendMail", m, &reply); err != nil {
+	if err := s.RPCClient.Call("Monsti.SendMail", args, &reply); err != nil {
 		return fmt.Errorf("service: Monsti.SendMail error: %v", err)
 	}
 	return nil
+}
+
+// SendMailFunc returns a function to send mails using SendMail.
+//
+// The function has a signature compatible to smtp.SendMail. It can be
+// used with packages like `gomail`.
+//
+// The first two arguments (address and auth) will be ignored.
+func (s *MonstiClient) SendMailFunc() func(
+	string, smtp.Auth, string, []string, []byte) error {
+	return func(_ string, _ smtp.Auth, from string, to []string,
+		msg []byte) error {
+		return s.SendMail(from, to, msg)
+	}
 }
 
 // AddSignalHandler connects to a signal with the given signal handler.
@@ -707,6 +690,114 @@ func (s *MonstiClient) WaitSignal() error {
 	err = s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
 	if err != nil {
 		return fmt.Errorf("service: Monsti.FinishSignal error: %v", err)
+	}
+	return nil
+}
+
+// CacheMods describes how a cache should be modified.
+//
+// It's usually returned from functions to modify caches that are
+// written to higher in the call graph.
+type CacheMods struct {
+	// Dependencies.
+	Deps []CacheDep
+	// Don't write to the cache.
+	Skip bool
+	// The cache expires at this time (unless it's the zero value).
+	Expire time.Time
+}
+
+// Join joins the given cache mods into the current cache mods.
+//
+// Deps will be appended, Skip will be ored, and Expire will be
+// minimized. If right is nil, nothing will change.
+func (c *CacheMods) Join(right *CacheMods) {
+	if right != nil {
+		c.Deps = append(c.Deps, right.Deps...)
+		c.Skip = c.Skip || right.Skip
+		if c.Expire.IsZero() ||
+			!right.Expire.IsZero() && right.Expire.Before(c.Expire) {
+			c.Expire = right.Expire
+		}
+	}
+}
+
+// CacheDep identifies something a cache may depend on and which can
+// be marked.
+type CacheDep struct {
+	// Path to the node or subtree.
+	Node string
+	// Cache ID.
+	Cache string `json:",omitempty"`
+	// On how many child levels does this dependency apply? -1 for the
+	// whole subtree. 0 for this node only.
+	Descend int `json:",omitempty"`
+}
+
+// ToCache caches the given data.
+//
+// Each node has a cache where arbitrary data can be stored. The data
+// may be retrieved later with the FromCache method. If the node or
+// any other nodes as specified in the deps argument change, the
+// cached data will be deleted. Each cached data is identified by an
+// id which contains a namespace prefix,
+// e.g. `mymodule.thumbnail_large`.
+//
+// On success, ToCache will replace the CacheMods deps with a CacheDep
+// describing this cache.
+func (s *MonstiClient) ToCache(site, node string, id string,
+	content []byte, mods *CacheMods) error {
+	if mods.Skip {
+		return nil
+	}
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct {
+		Node, Site, Id string
+		Content        []byte
+		Mods           *CacheMods
+	}{node, site, id, content, mods}
+	if err := s.RPCClient.Call("Monsti.ToCache", &args, new(int)); err != nil {
+		return fmt.Errorf("service: ToCache error: %v", err)
+	}
+	mods.Deps = []CacheDep{{Node: node, Cache: id}}
+	return nil
+}
+
+// FromCache retrieves the given cached data or nil if the cache is empty.
+//
+// See ToCache for more information.
+func (s *MonstiClient) FromCache(site string, node string,
+	id string) ([]byte, *CacheMods, error) {
+	if s.Error != nil {
+		return nil, nil, s.Error
+	}
+	args := struct{ Node, Site, Id string }{node, site, id}
+	var reply struct {
+		CacheMods *CacheMods
+		Data      []byte
+	}
+	err := s.RPCClient.Call("Monsti.FromCache", &args, &reply)
+	if err != nil {
+		return nil, nil, fmt.Errorf("service: FromCache error: %v", err)
+	}
+	return reply.Data, reply.CacheMods, nil
+}
+
+// MarkDep marks the given cache dependency as dirty.
+//
+// See ToCache for more information.
+func (s *MonstiClient) MarkDep(site string, dep CacheDep) error {
+	if s.Error != nil {
+		return s.Error
+	}
+	args := struct {
+		Site string
+		Dep  CacheDep
+	}{site, dep}
+	if err := s.RPCClient.Call("Monsti.MarkDep", &args, new(int)); err != nil {
+		return fmt.Errorf("service: MarkDep error: %v", err)
 	}
 	return nil
 }
