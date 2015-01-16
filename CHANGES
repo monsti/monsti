@@ -1,4 +1,4 @@
-* unreleased
+* 0.8.0 - released 2015/01/16
  - New features:
     + Implemented a cache system.
     + Implemented RPC method Monsti.RemoveNodeData
