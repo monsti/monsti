@@ -617,7 +617,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				if renamed {
 					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
 					if err != nil {
-						return fmt.Errorf("Could not move node: ", err)
+						return fmt.Errorf("Could not move node: %v", err)
 					}
 				}
 				for _, field := range nodeFields {
@@ -625,7 +625,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 				if err != nil {
-					return fmt.Errorf("Could not update node: ", err)
+					return fmt.Errorf("Could not update node: %v", err)
 				}
 
 				// Save any attached files
@@ -709,7 +709,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 				if oldOrder != child.Order {
 					err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
 					if err != nil {
-						return fmt.Errorf("Could not update node: ", err)
+						return fmt.Errorf("Could not update node: %v", err)
 					}
 				}
 			}
