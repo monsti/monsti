@@ -667,10 +667,6 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	content, _ := renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv)
 
-	err = c.Session.Save(c.Req, c.Res)
-	if err != nil {
-		return fmt.Errorf("Could not save user session: %v", err)
-	}
 	c.Res.Write(content)
 	return nil
 }
@@ -780,12 +776,3 @@ func (h *nodeHandler) Browse(c *reqContext) error {
 	c.Res.Write(rendered)
 	return nil
 }
-
-/*
-	err = c.Session.Save(c.Req, c.Res)
-	if err != nil {
-		return fmt.Errorf("Could not save user session: %v", err)
-	}
-	c.Res.Write(content)
-	return nil
-*/
