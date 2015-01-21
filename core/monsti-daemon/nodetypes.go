@@ -73,7 +73,6 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Name:      util.GenLanguageMap(G("File"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
-			{Id: "core.Body"},
 			{
 				Id:       "core.File",
 				Required: true,

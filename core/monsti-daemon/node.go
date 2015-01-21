@@ -527,9 +527,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	form := htmlwidgets.NewForm(&formData)
 	form.AddWidget(new(htmlwidgets.HiddenWidget), "NodeType", "", "")
 	if !nodeType.Hide {
-		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"), G("Don't show node in navigation."))
+		form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Hide", G("Hide"),
+			G("Don't show node in navigation."))
 	}
-	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"), G("Is the node accessible by every visitor?"))
+	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"),
+		G("Is the node accessible by every visitor?"))
 	var timezone string
 	err := c.Serv.Monsti().GetSiteConfig(c.Site.Name, "core.timezone", &timezone)
 	if err != nil {
@@ -544,8 +546,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		G("The node won't be accessible to the public until it is published."))
 	if newNode || c.Node.Name() != "" {
 		form.AddWidget(&htmlwidgets.TextWidget{
-			Regexp:          `^[-\w]+$`,
-			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'")},
+			Regexp:          `^[-\w.]+$`,
+			ValidationError: G("Please enter a name consisting only of the characters A-Z, a-z, 0-9, '.', and '-'")},
 			"Name", G("Name"), G("The name as it should appear in the URL."))
 	}
 	if !newNode {
@@ -615,7 +617,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				if renamed {
 					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
 					if err != nil {
-						return fmt.Errorf("Could not move node: ", err)
+						return fmt.Errorf("Could not move node: %v", err)
 					}
 				}
 				for _, field := range nodeFields {
@@ -623,7 +625,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 				if err != nil {
-					return fmt.Errorf("Could not update node: ", err)
+					return fmt.Errorf("Could not update node: %v", err)
 				}
 
 				// Save any attached files
@@ -707,7 +709,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 				if oldOrder != child.Order {
 					err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
 					if err != nil {
-						return fmt.Errorf("Could not update node: ", err)
+						return fmt.Errorf("Could not update node: %v", err)
 					}
 				}
 			}
