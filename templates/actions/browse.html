@@ -1,34 +1,43 @@
 <article>
-  <h1>{{.Page.Title}}</h1>
   {{if .Parent}}
-  <p><strong>{{G "Node path:"}}</strong> {{.Node.Path}}
-    <br>
-    <strong>{{G "Parent node:"}}</strong>
-    <a href="{{pathJoin .Parent.Path "@@browse"}}">
-      {{with .Parent.GetField "core.Title"}}{{.RenderHTML}}{{else}}
-      {{with .Parent.Name}}[{{.}}]{{else}}/{{end}}
-      {{end}}</a>
+  <a class="node-browse-back" href="{{pathJoin .Parent.Path "@@browse"}}">◀</a>
   {{end}}
-  </p>
-  <h2>{{G "Child nodes"}}</h2>
-  {{with .Children}}
-  <ul class="node-browse">
-    {{range .}}
-    <li>
-      <div class="node-browse-inner-wrap">
-        <span class="node-browse-name">
-          <a href="{{pathJoin .Path "@@browse"}}">{{.Name}}</a>
-        </span>
-        <span class="node-browse-title">
-          {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
-        </span>
-        <button data-path="{{.Path}}" class="node-browse-select">{{G "Select"}}</button>
-      </div>
+  <ul class="node-browse-current-path">
+    {{range .SplittedPath}}
+    <li class="node-browse-current-path-element">
+      {{if .Parent}}<a class="node-browse-current-path-link"
+                       href="{{pathJoin .Path "@@browse"}}">{{end}}
+      {{.Name}}
+      {{if .Parent}}</a>{{end}}
     </li>
     {{end}}
   </ul>
+  {{with .Children}}
+  <table class="node-browse-table">
+    <tr>
+      <th>{{G "Name"}}</th>
+      <th>{{G "Title"}}</th>
+      <th>{{G "Action"}}</th>
+    </tr>
+    {{range .}}
+    <tr>
+      <td class="node-browse-table-name">
+        <a href="{{pathJoin .Path "@@browse"}}">{{.Name}}</a>
+      </td>
+      <td class="node-browse-table-title">
+        {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+      </td>
+      <td class="node-browse-table-action">
+        <button data-path="{{.Path}}" class="node-browse-select">
+          {{G "Select"}}</button>
+      </td>
+    </tr>
+    {{end}}
+  </table>
   {{else}}
+  <p>
   {{G "This node doesn't have any child nodes."}}
+  </p>
   {{end}}
 
   <script type="text/javascript" src="/static/js/browse.js"></script>

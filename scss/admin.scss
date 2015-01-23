@@ -109,3 +109,36 @@ $default-border-radius: 2px;
 .alert-warning {
   @include alert(#FCF8E3);
 }
+
+.node-browse-back {
+  text-decoration: none;
+  margin-right: 5px;
+  color: black;
+}
+
+.node-browse-current-path {
+  @include inline-block;
+}
+
+.node-browse-back, .node-browse-current-path-element {
+  @include inline-block;
+  padding: 5px;
+  background: $widget-background;
+  border: 1px solid $border-color;
+  @include border-radius;
+  min-width: 15px;
+  text-align: center;
+}
+
+.node-browse-current-path-link {
+  display: block;
+  margin: -5px;
+  padding: 5px;
+  text-decoration: none;
+}
+
+.node-browse-back, .node-browse-current-path-link {
+  &:hover {
+    background-color: $widget-hover-background;
+  }
+}

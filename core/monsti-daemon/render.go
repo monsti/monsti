@@ -32,6 +32,7 @@ type masterTmplFlags uint32
 
 const (
 	EDIT_VIEW masterTmplFlags = 1 << iota
+	SLIM_VIEW
 )
 
 // Environment/context for the master template.
@@ -61,7 +62,8 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Page": template.Context{
 				"Title":    env.Title,
 				"Node":     env.Node,
-				"EditView": env.Flags&EDIT_VIEW != 0,
+				"EditView": true,
+				"SlimView": env.Flags&SLIM_VIEW != 0,
 				"Content":  htmlT.HTML(content),
 			},
 			"Session": env.Session}, locale,

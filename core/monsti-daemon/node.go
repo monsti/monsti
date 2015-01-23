@@ -739,6 +739,28 @@ func (h *nodeHandler) List(c *reqContext) error {
 	return nil
 }
 
+type splittedPathElement struct {
+	Name, Path string
+	Parent     bool
+}
+
+// getSplittedPath returns the path splitted into its elements.
+func getSplittedPath(nodePath string) (ret []splittedPathElement) {
+	elements := strings.SplitAfter(nodePath, "/")
+	if nodePath == "/" {
+		elements = elements[:1]
+	}
+	path := ""
+	for i, v := range elements {
+		path = path + v
+		if v != "/" && i != len(elements)-1 {
+			v = v[:len(v)-1]
+		}
+		ret = append(ret, splittedPathElement{v, path, i != len(elements)-1})
+	}
+	return
+}
+
 // Browse handles browse requests.
 func (h *nodeHandler) Browse(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
@@ -762,15 +784,17 @@ func (h *nodeHandler) Browse(c *reqContext) error {
 	}
 	sort.Sort(orderedNodes(children))
 	body, err := h.Renderer.Render("actions/browse", mtemplate.Context{
-		"Parent":   parent,
-		"Children": children,
-		"Node":     c.Node},
+		"SplittedPath": getSplittedPath(c.Node.Path),
+		"Parent":       parent,
+		"Children":     children,
+		"Node":         c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		return fmt.Errorf("Can't render node browser: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Browse \"%v\""), c.Node.Name())}
+		Flags: EDIT_VIEW | SLIM_VIEW,
+		Title: fmt.Sprintf(G("Browse \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)

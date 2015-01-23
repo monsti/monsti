@@ -3,12 +3,16 @@
   <head>
     {{template "blocks/headers" .}}
   </head>
-  <body>
+  <body {{if .Page.SlimView}}class="slim-view"{{end}}>
+    {{if not .Page.SlimView}}
     {{template "blocks/admin-bar" .}}
+    {{end}}
     <div id="site-wrap">
       <div id="content-wrap">
         <article>
+          {{if not .Page.SlimView}}
           <h1 id="page-title">{{.Page.Title}}</h1>
+          {{end}}
           <div id="content">
             {{.Page.Content}}
           </div>
