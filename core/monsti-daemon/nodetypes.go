@@ -87,6 +87,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 
 	imageType := service.NodeType{
 		Id:        "core.Image",
+		Hide:      true,
 		AddableTo: []string{"."},
 		Name:      util.GenLanguageMap(G("Image"), availableLocales),
 		Fields: []*service.NodeField{
