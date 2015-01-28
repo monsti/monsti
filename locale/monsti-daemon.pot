@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-12-08 18:46+0100\n"
+"POT-Creation-Date: 2015-01-28 11:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,295 +17,344 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: standard input:77
+#: standard input:83
 msgid "Thanks for your message!"
 msgstr ""
 
-#: standard input:104 standard input:300 standard input:313
+#: standard input:109 standard input:314 standard input:327
 msgid "Jan"
 msgstr ""
 
-#: standard input:129
+#: standard input:140
 msgid "View"
 msgstr ""
 
-#: standard input:131
+#: standard input:143
 msgid "Edit"
 msgstr ""
 
-#: standard input:134
+#: standard input:146
+msgid "List"
+msgstr ""
+
+#: standard input:149
 msgid "Add"
 msgstr ""
 
-#: standard input:137
+#: standard input:152
 msgid "Remove"
 msgstr ""
 
-#: standard input:141 standard input:3288
+#: standard input:157 standard input:4130
 msgid "Change password"
 msgstr ""
 
-#: standard input:143
+#: standard input:160
 msgid "Logout"
 msgstr ""
 
-#: standard input:264 standard input:294
+#: standard input:281 standard input:308 standard input:537
 msgid "Submit"
 msgstr ""
 
-#: standard input:301
+#: standard input:315
 msgid "Feb"
 msgstr ""
 
-#: standard input:302
+#: standard input:316
 msgid "Mar"
 msgstr ""
 
-#: standard input:303
+#: standard input:317
 msgid "Apr"
 msgstr ""
 
-#: standard input:304
+#: standard input:318
 msgid "May"
 msgstr ""
 
-#: standard input:305
+#: standard input:319
 msgid "Jun"
 msgstr ""
 
-#: standard input:306
+#: standard input:320
 msgid "Jul"
 msgstr ""
 
-#: standard input:307
+#: standard input:321
 msgid "Aug"
 msgstr ""
 
-#: standard input:308
+#: standard input:322
 msgid "Sep"
 msgstr ""
 
-#: standard input:309
+#: standard input:323
 msgid "Oct"
 msgstr ""
 
-#: standard input:310
+#: standard input:324
 msgid "Nov"
 msgstr ""
 
-#: standard input:311
+#: standard input:325
 msgid "Dec"
 msgstr ""
 
-#: standard input:330
+#: standard input:356
 msgid "Your password has been changed."
 msgstr ""
 
-#: standard input:334
+#: standard input:360
 msgid ""
 "Your password change link is invalid or you have already changed your "
 "password since you requested the password change link."
 msgstr ""
 
-#: standard input:342
+#: standard input:368
 msgid "Forgot your password?"
 msgstr ""
 
-#: standard input:343
+#: standard input:369
 msgid "Request a new one"
 msgstr ""
 
-#: standard input:351
-msgid "WARNING: You are about to remove this content and all content below."
+#: standard input:388 standard input:412 standard input:431
+msgid "Select"
 msgstr ""
 
-#: standard input:352
+#: standard input:394 standard input:681 standard input:2205
+msgid "Name"
+msgstr ""
+
+#: standard input:395 standard input:609
+msgid "Title"
+msgstr ""
+
+#: standard input:397
+msgid "Action"
+msgstr ""
+
+#: standard input:421 standard input:540
+msgid "This node doesn't have any child nodes."
+msgstr ""
+
+#: standard input:445
+msgid "Warning!"
+msgstr ""
+
+#: standard input:446
+msgid "You are about to remove this content and all content below."
+msgstr ""
+
+#: standard input:447
 msgid "The removed content will be lost, so be careful!"
 msgstr ""
 
-#: standard input:405
+#: standard input:500
 msgid "Proceed"
 msgstr ""
 
-#: standard input:406
+#: standard input:501
 msgid "Abort"
 msgstr ""
 
-#: standard input:413
+#: standard input:509
+msgid "Node path:"
+msgstr ""
+
+#: standard input:511
+msgid "Parent node:"
+msgstr ""
+
+#: standard input:518
+msgid "Child nodes"
+msgstr ""
+
+#: standard input:543
+msgid "Add a new child node."
+msgstr ""
+
+#: standard input:550
 msgid ""
 "You should receive a mail with further instructions in the next minutes."
 msgstr ""
 
-#: standard input:459
+#: standard input:595
 msgid "Path"
 msgstr ""
 
-#: standard input:468
+#: standard input:604
 msgid "Document"
 msgstr ""
 
-#: standard input:473
-msgid "Title"
-msgstr ""
-
-#: standard input:479
+#: standard input:615
 msgid "Body"
 msgstr ""
 
-#: standard input:491 standard input:498
+#: standard input:627 standard input:633
 msgid "File"
 msgstr ""
 
-#: standard input:510
+#: standard input:646
 msgid "Image"
 msgstr ""
 
-#: standard input:523
+#: standard input:659
 msgid "Contact form"
 msgstr ""
 
-#: standard input:545 standard input:547 standard input:549 standard input:551
+#: standard input:681 standard input:683 standard input:685 standard input:687
 msgid "Required."
 msgstr ""
 
-#: standard input:545 standard input:1955
-msgid "Name"
-msgstr ""
-
-#: standard input:547
+#: standard input:683
 msgid "Email"
 msgstr ""
 
-#: standard input:549
+#: standard input:685
 msgid "Subject"
 msgstr ""
 
-#: standard input:551
+#: standard input:687
 msgid "Message"
 msgstr ""
 
-#: standard input:904
+#: standard input:703
+msgid "Received from contact form at %v"
+msgstr ""
+
+#: standard input:704
+msgid "Name: %v | Email: %v"
+msgstr ""
+
+#: standard input:1046
 msgid "Blog"
 msgstr ""
 
-#: standard input:916
+#: standard input:1058
 msgid "Blog Post"
 msgstr ""
 
-#: standard input:1670
+#: standard input:1850
 msgid "Content type"
 msgstr ""
 
-#: standard input:1680
+#: standard input:1860
 msgid "Add content"
 msgstr ""
 
-#: standard input:1695
+#: standard input:1876
 msgid "Confirm"
 msgstr ""
 
-#: standard input:1720
+#: standard input:1898
 msgid "Remove \"%v\""
 msgstr ""
 
-#: standard input:1924
+#: standard input:2159
 msgid "Add %v to \"%s\""
 msgstr ""
 
-#: standard input:1927
+#: standard input:2162
 #, c-format
 msgid "Edit \"%s\""
 msgstr ""
 
-#: standard input:1946
+#: standard input:2184
 msgid "Hide"
 msgstr ""
 
-#: standard input:1946
+#: standard input:2185
 msgid "Don't show node in navigation."
 msgstr ""
 
-#: standard input:1948
-msgid "Order"
-msgstr ""
-
-#: standard input:1948
-msgid "Order in navigation or listings (lower numbered entries appear first)."
-msgstr ""
-
-#: standard input:1949
+#: standard input:2187
 msgid "Public"
 msgstr ""
 
-#: standard input:1949
+#: standard input:2188
 msgid "Is the node accessible by every visitor?"
 msgstr ""
 
-#: standard input:1950
+#: standard input:2199
 msgid "Publish time"
 msgstr ""
 
-#: standard input:1950
+#: standard input:2200
 msgid "The node won't be accessible to the public until it is published."
 msgstr ""
 
-#: standard input:1954
+#: standard input:2204
 msgid ""
-"Please enter a name consisting only of the characters A-Z, a-z, 0-9 and '-'"
+"Please enter a name consisting only of the characters A-Z, a-z, 0-9, '.', "
+"and '-'"
 msgstr ""
 
-#: standard input:1955
+#: standard input:2205
 msgid "The name as it should appear in the URL."
 msgstr ""
 
-#: standard input:1995
+#: standard input:2245
 msgid "A node with this name does already exist"
 msgstr ""
 
-#: standard input:3068 standard input:3099 standard input:3125
+#: standard input:2263
+msgid "Unsupported image format. Try GIF, JPEG, or PNG."
+msgstr ""
+
+#: standard input:2389
+msgid "List \"%v\""
+msgstr ""
+
+#: standard input:2465
+msgid "Chooser \"%v\""
+msgstr ""
+
+#: standard input:3906 standard input:3936 standard input:3963
 msgid "Login"
 msgstr ""
 
-#: standard input:3069
+#: standard input:3907
 msgid "Password"
 msgstr ""
 
-#: standard input:3087
+#: standard input:3924
 msgid "Wrong login or password."
 msgstr ""
 
-#: standard input:3100
+#: standard input:3937
 msgid "Login with your site account."
 msgstr ""
 
-#: standard input:3147
+#: standard input:3987
 msgid "Password request"
 msgstr ""
 
-#: standard input:3168
+#: standard input:4010
 msgid "Unkown user."
 msgstr ""
 
-#: standard input:3186
+#: standard input:4028
 msgid "Request new password"
 msgstr ""
 
-#: standard input:3205
+#: standard input:4048
 msgid "Old Password"
 msgstr ""
 
-#: standard input:3208
+#: standard input:4051
 msgid "Please repeat the password."
 msgstr ""
 
-#: standard input:3209
+#: standard input:4052
 msgid "Passwords do not match."
 msgstr ""
 
-#: standard input:3210
+#: standard input:4053
 msgid "New Password"
 msgstr ""
 
-#: standard input:3252
+#: standard input:4094
 msgid "Wrong password."
 msgstr ""
