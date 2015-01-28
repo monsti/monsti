@@ -1,7 +1,7 @@
 (function() {
   var monstiFileChooser = function(field_name, url, type, win) {
     var cmsURL = window.location.toString();    // script URL - use an absolute path!
-    cmsURL = cmsURL.replace("@@edit", "@@chooser");
+    cmsURL = cmsURL.replace("@@edit", "@@chooser?type=" + type);
 //    alert("Field_Name: " + field_name + " URL: " + url + " Type: " + type + " Win: " + win + " CMSURL: " + cmsURL); // debug/testing
 
     tinyMCE.activeEditor.windowManager.open({

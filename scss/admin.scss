@@ -3,10 +3,15 @@
 
 $default-border-radius: 2px;
 
-#site-wrap {
+.site-wrap {
   background: white;
   padding: 0 50px 25px 50px;
   min-height: 100%;
+}
+
+.site-wrap-slim {
+  min-height: auto;
+  padding: 0;
 }
 
 #admin-bar {
@@ -16,8 +21,12 @@ $default-border-radius: 2px;
   margin-bottom: 30px;
 }
 
-#content-wrap {
+.content-wrap {
   padding-top: 60px;
+}
+
+.content-wrap-slim {
+  padding: 15px;
 }
 
 .node-list {
@@ -142,4 +151,18 @@ $default-border-radius: 2px;
   &:hover {
     background-color: $widget-hover-background;
   }
+}
+
+.chooser-image {
+  @include inline-block;
+  width: 152px;
+  margin-top: 20px;
+  margin-right: 20px;
+  img {
+    border: 1px solid #555;
+  }
+}
+
+.chooser-image-name {
+  display: block;
 }

@@ -267,8 +267,14 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 	var body []byte
 	var err error
 	if sizeName != "" {
-		err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
-			"core.image.sizes."+sizeName, &size)
+		var err error
+		if sizeName == "core.ChooserThumbnail" {
+			size.Width = 150
+			size.Height = 150
+		} else {
+			err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
+				"core.image.sizes."+sizeName, &size)
+		}
 		if err != nil || size.Width == 0 {
 			if err != nil {
 				h.Log.Printf("Could not get size config: %v", err)
@@ -783,11 +789,25 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 		}
 	}
 	sort.Sort(orderedNodes(children))
-	body, err := h.Renderer.Render("actions/chooser", mtemplate.Context{
+	chooseType := c.Req.FormValue("type")
+	context := mtemplate.Context{
 		"SplittedPath": getSplittedPath(c.Node.Path),
+		"Type":         chooseType,
 		"Parent":       parent,
 		"Children":     children,
-		"Node":         c.Node},
+		"Node":         c.Node}
+
+	if chooseType == "image" {
+		images := make([]*service.Node, 0)
+		for _, node := range children {
+			if node.Type.Id == "core.Image" {
+				images = append(images, node)
+			}
+		}
+		context["Images"] = images
+	}
+
+	body, err := h.Renderer.Render("actions/chooser", context,
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
 		return fmt.Errorf("Can't render node chooser: %v", err)
