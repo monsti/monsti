@@ -1,0 +1,67 @@
+{{$action := print "@@chooser" "?type=" .Type}}
+<article>
+  {{if .Parent}}
+  <a class="chooser-back" href="{{pathJoin .Parent.Path $action}}">◀</a>
+  {{end}}
+  <ul class="chooser-current-path">
+    {{range .SplittedPath}}
+    <li class="chooser-current-path-element">
+      {{if .Parent}}<a class="chooser-current-path-link"
+                       href="{{pathJoin .Path $action}}">{{end}}
+      {{.Name}}
+      {{if .Parent}}</a>{{end}}
+    </li>
+    {{end}}
+  </ul>
+  {{if ne .Type "image"}}
+  <button data-path="{{.Node.Path}}" class="chooser-select">
+    {{G "Select"}}</button>
+  {{end}}
+  {{$Type := .Type}}
+  {{with .Children}}
+  <table class="chooser-table">
+    <tr>
+      <th>{{G "Name"}}</th>
+      <th>{{G "Title"}}</th>
+      {{if ne $Type "image"}}
+      <th>{{G "Action"}}</th>
+      {{end}}
+    </tr>
+    {{range .}}
+    {{if or (ne $Type "image") (ne .Type.Id "core.Image")}}
+    <tr>
+      <td class="chooser-table-name">
+        <a href="{{pathJoin .Path $action}}">{{.Name}}</a>
+      </td>
+      <td class="chooser-table-title">
+        {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+      </td>
+      {{if ne $Type "image"}}
+      <td class="chooser-table-action">
+        <button data-path="{{.Path}}" class="chooser-select">
+          {{G "Select"}}</button>
+      </td>
+      {{end}}
+    </tr>
+    {{end}}
+    {{end}}
+  </table>
+  {{else}}
+  <p>
+  {{G "This node doesn't have any child nodes."}}
+  </p>
+  {{end}}
+  {{with .Images}}
+  <ul class="chooser-images">
+    {{range .}}
+    <li class="chooser-image">
+      <img src="{{.Path}}?size=core.ChooserThumbnail">
+      <span class="chooser-image-name">{{.Name}}</span>
+      <button data-path="{{.Path}}" class="chooser-select">
+        {{G "Select"}}</button>
+    </li>
+    {{end}}
+  </ul>
+  {{end}}
+  <script type="text/javascript" src="/static/js/chooser.js"></script>
+</article>

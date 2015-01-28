@@ -267,8 +267,14 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 	var body []byte
 	var err error
 	if sizeName != "" {
-		err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
-			"core.image.sizes."+sizeName, &size)
+		var err error
+		if sizeName == "core.ChooserThumbnail" {
+			size.Width = 150
+			size.Height = 150
+		} else {
+			err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
+				"core.image.sizes."+sizeName, &size)
+		}
 		if err != nil || size.Width == 0 {
 			if err != nil {
 				h.Log.Printf("Could not get size config: %v", err)
@@ -733,6 +739,82 @@ func (h *nodeHandler) List(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("List \"%v\""), c.Node.Name())}
+	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
+		*c.Site, c.UserSession.Locale, c.Serv)
+	c.Res.Write(rendered)
+	return nil
+}
+
+type splittedPathElement struct {
+	Name, Path string
+	Parent     bool
+}
+
+// getSplittedPath returns the path splitted into its elements.
+func getSplittedPath(nodePath string) (ret []splittedPathElement) {
+	elements := strings.SplitAfter(nodePath, "/")
+	if nodePath == "/" {
+		elements = elements[:1]
+	}
+	path := ""
+	for i, v := range elements {
+		path = path + v
+		if v != "/" && i != len(elements)-1 {
+			v = v[:len(v)-1]
+		}
+		ret = append(ret, splittedPathElement{v, path, i != len(elements)-1})
+	}
+	return
+}
+
+// Chooser handles chooser requests.
+func (h *nodeHandler) Chooser(c *reqContext) error {
+	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
+	m := c.Serv.Monsti()
+	children, err := m.GetChildren(c.Site.Name, c.Node.Path)
+	if err != nil {
+		return fmt.Errorf("Could not get children of node: %v", err)
+	}
+	switch c.Req.Method {
+	case "GET":
+	default:
+		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
+	}
+	var parent interface{}
+	parentPath := path.Dir(c.Node.Path)
+	if parentPath != c.Node.Path {
+		var err error
+		if parent, err = m.GetNode(c.Site.Name, parentPath); err != nil {
+			return fmt.Errorf("Could not get parent of node: %v", err)
+		}
+	}
+	sort.Sort(orderedNodes(children))
+	chooseType := c.Req.FormValue("type")
+	context := mtemplate.Context{
+		"SplittedPath": getSplittedPath(c.Node.Path),
+		"Type":         chooseType,
+		"Parent":       parent,
+		"Children":     children,
+		"Node":         c.Node}
+
+	if chooseType == "image" {
+		images := make([]*service.Node, 0)
+		for _, node := range children {
+			if node.Type.Id == "core.Image" {
+				images = append(images, node)
+			}
+		}
+		context["Images"] = images
+	}
+
+	body, err := h.Renderer.Render("actions/chooser", context,
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+	if err != nil {
+		return fmt.Errorf("Can't render node chooser: %v", err)
+	}
+	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
+		Flags: EDIT_VIEW | SLIM_VIEW,
+		Title: fmt.Sprintf(G("Chooser \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)

@@ -3,10 +3,15 @@
 
 $default-border-radius: 2px;
 
-#site-wrap {
+.site-wrap {
   background: white;
   padding: 0 50px 25px 50px;
   min-height: 100%;
+}
+
+.site-wrap-slim {
+  min-height: auto;
+  padding: 0;
 }
 
 #admin-bar {
@@ -16,8 +21,12 @@ $default-border-radius: 2px;
   margin-bottom: 30px;
 }
 
-#content-wrap {
+.content-wrap {
   padding-top: 60px;
+}
+
+.content-wrap-slim {
+  padding: 15px;
 }
 
 .node-list {
@@ -108,4 +117,52 @@ $default-border-radius: 2px;
 
 .alert-warning {
   @include alert(#FCF8E3);
+}
+
+.chooser-back {
+  text-decoration: none;
+  margin-right: 5px;
+  color: black;
+}
+
+.chooser-current-path {
+  @include inline-block;
+  margin-right: 15px;
+}
+
+.chooser-back, .chooser-current-path-element {
+  @include inline-block;
+  padding: 5px;
+  background: $widget-background;
+  border: 1px solid $border-color;
+  @include border-radius;
+  min-width: 15px;
+  text-align: center;
+}
+
+.chooser-current-path-link {
+  display: block;
+  margin: -5px;
+  padding: 5px;
+  text-decoration: none;
+}
+
+.chooser-back, .chooser-current-path-link {
+  &:hover {
+    background-color: $widget-hover-background;
+  }
+}
+
+.chooser-image {
+  @include inline-block;
+  width: 152px;
+  margin-top: 20px;
+  margin-right: 20px;
+  img {
+    border: 1px solid #555;
+  }
+}
+
+.chooser-image-name {
+  display: block;
 }
