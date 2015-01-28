@@ -1,12 +1,12 @@
 (function() {
-  var monstiFileBrowser = function(field_name, url, type, win) {
+  var monstiFileChooser = function(field_name, url, type, win) {
     var cmsURL = window.location.toString();    // script URL - use an absolute path!
-    cmsURL = cmsURL.replace("@@edit", "@@browse");
+    cmsURL = cmsURL.replace("@@edit", "@@chooser");
 //    alert("Field_Name: " + field_name + " URL: " + url + " Type: " + type + " Win: " + win + " CMSURL: " + cmsURL); // debug/testing
 
     tinyMCE.activeEditor.windowManager.open({
       file : cmsURL,
-      title : 'File Browser',
+      title : 'File Chooser',
       width : 700,
       height : 500,
       resizable : "yes",
@@ -25,7 +25,7 @@
       plugins: "anchor autosave code hr image visualchars visualblocks table paste media link",
       tools: "inserttable",
       height: 300,
-      file_browser_callback: monstiFileBrowser,
+      file_browser_callback: monstiFileChooser,
     });
   });
 })();

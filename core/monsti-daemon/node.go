@@ -761,8 +761,8 @@ func getSplittedPath(nodePath string) (ret []splittedPathElement) {
 	return
 }
 
-// Browse handles browse requests.
-func (h *nodeHandler) Browse(c *reqContext) error {
+// Chooser handles chooser requests.
+func (h *nodeHandler) Chooser(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	m := c.Serv.Monsti()
 	children, err := m.GetChildren(c.Site.Name, c.Node.Path)
@@ -783,18 +783,18 @@ func (h *nodeHandler) Browse(c *reqContext) error {
 		}
 	}
 	sort.Sort(orderedNodes(children))
-	body, err := h.Renderer.Render("actions/browse", mtemplate.Context{
+	body, err := h.Renderer.Render("actions/chooser", mtemplate.Context{
 		"SplittedPath": getSplittedPath(c.Node.Path),
 		"Parent":       parent,
 		"Children":     children,
 		"Node":         c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		return fmt.Errorf("Can't render node browser: %v", err)
+		return fmt.Errorf("Can't render node chooser: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW | SLIM_VIEW,
-		Title: fmt.Sprintf(G("Browse \"%v\""), c.Node.Name())}
+		Title: fmt.Sprintf(G("Chooser \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)

@@ -110,17 +110,18 @@ $default-border-radius: 2px;
   @include alert(#FCF8E3);
 }
 
-.node-browse-back {
+.chooser-back {
   text-decoration: none;
   margin-right: 5px;
   color: black;
 }
 
-.node-browse-current-path {
+.chooser-current-path {
   @include inline-block;
+  margin-right: 15px;
 }
 
-.node-browse-back, .node-browse-current-path-element {
+.chooser-back, .chooser-current-path-element {
   @include inline-block;
   padding: 5px;
   background: $widget-background;
@@ -130,14 +131,14 @@ $default-border-radius: 2px;
   text-align: center;
 }
 
-.node-browse-current-path-link {
+.chooser-current-path-link {
   display: block;
   margin: -5px;
   padding: 5px;
   text-decoration: none;
 }
 
-.node-browse-back, .node-browse-current-path-link {
+.chooser-back, .chooser-current-path-link {
   &:hover {
     background-color: $widget-hover-background;
   }

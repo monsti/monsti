@@ -4,7 +4,7 @@
   win = (args.window);
   input = (args.input);
 
-  var selectButtons = document.querySelectorAll(".node-browse-select");
+  var selectButtons = document.querySelectorAll(".chooser-select");
   for (var i = 0; i < selectButtons.length; i++) {
     selectButtons[i].addEventListener("click", function(event) {
       var path = event.target.getAttribute("data-path");

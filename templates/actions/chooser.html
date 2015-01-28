@@ -1,0 +1,45 @@
+<article>
+  {{if .Parent}}
+  <a class="chooser-back" href="{{pathJoin .Parent.Path "@@chooser"}}">◀</a>
+  {{end}}
+  <ul class="chooser-current-path">
+    {{range .SplittedPath}}
+    <li class="chooser-current-path-element">
+      {{if .Parent}}<a class="chooser-current-path-link"
+                       href="{{pathJoin .Path "@@chooser"}}">{{end}}
+      {{.Name}}
+      {{if .Parent}}</a>{{end}}
+    </li>
+    {{end}}
+  </ul>
+  <button data-path="{{.Node.Path}}" class="chooser-select">
+    {{G "Select"}}</button>
+  {{with .Children}}
+  <table class="chooser-table">
+    <tr>
+      <th>{{G "Name"}}</th>
+      <th>{{G "Title"}}</th>
+      <th>{{G "Action"}}</th>
+    </tr>
+    {{range .}}
+    <tr>
+      <td class="chooser-table-name">
+        <a href="{{pathJoin .Path "@@chooser"}}">{{.Name}}</a>
+      </td>
+      <td class="chooser-table-title">
+        {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+      </td>
+      <td class="chooser-table-action">
+        <button data-path="{{.Path}}" class="chooser-select">
+          {{G "Select"}}</button>
+      </td>
+    </tr>
+    {{end}}
+  </table>
+  {{else}}
+  <p>
+  {{G "This node doesn't have any child nodes."}}
+  </p>
+  {{end}}
+  <script type="text/javascript" src="/static/js/chooser.js"></script>
+</article>
