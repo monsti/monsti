@@ -6,39 +6,39 @@
     <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
     <link rel="shortcut icon" href="/site-static/favicon.png" />
   </head>
-  <body id="{{.Page.Node.PathToID}}" class="node-type-{{.Page.Node.TypeToID}}">
+  <body class="{{.Page.Node.PathToID}} node-type-{{.Page.Node.TypeToID}}">
     {{template "blocks/admin-bar" .}}
-    <div id="site-wrap">
-      <div id="top-wrap">
-        <div id="header-wrap">
-          <div id="header">
-            <div id="site-title">
+    <div class="site-wrap">
+      <div class="top-wrap">
+        <div class="header-wrap">
+          <div class="header">
+            <div class="site-title">
               <a href="/">{{.Site.Title}}</a>
             </div>
-            <div id="primary-nav">
+            <div class="primary-nav">
               {{template "blocks/navigation" .Page.PrimaryNav}}
             </div>
           </div>
         </div>
-        <div id="content-wrap">
-          <div id="messages">
+        <div class="content-wrap">
+          <div class="messages">
           </div>
-          <div id="main">
+          <div class="main">
             {{.Page.Content}}
           </div>
-          <div id="sidebar">
+          <div class="sidebar">
             {{if .Page.ShowSecondaryNav}}
-            <div id="secondary-nav">
+            <div class="secondary-nav">
               {{template "blocks/navigation" .Page.SecondaryNav}}
             </div>
             {{end}}
           </div>
         </div>
       </div>
-      <div id="bottom-wrap">
-        <div id="footer-wrap">
-          <div id="footer">
-            <p id="attribution">Powered by
+      <div class="bottom-wrap">
+        <div class="footer-wrap">
+          <div class="footer">
+            <p class="attribution">Powered by
               <a href="http://www.monsti.org">Monsti</a>
             </p>
           </div>

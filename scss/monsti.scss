@@ -1,6 +1,6 @@
 @import "layout";
 
-#primary-nav {
+.primary-nav {
   ul {
     list-style:none;
     background: #EEE;
@@ -33,17 +33,17 @@
   }
 }
 
-#content-wrap {
+.content-wrap {
   display: table;
   width: 100%;
 }
 
-#sidebar, #main {
+.sidebar, .main {
   vertical-align: top;
   padding-bottom: 75px;
 }
 
-#sidebar {
+.sidebar {
   border-left: none;
   box-sizing: border-box;
   width: 33.33%;
@@ -52,12 +52,9 @@
   padding-top: 50px;
 }
 
-#main {
+.main {
   display: table-cell;
   width: 66.66%;
   padding-right: 50px;
   box-sizing: border-box;
-}
-
-#content {
 }

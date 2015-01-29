@@ -17,7 +17,7 @@ body {
   color: #666;
 }
 
-#site-wrap {
+.site-wrap {
   box-sizing: border-box;
   max-width: 1200px;
   min-width: 900px;
@@ -28,7 +28,7 @@ body {
   }
 }
 
-#main, #sidebar, #footer {
+.main, .sidebar, .footer {
   background: white;
   border: 1px solid $border-color;
   @include border-radius(3px);
@@ -36,19 +36,19 @@ body {
 
 }
 
-#bottom-wrap {
+.bottom-wrap {
   margin-top:3em;
 }
 
-#sidebar{
+.sidebar{
   margin-top:2em;
 }
 
-#header{
+.header{
   margin-top:3em;
 }
 
-#site-title a{
+.site-title a{
   display:block;
   width:301px;
   height:71px;
@@ -57,13 +57,13 @@ body {
   margin-bottom: 30px;
 }
 
-#top-wrap, #bottom-wrap {
+.top-wrap, .bottom-wrap {
   max-width:960px;
   margin:0 auto;
   @include clearfix;
 }
 
-#footer {
+.footer {
   margin-top: 30px;
   @include box-shadow(#DDD 0 -20px 15px -15px);
   border-top: 1px solid $border-color;
@@ -163,9 +163,9 @@ a {
   color:#DD8403
 }
 
-#main > article {
+.main > article {
   padding-top: 5px;
-  &>h1, #page-title {
+  &>h1, .page-title {
     font-size: 130%;
     border-bottom: 1px solid $border-color;
     padding-bottom: 10px;

@@ -14,7 +14,7 @@ $default-border-radius: 2px;
   padding: 0;
 }
 
-#admin-bar {
+.admin-bar {
   position: absolute;
   top: 0;
   @include clearfix;

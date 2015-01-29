@@ -6,6 +6,7 @@
     + Accepting dots in node names.
     + Removed body field from core.File node type.
     + Images don't show up in the navigation any more.
+    + Templates use classes instead of ids.
  - Fixed:
     + Fixed core.File template.
     + Fixed and refactored TranslationMaps.
