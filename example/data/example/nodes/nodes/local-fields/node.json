@@ -11,7 +11,7 @@
     {
       "Id": "foo.FooField",
       "Name": {
-        "en": "Foo"
+        "": "Foo"
       },
       "Required": false,
       "Type": "Text"
@@ -19,7 +19,7 @@
     {
       "Id": "foo.BarField",
       "Name": {
-        "en": "Bar"
+        "": "Bar"
       },
       "Required": false,
       "Type": "Text"

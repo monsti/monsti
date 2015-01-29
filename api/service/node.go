@@ -78,7 +78,7 @@ func (t TextField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	form.AddWidget(&htmlwidgets.TextWidget{
 		MinLength: 1, ValidationError: G("Required.")}, "Fields."+field.Id,
-		field.Name[locale], "")
+		field.Name.Get(locale), "")
 }
 
 func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -113,7 +113,7 @@ func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	data.Set(field.Id, string(t))
 	widget := form.AddWidget(new(htmlwidgets.TextAreaWidget), "Fields."+field.Id,
-		field.Name[locale], "")
+		field.Name.Get(locale), "")
 	widget.Base().Classes = []string{"html-field"}
 }
 
@@ -147,7 +147,7 @@ func (t FileField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, "")
 	form.AddWidget(new(htmlwidgets.FileWidget), "Fields."+field.Id,
-		field.Name[locale], "")
+		field.Name.Get(locale), "")
 }
 
 func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -201,7 +201,7 @@ func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, t.Time)
 	form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
-		"Fields."+field.Id, field.Name[locale], "")
+		"Fields."+field.Id, field.Name.Get(locale), "")
 }
 
 func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
@@ -332,9 +332,8 @@ type NodeField struct {
 	// The Id of the field including a namespace,
 	// e.g. "namespace.somefieldype".
 	Id string
-	// The name of the field as shown in the web interface,
-	// specified as a translation map (language -> msg).
-	Name     map[string]string
+	// The name of the field as shown in the web interface.
+	Name     util.LanguageMap
 	Required bool
 	Type     string
 }
@@ -365,7 +364,7 @@ type NodeType struct {
 	AddableTo []string
 	// The name of the node type as shown in the web interface,
 	// specified as a translation map (language -> msg).
-	Name   map[string]string
+	Name   util.LanguageMap
 	Fields []*NodeField
 	Embed  []EmbedNode
 	// If true, never show nodes of this type in the navigation.
@@ -375,18 +374,4 @@ type NodeType struct {
 	//
 	// Supported values: $year, $month, $day
 	PathPrefix string
-}
-
-// GetLocalName returns the name of the node type in the given language.
-//
-// Fall backs to to the "en" locale or the id of the node type.
-func (n NodeType) GetLocalName(locale string) string {
-	name, ok := n.Name[locale]
-	if !ok {
-		name, ok = n.Name["en"]
-	}
-	if !ok {
-		name = n.Id
-	}
-	return name
 }

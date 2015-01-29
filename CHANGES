@@ -7,7 +7,8 @@
     + Removed body field from core.File node type.
     + Images don't show up in the navigation any more.
  - Fixed:
-    + core.File template.
+    + Fixed core.File template.
+    + Fixed and refactored TranslationMaps.
 
 * 0.8.0 - released 2015/01/16
  - New features:

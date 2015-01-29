@@ -11,7 +11,7 @@
     {
       "Id": "foo.DateTime",
       "Name": {
-        "en": "DateTime"
+        "": "DateTime"
       },
       "Required": false,
       "Type": "DateTime"
@@ -19,7 +19,7 @@
     {
       "Id": "foo.HTMLArea",
       "Name": {
-        "en": "HTMLArea"
+        "": "HTMLArea"
       },
       "Required": false,
       "Type": "HTMLArea"
@@ -27,7 +27,7 @@
     {
       "Id": "foo.Text",
       "Name": {
-        "en": "Text"
+        "": "Text"
       },
       "Required": false,
       "Type": "Text"

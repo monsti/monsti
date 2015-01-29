@@ -97,13 +97,28 @@ func (n NestedMap) Set(id string, value interface{}) {
 	field.(map[string]interface{})[parts[len(parts)-1]] = value
 }
 
+// LanguageMap maps locales to translation strings.
+type LanguageMap map[string]string
+
+// Get returns the translation for the given locale. If the
+// translation is not set, it returns the translation for the empty
+// locale, i.e. "".
+func (l LanguageMap) Get(locale string) string {
+	if v, ok := l[locale]; ok {
+		return v
+	}
+	return l[""]
+}
+
 // GenLanguageMap generates a language map for the given locales.
 //
 // The map will have an entry for each locale with the locale id being
 // the key and the value being the gettext translation of msg (using
-// pkg.monsti.org/gettext.DefaultLocales)
-func GenLanguageMap(msg string, locales []string) map[string]string {
-	ret := make(map[string]string)
+// pkg.monsti.org/gettext.DefaultLocales). The empty locale, i.e. "",
+// is set to msg.
+func GenLanguageMap(msg string, locales []string) LanguageMap {
+	ret := make(LanguageMap)
+	ret[""] = msg
 	for _, lang := range locales {
 		G, _, _, _ := gettext.DefaultLocales.Use("", lang)
 		ret[lang] = G(msg)

@@ -195,7 +195,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 		}
 		nodeTypeOptions = append(nodeTypeOptions,
 			htmlwidgets.SelectOption{nodeType.Id,
-				nodeType.GetLocalName(c.UserSession.Locale), false})
+				nodeType.Name.Get(c.UserSession.Locale), false})
 	}
 	form := htmlwidgets.NewForm(&data)
 	form.AddWidget(&htmlwidgets.SelectWidget{Options: nodeTypeOptions},
@@ -509,7 +509,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if c.Action == service.EditAction {
 		if newNode {
 			env.Title = fmt.Sprintf(G("Add %v to \"%s\""),
-				nodeType.GetLocalName(c.UserSession.Locale), c.Node.Path)
+				nodeType.Name.Get(c.UserSession.Locale), c.Node.Path)
 		} else {
 			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Path)
 		}
