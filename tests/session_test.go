@@ -17,7 +17,7 @@ func login(b Browser, t *testing.T) {
 		"Password": "foofoo"}); err != nil {
 		t.Fatal("Could not fill and submit login form: ", err)
 	}
-	if _, err := b.wd.FindElement(selenium.ById, "admin-bar"); err != nil {
+	if _, err := b.wd.FindElement(selenium.ByClassName, "admin-bar"); err != nil {
 		t.Fatal("Could not find admin bar. Login failed?")
 	}
 	if err := b.Go(appURL); err != nil {
