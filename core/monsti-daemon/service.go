@@ -195,12 +195,21 @@ func (m *MonstiService) FinishSignal(args *FinishSignalArgs, _ *int) error {
 
 // getNode looks up the given node.
 // If no such node exists, return nil.
+// If it's an existing path but not a regular note, a node of type
+// core.Path will be returned.
 // It adds a path attribute with the given path.
 func getNode(root, path string) (node []byte, err error) {
-	node_path := filepath.Join(root, path[1:], "node.json")
-	node, err = ioutil.ReadFile(node_path)
+	nodePath := filepath.Join(root, path[1:])
+	node, err = ioutil.ReadFile(filepath.Join(nodePath, "node.json"))
 	if os.IsNotExist(err) {
-		return nil, nil
+		_, err = os.Open(nodePath)
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		if err != nil {
+			return
+		}
+		node = []byte(`{"Type":"core.Path"}`)
 	}
 	if err != nil {
 		return

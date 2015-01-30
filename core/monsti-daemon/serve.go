@@ -26,6 +26,7 @@ import (
 	"sync"
 	"time"
 
+	"path/filepath"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"pkg.monsti.org/monsti/api/service"
@@ -201,12 +202,21 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			nodePath, c.Site.Name, err)
 	}
 	if c.Node == nil ||
-		(c.UserSession.User == nil &&
+		(c.Action == service.ViewAction && c.UserSession.User == nil &&
 			(c.Node.Public == false || c.Node.PublishTime.After(time.Now()))) {
 		h.Log.Printf("Node not found: %v @ %v", nodePath, c.Site.Name)
 		c.Node = &service.Node{Path: nodePath}
 		http.Error(c.Res, "Document not found", http.StatusNotFound)
 		return
+	}
+	if c.Node.Type.Id == "core.Path" {
+		switch c.Action {
+		case service.ViewAction, service.EditAction,
+			service.AddAction, service.RemoveAction:
+			http.Redirect(c.Res, c.Req, filepath.Join(c.Node.Path, "@@list"),
+				http.StatusSeeOther)
+			return
+		}
 	}
 	if !checkPermission(c.Action, c.UserSession) {
 		http.Error(w, "Unauthorized.", http.StatusUnauthorized)

@@ -31,7 +31,8 @@ import (
 
 func TestGetNode(t *testing.T) {
 	root, cleanup, err := utesting.CreateDirectoryTree(map[string]string{
-		"/foo/node.json": `{"Type":"core.Foo"}`},
+		"/foo/node.json": `{"Type":"core.Foo"}`,
+		"/foo/bar/empty": ``},
 		"TestGetNode")
 	if err != nil {
 		t.Fatalf("Could not create directory tree: ", err)
@@ -43,6 +44,14 @@ func TestGetNode(t *testing.T) {
 		t.Errorf("Got error: %v", err)
 	} else if string(ret) != expected {
 		t.Fatalf(`getNode(%q, "/foo") = %v, nil, should be %v, nil`,
+			root, string(ret), expected)
+	}
+	ret, err = getNode(root, "/foo/bar")
+	expected = `{"Path":"/foo/bar","Type":"core.Path"}`
+	if err != nil {
+		t.Errorf("Got error: %v", err)
+	} else if string(ret) != expected {
+		t.Fatalf(`getNode(%q, "/foo/bar") = %v, nil, should be %v, nil`,
 			root, string(ret), expected)
 	}
 	ret, err = getNode(root, "/unavailable")

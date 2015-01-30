@@ -115,8 +115,8 @@ the the configured time zone).
 ==== core.Path
 
 The Path node type is not written to the database. It will be returned
-by `monsti.GetChildren` to represent a subdirectory that is not a
-regular node but may contain children.
+by `monsti.GetChildren` and `monsti.GetNode` to represent a
+directory that is not a regular node but may contain children.
 
 ==== core.Image
 

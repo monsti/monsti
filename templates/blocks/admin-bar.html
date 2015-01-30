@@ -6,21 +6,30 @@
     </p>
     {{$path := .Page.Node.Path}}
     <ul class="nav">
-      <li><a href="{{$path}}"
-             ><img src="/static/img/icons/silk/layout_content.png"/>
-        {{G "View"}}</a></li>
-      <li><a href="{{pathJoin $path "@@edit"}}"
-        ><img src="/static/img/icons/silk/page_white_edit.png"/>
-        {{G "Edit"}}</a></li>
+      {{$inactive := eq .Page.Node.Type.Id "core.Path"}}
+      <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
+        {{if not $inactive}}
+        <a href="{{$path}}"
+           >{{end}}<img src="/static/img/icons/silk/layout_content.png"/>
+        {{G "View"}}{{if not $inactive}}</a>{{end}}</li>
+      <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
+        {{if not $inactive}}
+        <a href="{{pathJoin $path "@@edit"}}"
+        >{{end}}<img src="/static/img/icons/silk/page_white_edit.png"/>
+        {{G "Edit"}}{{if not $inactive}}</a>{{end}}</li>
       <li><a href="{{pathJoin $path "@@list"}}"
         ><img src="/static/img/icons/silk/page_white_stack.png"/>
         {{G "List"}}</a></li>
-      <li><a href="{{pathJoin $path "@@add"}}"
-        ><img src="/static/img/icons/silk/page_white_add.png"/>
-        {{G "Add"}}</a></li>
-      <li><a href="{{pathJoin $path "@@remove"}}"
-        ><img src="/static/img/icons/silk/page_white_delete.png"/>
-        {{G "Remove"}}</a></li>
+      <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
+        {{if not $inactive}}
+        <a href="{{pathJoin $path "@@add"}}"
+        >{{end}}<img src="/static/img/icons/silk/page_white_add.png"/>
+          {{G "Add"}}{{if not $inactive}}</a>{{end}}</li>
+      <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
+        {{if not $inactive}}
+        <a href="{{pathJoin $path "@@remove"}}"
+        >{{end}}<img src="/static/img/icons/silk/page_white_delete.png"/>
+          {{G "Remove"}}{{if not $inactive}}</a>{{end}}</li>
     </ul>
     <ul class="nav pull-right">
       <li><a href="{{pathJoin $path "@@change-password"}}"
