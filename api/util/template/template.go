@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -109,7 +110,7 @@ func (r Renderer) Render(name string, context interface{},
 		},
 	}
 	tmpl.Funcs(funcs)
-	err := parse(name, tmpl, r.Root, siteTemplates)
+	err := parseSiteTemplate(name, tmpl, r.Root, siteTemplates)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (r Renderer) Render(name string, context interface{},
 		return nil, err
 	}
 	for _, v := range includes {
-		err := parse(v, tmpl.New(v), r.Root, siteTemplates)
+		err := parseSiteTemplate(v, tmpl.New(v), r.Root, siteTemplates)
 		if err != nil {
 			return nil, err
 		}
@@ -130,33 +131,49 @@ func (r Renderer) Render(name string, context interface{},
 	return out.Bytes(), nil
 }
 
-// Parse the named template and add to the existing template structure.
+// parseSiteTemplate tries to parse the named template for the given
+// site and adds it to given template structure.
 //
-// name is the name of the template (e.g. "blocks/sidebar")
-// t is the existing template structure.
-// root is the path to monsti's template
-// siteRoot is the path to the sites' overriden templates.
-func parse(name string, t *template.Template, root string,
+// It searches in the site's template root for the given template. If
+// there is no template, it searches in Monsti's template directory.
+//
+// `name` is the name of the template (e.g. `blocks/sidebar`). `t` is
+// the existing template structure. `root` is the path to Monsti's
+// base templates. `siteRoot` is the path to the sites' templates.
+func parseSiteTemplate(name string, t *template.Template, root string,
 	siteRoot string) error {
+	ok := false
+	var err error
 	if len(siteRoot) > 0 {
-		path := filepath.Join(siteRoot, name+".html")
-		content, err := ioutil.ReadFile(path)
-		if err == nil {
-			_, err = t.Parse(string(content))
-			if err != nil {
-				return fmt.Errorf("Could not parse template: %v", err)
-			}
-			return nil
+		if ok, err = parse(name, t, siteRoot); err != nil {
+			return err
 		}
 	}
-	path := filepath.Join(root, name+".html")
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("Could not load template: %v", err)
-	}
-	_, err = t.Parse(string(content))
-	if err != nil {
-		return fmt.Errorf("Could not parse template: %v", err)
+	if !ok {
+		if _, err = parse(name, t, root); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// Parse the named template and add to the existing template structure.
+//
+// name is the name of the template (e.g. "blocks/sidebar").
+// t is the existing template structure.
+// root is the path to the templates.
+//
+// Returns false, nil if no template was found.
+func parse(name string, t *template.Template, root string) (bool, error) {
+	path := filepath.Join(root, name+".html")
+	content, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("Could not read template file: %v", err)
+	}
+	if _, err = t.Parse(string(content)); err != nil {
+		return false, fmt.Errorf("Could not parse template file: %v", err)
+	}
+	return true, nil
 }
