@@ -11,7 +11,7 @@ LOCALES=de
 
 VCS_REVISION:=$(shell git rev-list HEAD --count)
 VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')
-MONSTI_VERSION=0.9.0.rc.$(VCS_BRANCH).$(VCS_REVISION)
+MONSTI_VERSION=0.9.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
