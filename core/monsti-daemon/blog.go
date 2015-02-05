@@ -79,17 +79,17 @@ func getBlogPosts(req *service.Request, blogPath string, s *service.Session,
 
 func getBlogContext(reqId uint, embed *service.EmbedNode,
 	s *service.Session, settings *settings, renderer *mtemplate.Renderer) (
-	map[string][]byte, error) {
+	map[string][]byte, *service.CacheMods, error) {
 	req, err := s.Monsti().GetRequest(reqId)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get request: %v", err)
+		return nil, nil, fmt.Errorf("Could not get request: %v", err)
 	}
 	query := req.Query
 	blogPath := req.NodePath
 	if embed != nil {
 		embedUrl, err := url.Parse(embed.URI)
 		if err != nil {
-			return nil, fmt.Errorf("Could not parse embed URI")
+			return nil, nil, fmt.Errorf("Could not parse embed URI")
 		}
 		query = embedUrl.Query()
 		blogPath = embedUrl.Path
@@ -105,14 +105,17 @@ func getBlogContext(reqId uint, embed *service.EmbedNode,
 	context["Embedded"] = embed
 	context["Posts"], err = getBlogPosts(req, blogPath, s, limit)
 	if err != nil {
-		return nil, fmt.Errorf("Could not retrieve blog posts: %v", err)
+		return nil, nil, fmt.Errorf("Could not retrieve blog posts: %v", err)
 	}
 	rendered, err := renderer.Render("core/blogpost-list", context,
 		req.Session.Locale, settings.Monsti.GetSiteTemplatesPath(req.Site))
 	if err != nil {
-		return nil, fmt.Errorf("Could not render template: %v", err)
+		return nil, nil, fmt.Errorf("Could not render template: %v", err)
 	}
-	return map[string][]byte{"BlogPosts": rendered}, nil
+	mods := &service.CacheMods{
+		Deps: []service.CacheDep{{Node: req.NodePath, Descend: 1}},
+	}
+	return map[string][]byte{"BlogPosts": rendered}, mods, nil
 }
 
 func initBlog(settings *settings, session *service.Session, logger *log.Logger,
@@ -153,11 +156,11 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 			map[string][]byte, *service.CacheMods, error) {
 			switch nodeType {
 			case "core.Blog":
-				ctx, err := getBlogContext(req, embedNode, session, settings, renderer)
+				ctx, mods, err := getBlogContext(req, embedNode, session, settings, renderer)
 				if err != nil {
 					return nil, nil, fmt.Errorf("Could not get blog context: %v", err)
 				}
-				return ctx, nil, nil
+				return ctx, mods, nil
 			default:
 				return nil, nil, nil
 			}
