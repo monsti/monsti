@@ -335,7 +335,6 @@ func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 				return err
 			}
 			for _, rdep := range rdeps {
-				log.Println("check", rdep)
 				err := markDep(cacheRoot, rdep.Dep, 0)
 				if err != nil {
 					return err
@@ -634,13 +633,11 @@ func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
 }
 
 func markDep(root string, dep service.CacheDep, level int) error {
-	//	log.Println("markdep", dep, level)
 	rdeps, err := readRdeps(root, dep.Node)
 	if err != nil {
 		return fmt.Errorf("Could not read rdeps: %v", err)
 	}
 	if dep.Cache != "" {
-		//		log.Println("Removing cache", dep.Cache)
 		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
 		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("Could not remove cached data: %v", err)
@@ -650,13 +647,10 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	var newDeps CacheDepMap
 	dep.Node = filepath.Clean(dep.Node)
 	for _, rdep := range rdeps {
-		//log.Println(rdep)
 		descend := rdep.Dep.Descend
 		rdep.Dep.Descend = 0
-		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
 		rdep.Dep.Node = filepath.Clean(rdep.Dep.Node)
 		if descend == -1 || descend >= level && rdep.Dep == dep {
-			//log.Println("Match!")
 			toBeMarked = append(toBeMarked, rdep.RDeps...)
 		} else {
 			rdep.Dep.Descend = descend
@@ -671,7 +665,6 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	}
 
 	if dep.Node != "/" {
-		//log.Printf("Marking parent. Old dep: %+v", dep)
 		dep.Node = path.Dir(dep.Node)
 		if err := markDep(root, dep, level+1); err != nil {
 			return fmt.Errorf("Could not mark parent: %v", err)
