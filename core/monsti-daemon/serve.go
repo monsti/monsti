@@ -26,11 +26,11 @@ import (
 	"sync"
 	"time"
 
-	"path/filepath"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
+	"path/filepath"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -43,7 +43,7 @@ type reqContext struct {
 	Action      service.Action
 	Session     *sessions.Session
 	UserSession *service.UserSession
-	Site        *util.SiteSettings
+	Site        *msettings.Site
 	Serv        *service.Session
 }
 

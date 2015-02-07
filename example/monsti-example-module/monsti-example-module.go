@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/i18n"
 	"pkg.monsti.org/monsti/api/util/module"
 )
 
@@ -34,7 +34,7 @@ func setup(c *module.ModuleContext) error {
 	nodeType := service.NodeType{
 		Id:        "example.ExampleType",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Example node type"), availableLocales),
+		Name:      i18n.GenLanguageMap(G("Example node type"), availableLocales),
 		Fields: []*service.NodeField{
 			// core.Title and core.Body are already known to the system,
 			// just specify their IDs to include them.
@@ -42,12 +42,12 @@ func setup(c *module.ModuleContext) error {
 			{Id: "core.Body"},
 			{
 				Id:   "example.Foo",
-				Name: util.GenLanguageMap(G("Foo"), availableLocales),
+				Name: i18n.GenLanguageMap(G("Foo"), availableLocales),
 				Type: "Text",
 			},
 			{
 				Id:   "example.Bar",
-				Name: util.GenLanguageMap(G("Bar"), availableLocales),
+				Name: i18n.GenLanguageMap(G("Bar"), availableLocales),
 				Type: "DateTime",
 			},
 		},

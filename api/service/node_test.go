@@ -107,3 +107,12 @@ func TestGetPathPrefix(t *testing.T) {
 		}
 	}
 }
+
+func TestNestedMap(t *testing.T) {
+	theMap := NestedMap{}
+	theMap.Set("foo.bar", "hey")
+	ret := theMap.Get("foo.bar")
+	if ret.(string) != "hey" {
+		t.Errorf("node.GetField(...) = %q, should be 'hey'", ret)
+	}
+}

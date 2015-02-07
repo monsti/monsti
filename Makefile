@@ -162,6 +162,7 @@ doc/%.html: doc/%.adoc
 
 .PHONY: example/monsti-example-module/monsti-example-module
 example/monsti-example-module/monsti-example-module:
+	ln -sf ../../go example/monsti-example-module/go
 	$(MAKE) -C example/monsti-example-module
 
 example-module: go/bin/monsti-example-module

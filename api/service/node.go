@@ -25,8 +25,37 @@ import (
 
 	"github.com/chrneumann/htmlwidgets"
 	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/i18n"
 )
+
+type NestedMap map[string]interface{}
+
+func (n NestedMap) Get(id string) interface{} {
+	parts := strings.Split(id, ".")
+	field := interface{}(map[string]interface{}(n))
+	for _, part := range parts {
+		var ok bool
+		field, ok = field.(map[string]interface{})[part]
+		if !ok {
+			return nil
+		}
+	}
+	return field
+}
+
+func (n NestedMap) Set(id string, value interface{}) {
+	parts := strings.Split(id, ".")
+	field := interface{}(map[string]interface{}(n))
+	for _, part := range parts[:len(parts)-1] {
+		next := field.(map[string]interface{})[part]
+		if next == nil {
+			next = make(map[string]interface{})
+			field.(map[string]interface{})[part] = next
+		}
+		field = next
+	}
+	field.(map[string]interface{})[parts[len(parts)-1]] = value
+}
 
 type Field interface {
 	// Init initializes the field.
@@ -44,9 +73,9 @@ type Field interface {
 	// JSON by encoding/json.
 	Dump() interface{}
 	// Adds a form field to the node edit form.
-	ToFormField(*htmlwidgets.Form, util.NestedMap, *NodeField, string)
+	ToFormField(*htmlwidgets.Form, NestedMap, *NodeField, string)
 	// Load values from the form submission
-	FromFormField(util.NestedMap, *NodeField)
+	FromFormField(NestedMap, *NodeField)
 }
 
 // TextField is a basic unicode text field
@@ -72,7 +101,7 @@ func (t TextField) Dump() interface{} {
 	return string(t)
 }
 
-func (t TextField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
+func (t TextField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, string(t))
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
@@ -81,7 +110,7 @@ func (t TextField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 		field.Name.Get(locale), "")
 }
 
-func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
+func (t *TextField) FromFormField(data NestedMap, field *NodeField) {
 	*t = TextField(data.Get(field.Id).(string))
 }
 
@@ -108,7 +137,7 @@ func (t HTMLField) Dump() interface{} {
 	return string(t)
 }
 
-func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
+func (t HTMLField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 	field *NodeField, locale string) {
 	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	data.Set(field.Id, string(t))
@@ -117,7 +146,7 @@ func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
 	widget.Base().Classes = []string{"html-field"}
 }
 
-func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
+func (t *HTMLField) FromFormField(data NestedMap, field *NodeField) {
 	*t = HTMLField(data.Get(field.Id).(string))
 }
 
@@ -143,14 +172,14 @@ func (t FileField) Dump() interface{} {
 	return ""
 }
 
-func (t FileField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
+func (t FileField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, "")
 	form.AddWidget(new(htmlwidgets.FileWidget), "Fields."+field.Id,
 		field.Name.Get(locale), "")
 }
 
-func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
+func (t *FileField) FromFormField(data NestedMap, field *NodeField) {
 	*t = FileField(data.Get(field.Id).(string))
 }
 
@@ -197,14 +226,14 @@ func (t DateTimeField) Dump() interface{} {
 	return t.Time.UTC().Format(time.RFC3339)
 }
 
-func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
+func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, t.Time)
 	form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
 		"Fields."+field.Id, field.Name.Get(locale), "")
 }
 
-func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
+func (t *DateTimeField) FromFormField(data NestedMap, field *NodeField) {
 	time := data.Get(field.Id).(time.Time)
 	*t = DateTimeField{Time: time}
 }
@@ -238,10 +267,9 @@ type Node struct {
 	Changed time.Time
 }
 
-func (n *Node) InitFields(m *MonstiClient, site string) error {
-	n.Fields = make(map[string]Field)
-	nodeFields := append(n.Type.Fields, n.LocalFields...)
-	for _, field := range nodeFields {
+func initFields(fields map[string]Field, types []*NodeField,
+	m *MonstiClient, site string) error {
+	for _, field := range types {
 		var val Field
 		switch field.Type {
 		case "DateTime":
@@ -253,15 +281,21 @@ func (n *Node) InitFields(m *MonstiClient, site string) error {
 		case "HTMLArea":
 			val = new(HTMLField)
 		default:
-			return fmt.Errorf("Unknown field type %q for node %q", field.Type, n.Path)
+			return fmt.Errorf("Unknown field type %q", field.Type)
 		}
 		err := val.Init(m, site)
 		if err != nil {
 			return fmt.Errorf("Could not init field %q: %v", field.Id, err)
 		}
-		n.Fields[field.Id] = val
+		fields[field.Id] = val
 	}
 	return nil
+}
+
+func (n *Node) InitFields(m *MonstiClient, site string) error {
+	n.Fields = make(map[string]Field)
+	nodeFields := append(n.Type.Fields, n.LocalFields...)
+	return initFields(n.Fields, nodeFields, m, site)
 }
 
 func (n Node) GetField(id string) Field {
@@ -333,7 +367,7 @@ type NodeField struct {
 	// e.g. "namespace.somefieldype".
 	Id string
 	// The name of the field as shown in the web interface.
-	Name     util.LanguageMap
+	Name     i18n.LanguageMap
 	Required bool
 	Type     string
 }
@@ -364,7 +398,7 @@ type NodeType struct {
 	AddableTo []string
 	// The name of the node type as shown in the web interface,
 	// specified as a translation map (language -> msg).
-	Name   util.LanguageMap
+	Name   i18n.LanguageMap
 	Fields []*NodeField
 	Embed  []EmbedNode
 	// If true, never show nodes of this type in the navigation.

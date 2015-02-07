@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -53,7 +53,7 @@ func splitFirstDir(path string) string {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings *settings, site util.SiteSettings, locale string,
+	settings *settings, site msettings.Site, locale string,
 	s *service.Session) ([]byte, *service.CacheMods) {
 	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: "/", Descend: -1}}}
 	if env.Flags&EDIT_VIEW != 0 {

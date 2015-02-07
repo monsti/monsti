@@ -34,7 +34,7 @@ import (
 	"sync"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/template"
@@ -42,7 +42,7 @@ import (
 
 // Settings for the application and the sites.
 type settings struct {
-	Monsti util.MonstiSettings
+	Monsti msettings.Monsti
 	// Listen is the host and port to listen for incoming HTTP connections.
 	Listen string
 	// List of modules to be activated.
@@ -97,9 +97,9 @@ func main() {
 		logger.Fatalf("Usage: %v <config_directory>\n",
 			filepath.Base(os.Args[0]))
 	}
-	cfgPath := util.GetConfigPath(flag.Arg(0))
+	cfgPath := msettings.GetConfigPath(flag.Arg(0))
 	var settings settings
-	if err := util.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
+	if err := msettings.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
 

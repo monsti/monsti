@@ -26,11 +26,11 @@ import (
 	"log"
 	"net/url"
 
+	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util/i18n"
+	mtemplate "pkg.monsti.org/monsti/api/util/template"
 	"sort"
 	"strconv"
-	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
-	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
 type nodeSort struct {
@@ -125,7 +125,7 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	nodeType := service.NodeType{
 		Id:        "core.Blog",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Blog"), availableLocales),
+		Name:      i18n.GenLanguageMap(G("Blog"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
 		},
@@ -137,7 +137,7 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	nodeType = service.NodeType{
 		Id:        "core.BlogPost",
 		AddableTo: []string{"core.Blog"},
-		Name:      util.GenLanguageMap(G("Blog Post"), availableLocales),
+		Name:      i18n.GenLanguageMap(G("Blog Post"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
 			{Id: "core.Body"},

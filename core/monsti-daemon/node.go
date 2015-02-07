@@ -37,7 +37,6 @@ import (
 	"github.com/nfnt/resize"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -479,7 +478,7 @@ type editFormData struct {
 	NodeType string
 	Name     string
 	Node     service.Node
-	Fields   util.NestedMap
+	Fields   service.NestedMap
 }
 
 // EditNode handles node edits.
@@ -517,7 +516,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	formData := editFormData{}
-	formData.Fields = make(util.NestedMap)
+	formData.Fields = make(service.NestedMap)
 	if newNode {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
