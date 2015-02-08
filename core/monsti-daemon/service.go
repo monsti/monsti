@@ -278,6 +278,21 @@ func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
 	return err
 }
 
+type WriteSettingsArgs struct {
+	Site     string
+	Settings []byte
+}
+
+func (i *MonstiService) WriteSettings(args *WriteSettingsArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
+	path := filepath.Join(site, "settings.json")
+	if err := ioutil.WriteFile(path, []byte(args.Settings), 0600); err != nil {
+		return fmt.Errorf("Could not write settings data: %v", err)
+	}
+	return nil
+}
+
 type WriteNodeDataArgs struct {
 	Site, Path, File string
 	Content          []byte

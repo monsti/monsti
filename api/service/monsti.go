@@ -63,6 +63,25 @@ func (s *MonstiClient) ModuleInitDone(module string) error {
 	return nil
 }
 
+// WriteSettings writes the given settings.
+func (s *MonstiClient) WriteSettings(site string, settings *Settings) error {
+	if s.Error != nil {
+		return nil
+	}
+	data, err := settings.toData(true)
+	if err != nil {
+		return fmt.Errorf("service: Could not convert settings: %v", err)
+	}
+	args := struct {
+		Site     string
+		Settings []byte
+	}{site, data}
+	if err := s.RPCClient.Call("Monsti.WriteSettings", &args, new(int)); err != nil {
+		return fmt.Errorf("service: WriteSettings error: %v", err)
+	}
+	return nil
+}
+
 // nodeToData converts the node to a JSON document.
 // The Path field will be omitted.
 func nodeToData(node *Node, indent bool) ([]byte, error) {
@@ -77,20 +96,11 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	var outNode nodeJSON
 	outNode.Node = *node
 	outNode.Type = node.Type.Id
-	outNode.Fields = make(map[string]map[string]*json.RawMessage)
 
 	nodeFields := append(node.Type.Fields, node.LocalFields...)
-	for _, field := range nodeFields {
-		parts := strings.SplitN(field.Id, ".", 2)
-		dump, err := json.Marshal(node.Fields[field.Id].Dump())
-		if err != nil {
-			return nil, fmt.Errorf("Could not marshal field: %v", err)
-		}
-		if outNode.Fields[parts[0]] == nil {
-			outNode.Fields[parts[0]] = make(map[string]*json.RawMessage)
-		}
-		msg := json.RawMessage(dump)
-		outNode.Fields[parts[0]][parts[1]] = &msg
+	outNode.Fields, err = dumpFields(node.Fields, nodeFields)
+	if err != nil {
+		return nil, err
 	}
 
 	if indent {
@@ -103,6 +113,27 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 			"service: Could not marshal node: %v", err)
 	}
 	return data, nil
+
+}
+
+// dumpFields converts the given fields to a two-dimensional map
+// consisting of JSON raw messages.
+func dumpFields(fields map[string]Field, types []*NodeField) (
+	map[string]map[string]*json.RawMessage, error) {
+	out := make(map[string]map[string]*json.RawMessage)
+	for _, field := range types {
+		parts := strings.SplitN(field.Id, ".", 2)
+		dump, err := json.Marshal(fields[field.Id].Dump())
+		if err != nil {
+			return nil, fmt.Errorf("Could not marshal field: %v", err)
+		}
+		if out[parts[0]] == nil {
+			out[parts[0]] = make(map[string]*json.RawMessage)
+		}
+		msg := json.RawMessage(dump)
+		out[parts[0]][parts[1]] = &msg
+	}
+	return out, nil
 }
 
 // WriteNode writes the given node.
@@ -426,6 +457,7 @@ const (
 	ChangePasswordAction
 	ListAction
 	ChooserAction
+	SettingsAction
 )
 
 // A request to be processed by a nodes service.
