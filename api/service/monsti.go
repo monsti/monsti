@@ -28,6 +28,8 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"pkg.monsti.org/monsti/api/util/i18n"
 )
 
 // MonstiClient represents the RPC connection to the Monsti service.
@@ -63,8 +65,36 @@ func (s *MonstiClient) ModuleInitDone(module string) error {
 	return nil
 }
 
-// WriteSettings writes the given settings.
-func (s *MonstiClient) WriteSettings(site string, settings *Settings) error {
+// LoadSiteSettings loads settings for the given site.
+func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
+	if s.Error != nil {
+		return nil, nil
+	}
+	var reply []byte
+	err := s.RPCClient.Call("Monsti.LoadSiteSettings", site, &reply)
+	if err != nil {
+		return nil, fmt.Errorf("service: LoadSiteSettings error: %v", err)
+	}
+
+	G := func(in string) string { return in }
+	types := []*NodeField{
+		{
+			Id:       "core.SiteTitle",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
+			Type:     "Text",
+		},
+	}
+
+	settings, err := newSettingsFromData(reply, types, s, site)
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not convert node: %v", err)
+	}
+	return settings, nil
+}
+
+// WriteSiteSettings writes the given settings.
+func (s *MonstiClient) WriteSiteSettings(site string, settings *Settings) error {
 	if s.Error != nil {
 		return nil
 	}
@@ -76,8 +106,9 @@ func (s *MonstiClient) WriteSettings(site string, settings *Settings) error {
 		Site     string
 		Settings []byte
 	}{site, data}
-	if err := s.RPCClient.Call("Monsti.WriteSettings", &args, new(int)); err != nil {
-		return fmt.Errorf("service: WriteSettings error: %v", err)
+	err = s.RPCClient.Call("Monsti.WriteSiteSettings", &args, new(int))
+	if err != nil {
+		return fmt.Errorf("service: WriteSiteSettings error: %v", err)
 	}
 	return nil
 }
@@ -160,6 +191,22 @@ type nodeJSON struct {
 	Fields map[string]map[string]*json.RawMessage
 }
 
+// restoreFields converts the given raw data to an array of fields.
+func restoreFields(fields map[string]map[string]*json.RawMessage,
+	types []*NodeField, out map[string]Field) error {
+	for _, field := range types {
+		parts := strings.SplitN(field.Id, ".", 2)
+		value := fields[parts[0]][parts[1]]
+		if value != nil {
+			f := func(in interface{}) error {
+				return json.Unmarshal(*value, in)
+			}
+			out[field.Id].Load(f)
+		}
+	}
+	return nil
+}
+
 // dataToNode unmarshals given data
 func dataToNode(data []byte,
 	getNodeType func(id string) (*NodeType, error), m *MonstiClient, site string) (
@@ -184,15 +231,8 @@ func dataToNode(data []byte,
 		return nil, fmt.Errorf("Could not init node fields (node: %q): %v", ret, err)
 	}
 	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
-	for _, field := range nodeFields {
-		parts := strings.SplitN(field.Id, ".", 2)
-		value := node.Fields[parts[0]][parts[1]]
-		if value != nil {
-			f := func(in interface{}) error {
-				return json.Unmarshal(*value, in)
-			}
-			ret.Fields[field.Id].Load(f)
-		}
+	if err = restoreFields(node.Fields, nodeFields, ret.Fields); err != nil {
+		return nil, err
 	}
 	return &ret, nil
 }

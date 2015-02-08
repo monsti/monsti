@@ -1,4 +1,6 @@
 * unreleased
+ - New features:
+    + Implemented site settings.
  - Changes:
     + Refactored util API.
  - Fixed:

@@ -24,7 +24,6 @@ import (
 	"github.com/chrneumann/htmlwidgets"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util/i18n"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -34,15 +33,11 @@ type settingsFormData struct {
 
 func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
+	m := c.Serv.Monsti()
 
-	var settings service.Settings
-	settings.FieldTypes = []*service.NodeField{
-		{
-			Id:       "core.SiteTitle",
-			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site title"), availableLocales),
-			Type:     "Text",
-		},
+	settings, err := m.LoadSiteSettings(c.Site.Name)
+	if err != nil {
+		return fmt.Errorf("Could not load site settings: %v", err)
 	}
 
 	formData := settingsFormData{}
@@ -50,13 +45,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 
 	form := htmlwidgets.NewForm(&formData)
 
-	if err := settings.InitFields(c.Serv.Monsti(), c.Site.Name); err != nil {
-		return fmt.Errorf("Could not init settings fields: %v", err)
-	}
-
-	settingsFields := settings.FieldTypes
-
-	for _, field := range settingsFields {
+	for _, field := range settings.FieldTypes {
 		settings.Fields[field.Id].ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 	}
@@ -65,15 +54,14 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	case "GET":
 	case "POST":
 		if form.Fill(c.Req.Form) {
-			for _, field := range settingsFields {
+			for _, field := range settings.FieldTypes {
 				settings.Fields[field.Id].FromFormField(formData.Fields, field)
 			}
-			err := c.Serv.Monsti().WriteSettings(c.Site.Name, &settings)
-			if err != nil {
+			if err := m.WriteSiteSettings(c.Site.Name, settings); err != nil {
 				return fmt.Errorf("Could not update settings: %v", err)
 			}
 			/*
-				err = c.Serv.Monsti().MarkDep(
+				err = m.MarkDep(
 					c.Site.Name, service.CacheDep{Settings: path.Clean(settings.Path)})
 				if err != nil {
 					return fmt.Errorf("Could not mark settings: %v", err)
