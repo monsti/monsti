@@ -152,6 +152,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"edit":                   service.EditAction,
 		"list":                   service.ListAction,
 		"chooser":                service.ChooserAction,
+		"settings":               service.SettingsAction,
 		"login":                  service.LoginAction,
 		"logout":                 service.LogoutAction,
 		"add":                    service.AddAction,
@@ -237,6 +238,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.List(&c)
 	case service.ChooserAction:
 		err = h.Chooser(&c)
+	case service.SettingsAction:
+		err = h.SettingsAction(&c)
 	case service.RequestPasswordTokenAction:
 		err = h.RequestPasswordToken(&c)
 	case service.ChangePasswordAction:

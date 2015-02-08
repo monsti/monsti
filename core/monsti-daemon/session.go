@@ -381,7 +381,8 @@ func checkPermission(action service.Action, session *service.UserSession) bool {
 	auth := session.User != nil
 	switch action {
 	case service.RemoveAction, service.EditAction, service.AddAction,
-		service.LogoutAction, service.ListAction, service.ChooserAction:
+		service.LogoutAction, service.ListAction, service.ChooserAction,
+		service.SettingsAction:
 		if auth {
 			return true
 		}
