@@ -1,6 +1,7 @@
 * unreleased
  - New features:
     + Implemented site settings.
+    + Enabled translation for WYSIWYG editor.
  - Changes:
     + Refactored util API.
  - Fixed:

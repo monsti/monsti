@@ -26,6 +26,7 @@
       tools: "inserttable",
       height: 300,
       file_browser_callback: monstiFileChooser,
+      language : monsti.session.locale,
     });
   });
 })();

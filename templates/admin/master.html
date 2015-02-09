@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <script type="text/javascript">
+     <!--
+     monsti = {
+       session: {
+         locale: "{{ .Session.Locale }}",
+       },
+     };
+     -->
+    </script>
     {{template "blocks/headers" .}}
   </head>
   <body {{if .Page.SlimView}}class="slim-view"{{end}}>

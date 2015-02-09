@@ -125,6 +125,9 @@ static/lib/tinymce/:
 	mkdir -p static/lib
 	mv tinymce/js/tinymce static/lib
 	rm tinymce -R
+	wget -nv "http://www.tinymce.com/i18n/download.php?download=de" -O tinymce_languages.zip
+	unzip -q tinymce_languages.zip -d static/lib/tinymce
+	rm tinymce_languages.zip
 
 dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
