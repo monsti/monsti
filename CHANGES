@@ -4,6 +4,8 @@
     + Enabled translation for WYSIWYG editor.
  - Changes:
     + Refactored util API.
+    + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
+      floats.
  - Fixed:
     + Fixed button styles.
 
