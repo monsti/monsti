@@ -106,12 +106,9 @@ input[type=text], input[type=password], input[type=datetime-local], select, text
   margin: 5px 0;
 }
 
-button {
-  width: auto;
-}
-
-button, .button {
+.monsti-button {
   background: $primary-color;
+  width: auto;
   color: white;
   padding: 5px 15px;
   &:hover {

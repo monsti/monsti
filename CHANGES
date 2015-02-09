@@ -5,6 +5,7 @@
  - Changes:
     + Refactored util API.
  - Fixed:
+    + Fixed button styles.
 
 * 0.9.0 - unreleased
  - New features:
