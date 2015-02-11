@@ -47,9 +47,11 @@ func TestDataToNode(t *testing.T) {
 	nodeType := NodeType{
 		Id:   "foo.Bar",
 		Name: map[string]string{"en": "A Bar"},
-		Fields: []*NodeField{
-			{"foo.FooField", map[string]string{"en": "A FooField"}, false, "Text"},
-		},
+		Fields: []*NodeField{{
+			Id:   "foo.FooField",
+			Name: map[string]string{"en": "A FooField"},
+			Type: "Text",
+		}},
 		Embed: nil}
 	data := []byte(`
 { "Type": "foo.Bar",
@@ -88,14 +90,12 @@ func TestNodeToData(t *testing.T) {
 		Path: "/foo",
 		Type: &NodeType{
 			Id: "foo.Bar",
-			Fields: []*NodeField{
-				{"foo.FooField", nil, false, "Text"},
-			},
-			Embed: nil,
+			Fields: []*NodeField{{
+				Id:   "foo.FooField",
+				Type: "Text",
+			}},
 		},
-		LocalFields: []*NodeField{
-			{"foo.BarField", nil, false, "Text"},
-		},
+		LocalFields: []*NodeField{{Id: "foo.BarField", Type: "Text"}},
 	}
 	node.InitFields(nil, "")
 	f := func(in interface{}) error {
@@ -119,6 +119,7 @@ func TestNodeToData(t *testing.T) {
 					"Id": "foo.BarField",
 					"Name": null,
 					"Required": false,
+          "Hidden": false,
 					"Type": "Text"
 				}
 			],
