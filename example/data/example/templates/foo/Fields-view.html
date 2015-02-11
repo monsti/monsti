@@ -10,6 +10,16 @@
 
 <h2>DateTime</h2>
 <p>
-{{template "utils/date" (.Node.GetValue "foo.DateTime").Time}}
-{{template "utils/time" (.Node.GetValue "foo.DateTime").Time}}
+{{template "utils/date" (index .Node.Fields "foo.DateTime").Value}}
+{{template "utils/time" (index .Node.Fields "foo.DateTime").Value}}
+</p>
+
+<h2>Bool fields</h2>
+<p>
+Field is {{if not ((index .Node.Fields "foo.Bool").Bool)}}un{{end}}checked!
+</p>
+
+<h2>Hidden fields</h2>
+<p>
+{{(index .Node.Fields "foo.Hidden")}}
 </p>

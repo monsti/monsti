@@ -63,8 +63,9 @@ type Field interface {
 	// RenderHTML returns a string or template.HTML to be used in a html
 	// template.
 	RenderHTML() interface{}
-	// String returns a raw string representation of the field.
-	String() string
+	// Value returns the value of the field, e.g. a boolean value for
+	// Bool fields.
+	Value() interface{}
 	// Load loads the field data using the given function (see also `Dump`).
 	//
 	// The passed function unmarshals the raw value (as returned by an
@@ -85,6 +86,44 @@ type Field interface {
 	FromFormField(NestedMap, *NodeField)
 }
 
+// BoolField is a basic boolean field rendered as checkbox.
+type BoolField bool
+
+func (t BoolField) Init(*MonstiClient, string) error {
+	return nil
+}
+
+func (t BoolField) Value() interface{} {
+	return bool(t)
+}
+
+func (t BoolField) RenderHTML() interface{} {
+	return t.Value()
+}
+
+func (t *BoolField) Load(f func(interface{}) error) error {
+	return f(t)
+}
+
+func (t BoolField) Dump() interface{} {
+	return t
+}
+
+func (t BoolField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *NodeField, locale string) {
+	data.Set(field.Id, t)
+	form.AddWidget(new(htmlwidgets.BoolWidget), "Fields."+field.Id,
+		field.Name.Get(locale), "")
+}
+
+func (t *BoolField) FromFormField(data NestedMap, field *NodeField) {
+	*t = BoolField(data.Get(field.Id).(bool))
+}
+
+func (t *BoolField) Bool() bool {
+	return bool(*t)
+}
+
 // TextField is a basic unicode text field
 type TextField string
 
@@ -92,7 +131,7 @@ func (t TextField) Init(*MonstiClient, string) error {
 	return nil
 }
 
-func (t TextField) String() string {
+func (t TextField) Value() interface{} {
 	return string(t)
 }
 
@@ -128,7 +167,7 @@ func (t HTMLField) Init(*MonstiClient, string) error {
 	return nil
 }
 
-func (t HTMLField) String() string {
+func (t HTMLField) Value() interface{} {
 	return string(t)
 }
 
@@ -163,7 +202,7 @@ func (t FileField) Init(*MonstiClient, string) error {
 	return nil
 }
 
-func (t FileField) String() string {
+func (t FileField) Value() interface{} {
 	return string(t)
 }
 
@@ -212,8 +251,8 @@ func (t DateTimeField) RenderHTML() interface{} {
 	return t.Time.String()
 }
 
-func (t DateTimeField) String() string {
-	return t.Time.String()
+func (t DateTimeField) Value() interface{} {
+	return t.Time
 }
 
 func (t *DateTimeField) Load(f func(interface{}) error) error {
@@ -287,6 +326,8 @@ func initFields(fields map[string]Field, types []*NodeField,
 			val = new(TextField)
 		case "HTMLArea":
 			val = new(HTMLField)
+		case "Bool":
+			val = new(BoolField)
 		default:
 			return fmt.Errorf("Unknown field type %q", field.Type)
 		}

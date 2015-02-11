@@ -70,7 +70,7 @@ func (n *navigation) Swap(i, j int) {
 func getNodeTitle(node *service.Node) string {
 	title := "Untitled"
 	if node.Fields["core.Title"] != nil {
-		title = node.Fields["core.Title"].String()
+		title = node.Fields["core.Title"].Value().(string)
 	}
 	return title
 }
