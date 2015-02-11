@@ -68,7 +68,7 @@ func (s *MonstiClient) ModuleInitDone(module string) error {
 // LoadSiteSettings loads settings for the given site.
 func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 	if s.Error != nil {
-		return nil, nil
+		return nil, s.Error
 	}
 	var reply []byte
 	err := s.RPCClient.Call("Monsti.LoadSiteSettings", site, &reply)
@@ -96,7 +96,7 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 // WriteSiteSettings writes the given settings.
 func (s *MonstiClient) WriteSiteSettings(site string, settings *Settings) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	data, err := settings.toData(true)
 	if err != nil {
