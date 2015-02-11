@@ -65,15 +65,22 @@ type Field interface {
 	RenderHTML() interface{}
 	// String returns a raw string representation of the field.
 	String() string
-	// Load loads the field data (also see Dump).
+	// Load loads the field data using the given function (see also `Dump`).
+	//
+	// The passed function unmarshals the raw value (as returned by an
+	// earlier `Dump`) into the given value.
 	Load(func(interface{}) error) error
 	// Dump dumps the field data.
 	//
 	// The dumped value must be something that can be marshalled into
 	// JSON by encoding/json.
 	Dump() interface{}
-	// Adds a form field to the node edit form.
-	ToFormField(*htmlwidgets.Form, NestedMap, *NodeField, string)
+	// Adds a form field to the given form.
+	//
+	// The nested map stores the field values used by the form. Locale
+	// is used for translations.
+	ToFormField(form *htmlwidgets.Form, values NestedMap, field *NodeField,
+		locale string)
 	// Load values from the form submission
 	FromFormField(NestedMap, *NodeField)
 }
