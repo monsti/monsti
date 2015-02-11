@@ -75,13 +75,13 @@ func TestDataToNode(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dataToNode returns error: %v", err)
 	}
-	ret := node.GetField("foo.FooField").String()
+	ret := node.Fields["foo.FooField"].Value().(string)
 	if ret != "Foo Value" {
-		t.Errorf(`node.GetField(foo.FooField) = %q, should be "Foo Value"`, ret)
+		t.Errorf(`Field foo.FooField = %q, should be "Foo Value"`, ret)
 	}
-	ret = node.GetField("foo.BarField").String()
+	ret = node.Fields["foo.BarField"].Value().(string)
 	if ret != "Bar Value" {
-		t.Errorf(`node.GetField(foo.BarField) = %q, should be "Bar Value"`, ret)
+		t.Errorf(`Field foo.BarField = %q, should be "Bar Value"`, ret)
 	}
 }
 

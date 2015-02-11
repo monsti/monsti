@@ -8,6 +8,7 @@
     + Refactored util API.
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
       floats.
+    + Removed Node.GetField and Node.GetValue.
  - Fixed:
     + Fixed button styles.
 

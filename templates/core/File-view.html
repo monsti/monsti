@@ -1,5 +1,5 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-File">
-  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
   <p>
     <a href="../{{.Node.Name}}">Download</a>
   </a>

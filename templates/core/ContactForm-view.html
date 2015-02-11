@@ -1,7 +1,7 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-ContactForm">
-  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
 
-  {{(.Node.GetField "core.Body").RenderHTML}}
+  {{(index .Node.Fields "core.Body").RenderHTML}}
   <div class="contact-form-wrapper">
     {{if .Submitted}}
     <p class="alert alert-success">

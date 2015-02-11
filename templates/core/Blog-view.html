@@ -1,6 +1,6 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-Blog">
   {{if not .Embedded}}
-  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
   {{end}}
   <div>
     {{.BlogPosts}}

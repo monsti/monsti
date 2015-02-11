@@ -1,7 +1,7 @@
-<h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+<h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
 
 <div>
-{{(.Node.GetField "core.Body").RenderHTML}}
+{{(index .Node.Fields "core.Body").RenderHTML}}
 </div>
 
 <p>

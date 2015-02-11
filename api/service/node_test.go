@@ -113,6 +113,6 @@ func TestNestedMap(t *testing.T) {
 	theMap.Set("foo.bar", "hey")
 	ret := theMap.Get("foo.bar")
 	if ret.(string) != "hey" {
-		t.Errorf("node.GetField(...) = %q, should be 'hey'", ret)
+		t.Errorf("Value is %q, should be 'hey'", ret)
 	}
 }

@@ -1,11 +1,11 @@
 <h2>HTMLArea</h2>
 <p>
-{{(.Node.GetField "foo.HTMLArea").RenderHTML}}
+{{(index .Node.Fields "foo.HTMLArea").RenderHTML}}
 </p>
 
 <h2>Text</h2>
 <p>
-{{(.Node.GetField "foo.Text").RenderHTML}}
+{{(index .Node.Fields "foo.Text").RenderHTML}}
 </p>
 
 <h2>DateTime</h2>

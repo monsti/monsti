@@ -1,12 +1,12 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-BlogPost">
   <header>
-    <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+    <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
     <strong>
       {{template "utils/date" .Node.PublishTime}}
       {{template "utils/time" .Node.PublishTime}}
     </strong>
   </header>
   <div>
-    {{(.Node.GetField "core.Body").RenderHTML}}
+    {{(index .Node.Fields "core.Body").RenderHTML}}
   </div>
 </article>

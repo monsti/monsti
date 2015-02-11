@@ -5,7 +5,7 @@
     <br>
     <strong>{{G "Parent node:"}}</strong>
     <a href="{{pathJoin .Parent.Path "@@list"}}">
-      {{with .Parent.GetField "core.Title"}}{{.RenderHTML}}{{else}}
+      {{with index .Parent.Fields "core.Title"}}{{.RenderHTML}}{{else}}
       {{with .Parent.Name}}[{{.}}]{{else}}/{{end}}
       {{end}}</a>
   {{end}}
@@ -21,7 +21,7 @@
             <a href="{{pathJoin .Path "@@list"}}">{{.Name}}</a>
           </span>
           <span class="node-list-title">
-            {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+            {{with index .Fields "core.Title"}}{{.RenderHTML}}{{end}}
           </span>
           <input class="node-list-order" type="text" name="order-{{.Name}}"
                  value="{{.Order}}" size="2">

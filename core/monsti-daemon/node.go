@@ -568,7 +568,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if field.Hidden {
 			continue
 		}
-		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
+		formData.Node.Fields[field.Id].ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 		if field.Type == "File" {
 			fileFields = append(fileFields, field.Id)
@@ -629,7 +629,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					}
 				}
 				for _, field := range nodeFields {
-					node.GetField(field.Id).FromFormField(formData.Fields, field)
+					if !field.Hidden {
+						node.Fields[field.Id].FromFormField(formData.Fields, field)
+					}
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
 				if err != nil {

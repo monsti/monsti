@@ -1,4 +1,4 @@
 <article class="{{if .Embedded}}embedded{{end}} node-type-core-Image">
-  <h1>{{(.Node.GetField "core.Title").RenderHTML}}</h1>
+  <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
   <img src="../{{.Node.Name}}">
 </article>
