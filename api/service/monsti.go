@@ -191,7 +191,8 @@ type nodeJSON struct {
 	Fields map[string]map[string]*json.RawMessage
 }
 
-// restoreFields converts the given raw data to an array of fields.
+// restoreFields converts the given raw data to an array of already
+// initialized fields.
 func restoreFields(fields map[string]map[string]*json.RawMessage,
 	types []*NodeField, out map[string]Field) error {
 	for _, field := range types {
