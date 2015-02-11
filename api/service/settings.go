@@ -55,20 +55,19 @@ func (s *Settings) toData(indent bool) ([]byte, error) {
 func newSettingsFromData(data []byte, fieldTypes []*NodeField,
 	m *MonstiClient, site string) (
 	*Settings, error) {
+	ret := &Settings{FieldTypes: fieldTypes}
+	if err := ret.InitFields(m, site); err != nil {
+		return nil, fmt.Errorf("Could not init settings fields: %v", err)
+	}
 	if len(data) == 0 {
-		return nil, nil
+		return ret, nil
 	}
 	var fields map[string]map[string]*json.RawMessage
-	err := json.Unmarshal(data, &fields)
-	if err != nil {
+	if err := json.Unmarshal(data, &fields); err != nil {
 		return nil, fmt.Errorf(
 			"service: Could not unmarshal settings: %v", err)
 	}
-	ret := &Settings{FieldTypes: fieldTypes}
-	if err = ret.InitFields(m, site); err != nil {
-		return nil, fmt.Errorf("Could not init settings fields: %v", err)
-	}
-	if err = restoreFields(fields, fieldTypes, ret.Fields); err != nil {
+	if err := restoreFields(fields, fieldTypes, ret.Fields); err != nil {
 		return nil, err
 	}
 	return ret, nil
