@@ -170,7 +170,7 @@ func dumpFields(fields map[string]Field, types []*NodeField) (
 // WriteNode writes the given node.
 func (s *MonstiClient) WriteNode(site, path string, node *Node) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	node.Changed = time.Now().UTC()
 	data, err := nodeToData(node, true)
@@ -242,7 +242,7 @@ func dataToNode(data []byte,
 // If the node does not exist, it returns nil, nil.
 func (s *MonstiClient) GetNode(site, path string) (*Node, error) {
 	if s.Error != nil {
-		return nil, nil
+		return nil, s.Error
 	}
 	args := struct{ Site, Path string }{site, path}
 	var reply []byte
@@ -303,7 +303,7 @@ func (s *MonstiClient) GetNodeData(site, path, file string) ([]byte, error) {
 func (s *MonstiClient) WriteNodeData(site, path, file string,
 	content []byte) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	args := struct {
 		Site, Path, File string
@@ -319,7 +319,7 @@ func (s *MonstiClient) WriteNodeData(site, path, file string,
 // RemoveNodeData removes data of some node.
 func (s *MonstiClient) RemoveNodeData(site, path, file string) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	args := struct {
 		Site, Path, File string
@@ -335,7 +335,7 @@ func (s *MonstiClient) RemoveNodeData(site, path, file string) error {
 // All reverse cache dependencies of removed nodes will be marked.
 func (s *MonstiClient) RemoveNode(site string, node string) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	args := struct {
 		Site, Node string
@@ -352,7 +352,7 @@ func (s *MonstiClient) RemoveNode(site string, node string) error {
 // dependencies of moved nodes will be marked.
 func (s *MonstiClient) RenameNode(site, source, target string) error {
 	if s.Error != nil {
-		return nil
+		return s.Error
 	}
 	args := struct {
 		Site, Source, Target string

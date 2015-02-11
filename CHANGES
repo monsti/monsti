@@ -24,6 +24,7 @@
     + Fixed core.File template.
     + Fixed and refactored TranslationMaps.
     + Fixed cache dependencies of core.Blog nodes.
+    + Fixed error returning of service functions.
 
 * 0.8.0 - released 2015/01/16
  - New features:
