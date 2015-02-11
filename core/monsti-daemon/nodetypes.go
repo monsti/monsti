@@ -22,9 +22,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"path"
 	"github.com/chrneumann/htmlwidgets"
 	gomail "gopkg.in/gomail.v1"
-	"path"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/i18n"
 	"pkg.monsti.org/monsti/api/util/template"
@@ -53,6 +53,12 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 				Id:       "core.Title",
 				Required: true,
 				Name:     i18n.GenLanguageMap(G("Title"), availableLocales),
+				Type:     "Text",
+			},
+			{
+				Id:       "core.Description",
+				Required: true,
+				Name:     i18n.GenLanguageMap(G("Description"), availableLocales),
 				Type:     "Text",
 			},
 			{
@@ -105,6 +111,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Name:      i18n.GenLanguageMap(G("Contact form"), availableLocales),
 		Fields: []*service.NodeField{
 			{Id: "core.Title"},
+			{Id: "core.Description"},
 			{Id: "core.Body"},
 		},
 	}

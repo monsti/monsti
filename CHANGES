@@ -2,6 +2,7 @@
  - New features:
     + Implemented site settings.
     + Enabled translation for WYSIWYG editor.
+    + Added description node field; used as META description.
  - Changes:
     + Refactored util API.
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
