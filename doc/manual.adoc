@@ -241,6 +241,25 @@ The master daemon's (`monsti-daemon`) configuration.
 include::../example/config/daemon.yaml[]
 ----
 
+== Caching
+
+Monsti uses a dependency based caching system. Any byte data can be
+cached, e.g. whole pages, page content, thumbnails, queries, and
+calculations. Each cached data may depend on other (possibly cached)
+data. For example, the cached output of a node request depends on the
+fields of the node, the navigation content, and settings like the site
+title. If one of these dependencies get changed (dirty), all caches
+that depend on these get recursively cleared.
+
+Caches are stored in the sites' data directories. To clear the cache,
+simply remove the cache directory. You may disable caching per site
+using the `core.CacheDisabled` setting (you'll also have to clear the
+cache directory to remove old cached data). Disable caching only for
+development purposes.
+
+Have a look at the `ToCache`, `FromCache`, and `MarkDep` service
+methods.
+
 == Templates
 
 Monsti uses Go's

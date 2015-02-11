@@ -1153,6 +1153,25 @@ mail:
 </div>
 </div>
 <div class="sect1">
+<h2 id="_caching">Caching</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Monsti uses a dependency based caching system. Any byte data can be
+cached, e.g. whole pages, page content, thumbnails, queries, and
+calculations. Each cached data may depend on other (possibly cached)
+data. For example, the cached output of a node request depends on the
+fields of the node, the navigation content, and settings like the site
+title. If one of these dependencies get changed (dirty), all caches
+that depend on these get recursively cleared.</p></div>
+<div class="paragraph"><p>Caches are stored in the sites' data directories. To clear the cache,
+simply remove the cache directory. You may disable caching per site
+using the <code>core.CacheDisabled</code> setting (you&#8217;ll also have to clear the
+cache directory to remove old cached data). Disable caching only for
+development purposes.</p></div>
+<div class="paragraph"><p>Have a look at the <code>ToCache</code>, <code>FromCache</code>, and <code>MarkDep</code> service
+methods.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_templates">Templates</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Monsti uses Go&#8217;s
@@ -1184,7 +1203,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-01-30 09:56:57 CET
+ 2015-02-11 15:26:44 CET
 </div>
 </div>
 </body>
