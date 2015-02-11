@@ -58,7 +58,9 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	case "POST":
 		if form.Fill(c.Req.Form) {
 			for _, field := range settings.FieldTypes {
-				settings.Fields[field.Id].FromFormField(formData.Fields, field)
+				if !field.Hidden {
+					settings.Fields[field.Id].FromFormField(formData.Fields, field)
+				}
 			}
 			if err := m.WriteSiteSettings(c.Site.Name, settings); err != nil {
 				return fmt.Errorf("Could not update settings: %v", err)
