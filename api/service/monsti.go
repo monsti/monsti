@@ -84,6 +84,11 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
 			Type:     "Text",
 		},
+		{
+			Id:     "core.CacheDisabled",
+			Hidden: true,
+			Type:   "Bool",
+		},
 	}
 
 	settings, err := newSettingsFromData(reply, types, s, site)
@@ -827,6 +832,14 @@ func (s *MonstiClient) ToCache(site, node string, id string,
 	}
 	if s.Error != nil {
 		return s.Error
+	}
+	settings, err := s.LoadSiteSettings(site)
+	if err != nil {
+		return err
+	}
+	if settings.Fields["core.CacheDisabled"].Value().(bool) {
+		mods.Skip = true
+		return nil
 	}
 	args := struct {
 		Node, Site, Id string

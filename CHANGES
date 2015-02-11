@@ -5,6 +5,7 @@
     + Added description node field; used as META description.
     + Added "Hidden" option for node fields.
     + Added Bool field type.
+    + Added site setting to disable caching.
  - Changes:
     + Refactored util API.
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
