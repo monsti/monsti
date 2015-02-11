@@ -46,6 +46,9 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	form := htmlwidgets.NewForm(&formData)
 
 	for _, field := range settings.FieldTypes {
+		if field.Hidden {
+			continue
+		}
 		settings.Fields[field.Id].ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 	}

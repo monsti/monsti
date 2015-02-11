@@ -369,7 +369,9 @@ type NodeField struct {
 	// The name of the field as shown in the web interface.
 	Name     i18n.LanguageMap
 	Required bool
-	Type     string
+	// Hidden fields won't show up in the web interface.
+	Hidden bool
+	Type   string
 }
 
 type EmbedNode struct {

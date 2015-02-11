@@ -565,6 +565,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		nodeFields = append(nodeFields, c.Node.LocalFields...)
 	}
 	for _, field := range nodeFields {
+		if field.Hidden {
+			continue
+		}
 		formData.Node.GetField(field.Id).ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
 		if field.Type == "File" {
