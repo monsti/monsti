@@ -37,7 +37,7 @@ upgrade:
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
 
-dist: monsti bcrypt
+dist: all
 	rm -Rf $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/bin
 	cp go/bin/* $(DIST_PATH)/bin
@@ -56,7 +56,7 @@ dist: monsti bcrypt
 	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
-dist-deb: monsti bcrypt
+dist-deb: all
 	rm -Rf $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/usr/bin
 	cp go/bin/* $(DIST_PATH)/usr/bin
