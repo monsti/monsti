@@ -56,10 +56,9 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 				Type:     "Text",
 			},
 			{
-				Id:       "core.Description",
-				Required: true,
-				Name:     i18n.GenLanguageMap(G("Description"), availableLocales),
-				Type:     "Text",
+				Id:   "core.Description",
+				Name: i18n.GenLanguageMap(G("Description"), availableLocales),
+				Type: "Text",
 			},
 			{
 				Id:       "core.Body",
