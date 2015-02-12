@@ -28,6 +28,7 @@
     + Fixed and refactored TranslationMaps.
     + Fixed cache dependencies of core.Blog nodes.
     + Fixed error returning of service functions.
+    + Fixed Text field type's required option.
 
 * 0.8.0 - released 2015/01/16
  - New features:

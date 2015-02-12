@@ -151,9 +151,12 @@ func (t TextField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 	field *NodeField, locale string) {
 	data.Set(field.Id, string(t))
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	form.AddWidget(&htmlwidgets.TextWidget{
-		MinLength: 1, ValidationError: G("Required.")}, "Fields."+field.Id,
-		field.Name.Get(locale), "")
+	widget := new(htmlwidgets.TextWidget)
+	if field.Required {
+		widget.MinLength = 1
+		widget.ValidationError = G("Required.")
+	}
+	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
 }
 
 func (t *TextField) FromFormField(data NestedMap, field *NodeField) {
