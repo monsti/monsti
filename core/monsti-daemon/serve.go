@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -26,9 +26,9 @@ import (
 	"sync"
 	"time"
 
+	"path/filepath"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
-	"path/filepath"
 	"pkg.monsti.org/monsti/api/service"
 	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"

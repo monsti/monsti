@@ -1,5 +1,5 @@
 // This file is part of Monsti.
-// Copyright 2012 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 
 // Monsti is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Lesser General Public License as published by the Free

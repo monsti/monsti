@@ -1,4 +1,4 @@
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Affero General Public License as published by the Free
