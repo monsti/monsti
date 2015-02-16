@@ -118,7 +118,8 @@ func getBlogContext(reqId uint, embed *service.EmbedNode,
 	return map[string][]byte{"BlogPosts": rendered}, mods, nil
 }
 
-func initBlog(settings *settings, session *service.Session, logger *log.Logger,
+func initBlog(settings *settings, session *service.Session,
+	sessions *service.SessionPool, logger *log.Logger,
 	renderer *mtemplate.Renderer) error {
 	G := func(in string) string { return in }
 
@@ -150,8 +151,8 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	}
 
 	// Add a signal handler
-	handler := service.NewNodeContextHandler(
-		func(req uint, nodeType string,
+	handler := service.NewNodeContextHandler(sessions,
+		func(req uint, session *service.Session, nodeType string,
 			embedNode *service.EmbedNode) (
 			map[string][]byte, *service.CacheMods, error) {
 			switch nodeType {

@@ -8,6 +8,7 @@
     + Added site setting to disable caching.
  - Changes:
     + Refactored util API.
+    + Refactored signal API.
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
       floats.
     + Removed Node.GetField and Node.GetValue.

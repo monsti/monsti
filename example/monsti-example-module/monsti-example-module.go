@@ -57,14 +57,10 @@ func setup(c *module.ModuleContext) error {
 	}
 
 	// Add a signal handler
-	handler := service.NewNodeContextHandler(
-		func(id uint, nodeType string, embedNode *service.EmbedNode) (
+	handler := service.NewNodeContextHandler(c.Sessions,
+		func(id uint, session *service.Session, nodeType string,
+			embedNode *service.EmbedNode) (
 			map[string][]byte, *service.CacheMods, error) {
-			session, err := c.Sessions.New()
-			if err != nil {
-				return nil, nil, fmt.Errorf("Could not get session: %v", err)
-			}
-			defer c.Sessions.Free(session)
 			if nodeType == "example.ExampleType" {
 				req, err := session.Monsti().GetRequest(id)
 				if err != nil || req == nil {

@@ -141,7 +141,8 @@ func main() {
 	if err := initNodeTypes(&settings, session, logger); err != nil {
 		logger.Fatalf("Could not init node types: %v", err)
 	}
-	if err := initBlog(&settings, session, logger, &renderer); err != nil {
+	if err := initBlog(&settings, session, sessions, logger,
+		&renderer); err != nil {
 		logger.Fatalf("Could not init blog: %v", err)
 	}
 
