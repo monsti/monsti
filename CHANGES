@@ -11,6 +11,7 @@
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
       floats.
     + Removed Node.GetField and Node.GetValue.
+    + Updated admin bar layout.
  - Fixed:
     + Fixed button styles.
 
