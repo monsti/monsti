@@ -16,7 +16,7 @@
  - Fixed:
     + Fixed button styles.
 
-* 0.9.0 - unreleased
+* 0.9.0 - released 2015/02/14
  - New features:
     + Added list action to view and order node children.
     + Added link and image browser for TinyMCE.
