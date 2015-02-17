@@ -15,6 +15,7 @@
     + Updated admin bar layout.
  - Fixed:
     + Fixed button styles.
+    + Fixed race condition in module initialization.
 
 * 0.9.0 - released 2015/02/14
  - New features:

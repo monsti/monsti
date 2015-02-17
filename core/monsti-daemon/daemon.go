@@ -158,7 +158,7 @@ func main() {
 	// Start modules
 	monsti.moduleInit = make(map[string]chan bool)
 	for _, module := range settings.Modules {
-		monsti.moduleInit[module] = make(chan bool)
+		monsti.moduleInit[module] = make(chan bool, 1)
 	}
 	for _, module := range settings.Modules {
 		executable := "monsti-" + module

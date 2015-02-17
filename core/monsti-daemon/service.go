@@ -90,7 +90,10 @@ func (i *MonstiService) PublishService(args PublishServiceArgs,
 func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
-	i.moduleInit[args] <- true
+	select {
+	case i.moduleInit[args] <- true:
+	default:
+	}
 	return nil
 }
 
