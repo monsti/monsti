@@ -111,7 +111,7 @@ func initBlog(settings *settings, session *service.Session,
 		Id:        "core.Blog",
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("Blog"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 		},
 	}
@@ -123,7 +123,7 @@ func initBlog(settings *settings, session *service.Session,
 		Id:        "core.BlogPost",
 		AddableTo: []string{"core.Blog"},
 		Name:      i18n.GenLanguageMap(G("Blog Post"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{Id: "core.Body"},
 		},

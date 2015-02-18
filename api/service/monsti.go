@@ -77,17 +77,17 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 	}
 
 	G := func(in string) string { return in }
-	types := []*NodeField{
+	types := []*FieldConfig{
 		{
 			Id:       "core.SiteTitle",
 			Required: true,
 			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
-			Type:     "Text",
+			Type:     new(TextFieldType),
 		},
 		{
 			Id:     "core.CacheDisabled",
 			Hidden: true,
-			Type:   "Bool",
+			Type:   new(BoolFieldType),
 		},
 	}
 
@@ -133,8 +133,7 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 	outNode.Node = *node
 	outNode.Type = node.Type.Id
 
-	nodeFields := append(node.Type.Fields, node.LocalFields...)
-	outNode.Fields, err = dumpFields(node.Fields, nodeFields)
+	outNode.Fields, err = dumpFields(node.Fields, node.Type.Fields)
 	if err != nil {
 		return nil, err
 	}
@@ -154,12 +153,12 @@ func nodeToData(node *Node, indent bool) ([]byte, error) {
 
 // dumpFields converts the given fields to a two-dimensional map
 // consisting of JSON raw messages.
-func dumpFields(fields map[string]Field, types []*NodeField) (
+func dumpFields(fields map[string]Field, configs []*FieldConfig) (
 	map[string]map[string]*json.RawMessage, error) {
 	out := make(map[string]map[string]*json.RawMessage)
-	for _, field := range types {
-		parts := strings.SplitN(field.Id, ".", 2)
-		dump, err := json.Marshal(fields[field.Id].Dump())
+	for _, config := range configs {
+		parts := strings.SplitN(config.Id, ".", 2)
+		dump, err := json.Marshal(fields[config.Id].Dump())
 		if err != nil {
 			return nil, fmt.Errorf("Could not marshal field: %v", err)
 		}
@@ -199,7 +198,7 @@ type nodeJSON struct {
 // restoreFields converts the given raw data to an array of already
 // initialized fields.
 func restoreFields(fields map[string]map[string]*json.RawMessage,
-	types []*NodeField, out map[string]Field) error {
+	types []*FieldConfig, out map[string]Field) error {
 	for _, field := range types {
 		parts := strings.SplitN(field.Id, ".", 2)
 		value := fields[parts[0]][parts[1]]
@@ -236,8 +235,7 @@ func dataToNode(data []byte,
 	if err = ret.InitFields(m, site); err != nil {
 		return nil, fmt.Errorf("Could not init node fields (node: %q): %v", ret, err)
 	}
-	nodeFields := append(ret.Type.Fields, ret.LocalFields...)
-	if err = restoreFields(node.Fields, nodeFields, ret.Fields); err != nil {
+	if err = restoreFields(node.Fields, ret.Type.Fields, ret.Fields); err != nil {
 		return nil, err
 	}
 	return &ret, nil

@@ -45,7 +45,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 
 	form := htmlwidgets.NewForm(&formData)
 
-	for _, field := range settings.FieldTypes {
+	for _, field := range settings.FieldConfigs {
 		if field.Hidden {
 			continue
 		}
@@ -57,7 +57,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	case "GET":
 	case "POST":
 		if form.Fill(c.Req.Form) {
-			for _, field := range settings.FieldTypes {
+			for _, field := range settings.FieldConfigs {
 				if !field.Hidden {
 					settings.Fields[field.Id].FromFormField(formData.Fields, field)
 				}

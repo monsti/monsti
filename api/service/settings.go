@@ -23,18 +23,18 @@ import (
 
 // Settings contains definition and data of a subset of site settings.
 type Settings struct {
-	FieldTypes []*NodeField     `json:"-"`
-	Fields     map[string]Field `json:"-"`
+	FieldConfigs []*FieldConfig   `json:"-"`
+	Fields       map[string]Field `json:"-"`
 }
 
 func (n *Settings) InitFields(m *MonstiClient, site string) error {
 	n.Fields = make(map[string]Field)
-	return initFields(n.Fields, n.FieldTypes, m, site)
+	return initFields(n.Fields, n.FieldConfigs, m, site)
 }
 
 // toData converts the settings to a JSON document.
 func (s *Settings) toData(indent bool) ([]byte, error) {
-	out, err := dumpFields(s.Fields, s.FieldTypes)
+	out, err := dumpFields(s.Fields, s.FieldConfigs)
 	if err != nil {
 		return nil, err
 	}
@@ -52,10 +52,10 @@ func (s *Settings) toData(indent bool) ([]byte, error) {
 }
 
 // newSettingsFromData unmarshals given settings data.
-func newSettingsFromData(data []byte, fieldTypes []*NodeField,
+func newSettingsFromData(data []byte, fieldConfigs []*FieldConfig,
 	m *MonstiClient, site string) (
 	*Settings, error) {
-	ret := &Settings{FieldTypes: fieldTypes}
+	ret := &Settings{FieldConfigs: fieldConfigs}
 	if err := ret.InitFields(m, site); err != nil {
 		return nil, fmt.Errorf("Could not init settings fields: %v", err)
 	}
@@ -67,7 +67,7 @@ func newSettingsFromData(data []byte, fieldTypes []*NodeField,
 		return nil, fmt.Errorf(
 			"service: Could not unmarshal settings: %v", err)
 	}
-	if err := restoreFields(fields, fieldTypes, ret.Fields); err != nil {
+	if err := restoreFields(fields, fieldConfigs, ret.Fields); err != nil {
 		return nil, err
 	}
 	return ret, nil

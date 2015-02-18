@@ -501,7 +501,7 @@ func (m *MonstiService) RegisterNodeType(nodeType *service.NodeType,
 	}
 	if m.Settings.Config.NodeTypes == nil {
 		m.Settings.Config.NodeTypes = make(map[string]*service.NodeType)
-		m.Settings.Config.NodeFields = make(map[string]*service.NodeField)
+		m.Settings.Config.NodeFields = make(map[string]*service.FieldConfig)
 	}
 	m.Settings.Config.NodeTypes[nodeType.Id] = nodeType
 	for i, field := range nodeType.Fields {

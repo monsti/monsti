@@ -461,9 +461,6 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	}
 
 	template := strings.Replace(reqNode.Type.Id, ".", "/", 1) + "-view"
-	if overwrite, ok := reqNode.TemplateOverwrites[template]; ok {
-		template = overwrite.Template
-	}
 
 	context["Site"] = c.Site
 	rendered, err := h.Renderer.Render(template, context,
@@ -560,17 +557,13 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	fileFields := make([]string, 0)
-	nodeFields := nodeType.Fields
-	if !newNode {
-		nodeFields = append(nodeFields, c.Node.LocalFields...)
-	}
-	for _, field := range nodeFields {
+	for _, field := range nodeType.Fields {
 		if field.Hidden {
 			continue
 		}
 		formData.Node.Fields[field.Id].ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
-		if field.Type == "File" {
+		if _, ok := field.Type.(service.FileFieldType); ok {
 			fileFields = append(fileFields, field.Id)
 		}
 	}
@@ -628,7 +621,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 						return fmt.Errorf("Could not move node: %v", err)
 					}
 				}
-				for _, field := range nodeFields {
+				for _, field := range nodeType.Fields {
 					if !field.Hidden {
 						node.Fields[field.Id].FromFormField(formData.Fields, field)
 					}

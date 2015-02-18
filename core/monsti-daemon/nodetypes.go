@@ -48,23 +48,23 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Id:        "core.Document",
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("Document"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{
 				Id:       "core.Title",
 				Required: true,
 				Name:     i18n.GenLanguageMap(G("Title"), availableLocales),
-				Type:     "Text",
+				Type:     new(service.TextFieldType),
 			},
 			{
 				Id:   "core.Description",
 				Name: i18n.GenLanguageMap(G("Description"), availableLocales),
-				Type: "Text",
+				Type: new(service.TextFieldType),
 			},
 			{
 				Id:       "core.Body",
 				Required: true,
 				Name:     i18n.GenLanguageMap(G("Body"), availableLocales),
-				Type:     "HTMLArea",
+				Type:     new(service.HTMLFieldType),
 			},
 		},
 	}
@@ -76,13 +76,13 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Id:        "core.File",
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("File"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{
 				Id:       "core.File",
 				Required: true,
 				Name:     i18n.GenLanguageMap(G("File"), availableLocales),
-				Type:     "File",
+				Type:     new(service.FileFieldType),
 			},
 		},
 	}
@@ -95,7 +95,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Hide:      true,
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("Image"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{Id: "core.File"},
 		},
@@ -108,7 +108,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Id:        "core.ContactForm",
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("Contact form"), availableLocales),
-		Fields: []*service.NodeField{
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{Id: "core.Description"},
 			{Id: "core.Body"},

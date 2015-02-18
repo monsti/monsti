@@ -47,28 +47,19 @@ func TestDataToNode(t *testing.T) {
 	nodeType := NodeType{
 		Id:   "foo.Bar",
 		Name: map[string]string{"en": "A Bar"},
-		Fields: []*NodeField{{
+		Fields: []*FieldConfig{{
 			Id:   "foo.FooField",
 			Name: map[string]string{"en": "A FooField"},
-			Type: "Text",
+			Type: new(TextFieldType),
 		}},
 		Embed: nil}
 	data := []byte(`
 { "Type": "foo.Bar",
   "Fields": {
     "foo": {
-      "FooField": "Foo Value",
-      "BarField": "Bar Value"
+      "FooField": "Foo Value"
     }
-  },
-  "LocalFields": [
-		{
-			"Id": "foo.BarField",
-			"Name": null,
-			"Required": false,
-			"Type": "Text"
-		}
-	]
+  }
 }`)
 	getNodeType := func(id string) (*NodeType, error) { return &nodeType, nil }
 	node, err := dataToNode(data, getNodeType, nil, "")
@@ -79,10 +70,6 @@ func TestDataToNode(t *testing.T) {
 	if ret != "Foo Value" {
 		t.Errorf(`Field foo.FooField = %q, should be "Foo Value"`, ret)
 	}
-	ret = node.Fields["foo.BarField"].Value().(string)
-	if ret != "Bar Value" {
-		t.Errorf(`Field foo.BarField = %q, should be "Bar Value"`, ret)
-	}
 }
 
 func TestNodeToData(t *testing.T) {
@@ -90,12 +77,11 @@ func TestNodeToData(t *testing.T) {
 		Path: "/foo",
 		Type: &NodeType{
 			Id: "foo.Bar",
-			Fields: []*NodeField{{
+			Fields: []*FieldConfig{{
 				Id:   "foo.FooField",
-				Type: "Text",
+				Type: new(TextFieldType),
 			}},
 		},
-		LocalFields: []*NodeField{{Id: "foo.BarField", Type: "Text"}},
 	}
 	node.InitFields(nil, "")
 	f := func(in interface{}) error {
@@ -107,29 +93,16 @@ func TestNodeToData(t *testing.T) {
 		*(in.(*TextField)) = "BarValue"
 		return nil
 	}
-	node.Fields["foo.BarField"].Load(f)
-
 	expected := `{
 		  "Order": 0,
 		  "Hide": false,
-		  "TemplateOverwrites": null,
 		  "Embed": null,
-		  "LocalFields": [
-				{
-					"Id": "foo.BarField",
-					"Name": null,
-					"Required": false,
-          "Hidden": false,
-					"Type": "Text"
-				}
-			],
 		  "Public": false,
 		  "PublishTime": "0001-01-01T00:00:00Z",
       "Changed":"0001-01-01T00:00:00Z",
 		  "Type": "foo.Bar",
 		  "Fields": {
 		    "foo": {
-		      "BarField": "BarValue",
 		      "FooField": "FooValue"
 		    }
 		  }
