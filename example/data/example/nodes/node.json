@@ -1,16 +1,15 @@
 {
   "Order": 0,
   "Hide": false,
-  "TemplateOverwrites": null,
   "Embed": null,
-  "LocalFields": null,
   "Public": true,
   "PublishTime": "2014-11-12T16:14:00+01:00",
-  "Changed": "2015-01-05T18:06:23.743982128Z",
+  "Changed": "2015-02-18T15:26:37.396179429Z",
   "Type": "core.Document",
   "Fields": {
     "core": {
       "Body": "\u003cp\u003e\u003cstrong\u003eHello World!\u003c/strong\u003e\u003c/p\u003e\r\n\u003cp\u003eAccess the admin interface via \u003ca class=\"aloha-link-text\" href=\"@@login\"\u003e/@@login\u003c/a\u003e\u003c/p\u003e\r\n\u003cp\u003e\u003cstrong\u003eUser:\u003c/strong\u003e admin \u003cstrong\u003ePassword:\u003c/strong\u003e foofoo\u003c/p\u003e",
+      "Description": "",
       "Title": "Home"
     }
   }

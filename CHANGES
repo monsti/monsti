@@ -7,6 +7,8 @@
     + Added Bool field type.
     + Added site setting to disable caching.
  - Changes:
+    + Refactored node type and field API.
+    + Removed template overwrites and local fields.
     + Refactored util API.
     + Refactored signal API.
     + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /

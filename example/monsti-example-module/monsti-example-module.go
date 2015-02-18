@@ -32,10 +32,9 @@ func setup(c *module.ModuleContext) error {
 
 	// Register a new node type
 	nodeType := service.NodeType{
-		Id:        "example.ExampleType",
-		AddableTo: []string{"."},
-		Name:      i18n.GenLanguageMap(G("Example node type"), availableLocales),
-		Fields: []*service.NodeField{
+		Id:   "example.ExampleType",
+		Name: i18n.GenLanguageMap(G("Example node type"), availableLocales),
+		Fields: []*service.FieldConfig{
 			// core.Title and core.Body are already known to the system,
 			// just specify their IDs to include them.
 			{Id: "core.Title"},
@@ -43,12 +42,66 @@ func setup(c *module.ModuleContext) error {
 			{
 				Id:   "example.Foo",
 				Name: i18n.GenLanguageMap(G("Foo"), availableLocales),
-				Type: "Text",
+				Type: new(service.TextFieldType),
 			},
 			{
 				Id:   "example.Bar",
 				Name: i18n.GenLanguageMap(G("Bar"), availableLocales),
-				Type: "DateTime",
+				Type: new(service.DateTimeFieldType),
+			},
+		},
+	}
+	if err := m.RegisterNodeType(&nodeType); err != nil {
+		c.Logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
+	}
+
+	nodeType = service.NodeType{
+		Id:   "example.Embed",
+		Name: i18n.GenLanguageMap(G("Embed example"), availableLocales),
+		Fields: []*service.FieldConfig{
+			// core.Title and core.Body are already known to the system,
+			// just specify their IDs to include them.
+			{Id: "core.Title"},
+			{Id: "core.Body"},
+		},
+	}
+	if err := m.RegisterNodeType(&nodeType); err != nil {
+		c.Logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
+	}
+
+	nodeType = service.NodeType{
+		Id:   "example.Fields",
+		Name: i18n.GenLanguageMap(G("Fields example"), availableLocales),
+		Fields: []*service.FieldConfig{
+			// core.Title and core.Body are already known to the system,
+			// just specify their IDs to include them.
+			{Id: "core.Title"},
+			{Id: "core.Body"},
+			{
+				Id:   "example.Bool",
+				Name: i18n.GenLanguageMap(G("Bool"), availableLocales),
+				Type: new(service.BoolFieldType),
+			},
+			{
+				Id:   "example.DateTime",
+				Name: i18n.GenLanguageMap(G("DateTime"), availableLocales),
+				Type: new(service.DateTimeFieldType),
+			},
+			{
+				Id:   "example.HTMLArea",
+				Name: i18n.GenLanguageMap(G("HTML"), availableLocales),
+				Type: new(service.HTMLFieldType),
+			},
+			{
+				Id:     "example.Hidden",
+				Name:   i18n.GenLanguageMap(G("Hidden"), availableLocales),
+				Hidden: true,
+				Type:   new(service.TextFieldType),
+			},
+			{
+				Id:   "example.Text",
+				Name: i18n.GenLanguageMap(G("Text"), availableLocales),
+				Type: new(service.TextFieldType),
 			},
 		},
 	}

@@ -49,7 +49,7 @@ type settings struct {
 	Modules []string
 	Config  struct {
 		NodeTypes  map[string]*service.NodeType
-		NodeFields map[string]*service.NodeField
+		NodeFields map[string]*service.FieldConfig
 	}
 	Mail struct {
 		Host     string

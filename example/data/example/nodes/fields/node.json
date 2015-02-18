@@ -1,68 +1,18 @@
 {
   "Order": 0,
   "Hide": false,
-  "TemplateOverwrites": {
-    "core/Document-view": {
-      "Template": "foo/Fields-view"
-    }
-  },
   "Embed": null,
-  "LocalFields": [
-    {
-      "Id": "foo.DateTime",
-      "Name": {
-        "": "DateTime"
-      },
-      "Required": false,
-      "Hidden": false,
-      "Type": "DateTime"
-    },
-    {
-      "Id": "foo.HTMLArea",
-      "Name": {
-        "": "HTMLArea"
-      },
-      "Required": false,
-      "Hidden": false,
-      "Type": "HTMLArea"
-    },
-    {
-      "Id": "foo.Text",
-      "Name": {
-        "": "Text"
-      },
-      "Required": false,
-      "Hidden": false,
-      "Type": "Text"
-    },
-    {
-      "Id": "foo.Bool",
-      "Name": {
-        "": "Boolean"
-      },
-      "Required": false,
-      "Hidden": false,
-      "Type": "Bool"
-    },
-    {
-      "Id": "foo.Hidden",
-      "Name": null,
-      "Required": false,
-      "Hidden": true,
-      "Type": "Text"
-    }
-  ],
   "Public": true,
   "PublishTime": "2013-04-10T18:37:00+02:00",
   "Changed": "2015-02-11T11:24:28.732470367Z",
-  "Type": "core.Document",
+  "Type": "example.Fields",
   "Fields": {
     "core": {
       "Body": "",
       "Description": "aoeu",
       "Title": "Fields"
     },
-    "foo": {
+    "example": {
       "Bool": true,
       "DateTime": "2014-12-31T22:55:00Z",
       "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e",
