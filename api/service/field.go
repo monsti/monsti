@@ -18,6 +18,7 @@ package service
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"strings"
@@ -35,6 +36,7 @@ func init() {
 	gob.Register(new(DateTimeFieldType))
 	gob.Register(new(FileFieldType))
 	gob.Register(new(RefFieldType))
+	gob.Register(new(ListFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -68,7 +70,7 @@ func (n NestedMap) Set(id string, value interface{}) {
 
 type Field interface {
 	// Init initializes the field.
-	Init(*MonstiClient, string) error
+	Init(*MonstiClient, string, FieldType) error
 	// RenderHTML returns a string or template.HTML to be used in a html
 	// template.
 	RenderHTML() interface{}
@@ -93,6 +95,11 @@ type Field interface {
 		locale string)
 	// Load values from the form submission
 	FromFormField(NestedMap, *FieldConfig)
+
+	// TODO Replace ToFormField and FromFormField using the Form* methods.
+	FormWidget() htmlwidgets.Widget
+	FormData() interface{}
+	FromFormData(data interface{})
 }
 
 type BoolFieldType int
@@ -104,7 +111,7 @@ func (_ BoolFieldType) Field() Field {
 // BoolField is a basic boolean field rendered as checkbox.
 type BoolField bool
 
-func (t BoolField) Init(*MonstiClient, string) error {
+func (t BoolField) Init(*MonstiClient, string, FieldType) error {
 	return nil
 }
 
@@ -139,6 +146,19 @@ func (t *BoolField) Bool() bool {
 	return bool(*t)
 }
 
+func (f BoolField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *BoolField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f BoolField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 type RefFieldType int
 
 func (_ RefFieldType) Field() Field {
@@ -148,7 +168,7 @@ func (_ RefFieldType) Field() Field {
 // RefField contains a reference to another node.
 type RefField string
 
-func (t RefField) Init(*MonstiClient, string) error {
+func (t RefField) Init(*MonstiClient, string, FieldType) error {
 	return nil
 }
 
@@ -184,6 +204,19 @@ func (t *RefField) FromFormField(data NestedMap, field *FieldConfig) {
 	*t = RefField(data.Get(field.Id).(string))
 }
 
+func (f RefField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *RefField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f RefField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 type TextFieldType int
 
 func (_ TextFieldType) Field() Field {
@@ -193,7 +226,7 @@ func (_ TextFieldType) Field() Field {
 // TextField is a basic unicode text field
 type TextField string
 
-func (t TextField) Init(*MonstiClient, string) error {
+func (t TextField) Init(*MonstiClient, string, FieldType) error {
 	return nil
 }
 
@@ -229,6 +262,19 @@ func (t *TextField) FromFormField(data NestedMap, field *FieldConfig) {
 	*t = TextField(data.Get(field.Id).(string))
 }
 
+func (f TextField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *TextField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f TextField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 type HTMLFieldType int
 
 func (_ HTMLFieldType) Field() Field {
@@ -238,7 +284,7 @@ func (_ HTMLFieldType) Field() Field {
 // HTMLField is a text area containing HTML code
 type HTMLField string
 
-func (t HTMLField) Init(*MonstiClient, string) error {
+func (t HTMLField) Init(*MonstiClient, string, FieldType) error {
 	return nil
 }
 
@@ -271,6 +317,19 @@ func (t *HTMLField) FromFormField(data NestedMap, field *FieldConfig) {
 	*t = HTMLField(data.Get(field.Id).(string))
 }
 
+func (f HTMLField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *HTMLField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f HTMLField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 type FileFieldType int
 
 func (_ FileFieldType) Field() Field {
@@ -279,7 +338,7 @@ func (_ FileFieldType) Field() Field {
 
 type FileField string
 
-func (t FileField) Init(*MonstiClient, string) error {
+func (t FileField) Init(*MonstiClient, string, FieldType) error {
 	return nil
 }
 
@@ -310,6 +369,19 @@ func (t *FileField) FromFormField(data NestedMap, field *FieldConfig) {
 	*t = FileField(data.Get(field.Id).(string))
 }
 
+func (f FileField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *FileField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f FileField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 type DateTimeFieldType int
 
 func (_ DateTimeFieldType) Field() Field {
@@ -321,7 +393,8 @@ type DateTimeField struct {
 	Location *time.Location
 }
 
-func (t *DateTimeField) Init(m *MonstiClient, site string) error {
+func (t *DateTimeField) Init(m *MonstiClient, site string,
+	config FieldType) error {
 	var timezone string
 	err := m.GetSiteConfig(site, "core.timezone", &timezone)
 	if err != nil {
@@ -371,17 +444,132 @@ func (t *DateTimeField) FromFormField(data NestedMap, field *FieldConfig) {
 	*t = DateTimeField{Time: time}
 }
 
+func (f DateTimeField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *DateTimeField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f DateTimeField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
 func initFields(fields map[string]Field, configs []*FieldConfig,
 	m *MonstiClient, site string) error {
 	for _, config := range configs {
 		val := config.Type.Field()
-		err := val.Init(m, site)
+		err := val.Init(m, site, config.Type)
 		if err != nil {
 			return fmt.Errorf("Could not init field %q: %v", config.Id, err)
 		}
 		fields[config.Id] = val
 	}
 	return nil
+}
+
+type ListFieldType struct {
+	ElementType FieldType
+}
+
+func (_ ListFieldType) Field() Field {
+	return &ListField{}
+}
+
+type ListField struct {
+	Fields    []Field
+	fieldType FieldType
+}
+
+func (f *ListField) Init(m *MonstiClient, site string,
+	fieldType FieldType) error {
+	f.fieldType = fieldType
+	return nil
+}
+
+func (f ListField) RenderHTML() interface{} {
+	var out []interface{}
+	for _, field := range f.Fields {
+		out = append(out, field.RenderHTML())
+	}
+	return out
+}
+
+func (f ListField) Value() interface{} {
+	return f.Fields
+}
+
+func (f *ListField) Load(dataFnc func(interface{}) error) error {
+	var data []json.RawMessage
+	if err := dataFnc(&data); err != nil {
+		return err
+	}
+	elementType := f.fieldType.(*ListFieldType).ElementType
+	for _, msg := range data {
+		fieldDataFnc := func(in interface{}) error {
+			return json.Unmarshal(msg, in)
+		}
+		field := elementType.Field()
+		if err := field.Load(fieldDataFnc); err != nil {
+			return fmt.Errorf("Could not parse the date value: %v", err)
+		}
+		f.Fields = append(f.Fields, field)
+	}
+	return nil
+}
+
+func (f ListField) Dump() interface{} {
+	var out []interface{}
+	for _, field := range f.Fields {
+		out = append(out, field.Dump())
+	}
+	return out
+}
+
+func (f ListField) FormData() interface{} {
+	var out []interface{}
+	for _, field := range f.Fields {
+		out = append(out, field.FormData())
+	}
+	return out
+}
+
+func (f *ListField) FromFormData(data interface{}) {
+	dataList := data.([]interface{})
+	if len(dataList) != len(f.Fields) {
+		panic("Implement me!")
+	}
+	for idx, field := range f.Fields {
+		field.FromFormData(dataList[idx])
+	}
+}
+
+func (f ListField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+	/*
+		return &htmlwidgets.ListWidget{
+			InnerWidget: &htmlwidgets.TextWidget{},
+		}
+	*/
+}
+
+func (t ListField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+	/*
+		data.Set(field.Id, t.Time)
+		form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
+			"Fields."+field.Id, field.Name.Get(locale), "")
+	*/
+}
+
+func (t *ListField) FromFormField(data NestedMap, field *FieldConfig) {
+	/*
+		time := data.Get(field.Id).(time.Time)
+		*t = DateTimeField{Time: time}
+	*/
 }
 
 type FieldType interface {

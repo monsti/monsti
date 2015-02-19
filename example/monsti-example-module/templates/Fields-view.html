@@ -1,4 +1,4 @@
-<h2>HTMLArea</h2>
+<h2>HTML / WYSIWYG</h2>
 <p>
 {{(index .Node.Fields "example.HTMLArea").RenderHTML}}
 </p>
@@ -22,4 +22,11 @@ Field is {{if not ((index .Node.Fields "example.Bool").Bool)}}un{{end}}checked!
 <h2>Hidden fields</h2>
 <p>
 {{(index .Node.Fields "example.Hidden")}}
+</p>
+
+<h2>List (i.e. repeatable) fields</h2>
+<p>
+  {{range ((index .Node.Fields "example.TextList").Value)}}
+  {{.Value}}<br>
+  {{end}}
 </p>
