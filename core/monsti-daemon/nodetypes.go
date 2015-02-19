@@ -61,6 +61,11 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 				Type: new(service.TextFieldType),
 			},
 			{
+				Id:   "core.Thumbnail",
+				Name: i18n.GenLanguageMap(G("Thumbnail"), availableLocales),
+				Type: new(service.RefFieldType),
+			},
+			{
 				Id:       "core.Body",
 				Required: true,
 				Name:     i18n.GenLanguageMap(G("Body"), availableLocales),

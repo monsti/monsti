@@ -7,6 +7,7 @@
     + Added Bool field type.
     + Added site setting to disable caching.
     + Added rudimentary reference field type.
+    + Added thumbnail field.
  - Changes:
     + Refactored node type and field API.
     + Removed template overwrites and local fields.
