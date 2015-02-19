@@ -1,0 +1,12 @@
+<h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
+
+<div>
+{{(index .Node.Fields "core.Body").RenderHTML}}
+</div>
+
+<h2>Embedded Content</h2>
+
+{{(.Embed.fooEmbed)}}
+
+<h2>Embedded Blog View</h2>
+{{(.Embed.blog)}}
