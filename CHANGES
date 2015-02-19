@@ -6,6 +6,7 @@
     + Added "Hidden" option for node fields.
     + Added Bool field type.
     + Added site setting to disable caching.
+    + Added rudimentary reference field type.
  - Changes:
     + Refactored node type and field API.
     + Removed template overwrites and local fields.

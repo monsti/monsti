@@ -34,6 +34,7 @@ func init() {
 	gob.Register(new(BoolFieldType))
 	gob.Register(new(DateTimeFieldType))
 	gob.Register(new(FileFieldType))
+	gob.Register(new(RefFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -136,6 +137,51 @@ func (t *BoolField) FromFormField(data NestedMap, field *FieldConfig) {
 
 func (t *BoolField) Bool() bool {
 	return bool(*t)
+}
+
+type RefFieldType int
+
+func (_ RefFieldType) Field() Field {
+	return new(RefField)
+}
+
+// RefField contains a reference to another node.
+type RefField string
+
+func (t RefField) Init(*MonstiClient, string) error {
+	return nil
+}
+
+func (t RefField) Value() interface{} {
+	return string(t)
+}
+
+func (t RefField) RenderHTML() interface{} {
+	return t
+}
+
+func (t *RefField) Load(f func(interface{}) error) error {
+	return f(t)
+}
+
+func (t RefField) Dump() interface{} {
+	return string(t)
+}
+
+func (t RefField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+	data.Set(field.Id, string(t))
+	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
+	widget := new(htmlwidgets.TextWidget)
+	if field.Required {
+		widget.MinLength = 1
+		widget.ValidationError = G("Required.")
+	}
+	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
+}
+
+func (t *RefField) FromFormField(data NestedMap, field *FieldConfig) {
+	*t = RefField(data.Get(field.Id).(string))
 }
 
 type TextFieldType int
