@@ -15,7 +15,8 @@ backward compatibility at this point. It's already in use to host some
 non critical websites, but the API and architecture still change a
 lot.
 
-[![Build Status](https://travis-ci.org/monsti/monsti.svg?branch=master)](https://travis-ci.org/monsti/monsti)
+[![Build Status](//travis-ci.org/monsti/monsti.svg?branch=master)](https://travis-ci.org/monsti/monsti)
+[![Gratipay](//img.shields.io/gratipay/chrneumann.svg)](https://gratipay.com/chrneumann/)
 
 Features
 --------
