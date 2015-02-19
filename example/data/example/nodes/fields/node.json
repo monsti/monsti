@@ -4,12 +4,11 @@
   "Embed": null,
   "Public": true,
   "PublishTime": "2013-04-10T18:37:00+02:00",
-  "Changed": "2015-02-11T11:24:28.732470367Z",
+  "Changed": "2015-02-19T14:15:54.02097356Z",
   "Type": "example.Fields",
   "Fields": {
     "core": {
       "Body": "",
-      "Description": "aoeu",
       "Title": "Fields"
     },
     "example": {
@@ -17,7 +16,12 @@
       "DateTime": "2014-12-31T22:55:00Z",
       "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e",
       "Hidden": "This field won't show up in the web interface.",
-      "Text": "Simple Text Field"
+      "Text": "Simple Text Field",
+      "TextList": [
+        "Entry one",
+        "Entry two",
+        "Entry tree"
+      ]
     }
   }
 }
