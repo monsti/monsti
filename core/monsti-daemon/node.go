@@ -563,7 +563,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		}
 		formData.Node.Fields[field.Id].ToFormField(form, formData.Fields,
 			field, c.UserSession.Locale)
-		if _, ok := field.Type.(service.FileFieldType); ok {
+		if _, ok := field.Type.(*service.FileFieldType); ok {
 			fileFields = append(fileFields, field.Id)
 		}
 	}
