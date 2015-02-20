@@ -477,7 +477,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	nodeType := c.Node.Type
-	newNode := len(c.Req.FormValue("NodeType")) > 0
+	newNode := c.Req.Form.Get("NodeType") != ""
 	if newNode {
 		var err error
 		nodeType, err = c.Serv.Monsti().GetNodeType(c.Req.FormValue("NodeType"))
@@ -559,7 +559,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	switch c.Req.Method {
 	case "GET":
 	case "POST":
-		if len(c.Req.FormValue("New")) == 0 && form.Fill(c.Req.Form) {
+		if form.Fill(c.Req.Form) {
 			node := formData.Node
 			node.Type = nodeType
 			pathPrefix := node.GetPathPrefix()
