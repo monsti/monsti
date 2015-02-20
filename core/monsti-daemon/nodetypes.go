@@ -113,11 +113,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Id:        "core.ContactForm",
 		AddableTo: []string{"."},
 		Name:      i18n.GenLanguageMap(G("Contact form"), availableLocales),
-		Fields: []*service.FieldConfig{
-			{Id: "core.Title"},
-			{Id: "core.Description"},
-			{Id: "core.Body"},
-		},
+		Fields:    service.CoreFields,
 	}
 	if err := session.Monsti().RegisterNodeType(&contactFormType); err != nil {
 		return fmt.Errorf("Could not register contactform node type: %v", err)

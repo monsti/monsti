@@ -20,8 +20,15 @@ import (
 	"path"
 	"strings"
 	"time"
+
 	"pkg.monsti.org/monsti/api/util/i18n"
 )
+
+// CoreFields contains the configurations for the fields that should be used
+// by most node types.
+var CoreFields = []*FieldConfig{
+	{Id: "core.Title"}, {Id: "core.Description"}, {Id: "core.Thumbnail"},
+	{Id: "core.Body"}}
 
 type Node struct {
 	Path string `json:",omitempty"`
