@@ -18,6 +18,7 @@
       floats.
     + Removed Node.GetField and Node.GetValue.
     + Updated admin bar layout.
+    + Made add action more user friendly.
  - Fixed:
     + Fixed button styles.
     + Fixed race condition in module initialization.

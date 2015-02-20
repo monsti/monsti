@@ -172,43 +172,31 @@ func (nav *navigation) MakeAbsolute(root string) {
 	}
 }
 
-type addFormData struct {
-	NodeType string
-	New      string
-}
-
 // Add handles add requests.
 func (h *nodeHandler) Add(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
-	data := addFormData{New: "1"}
-	nodeTypeOptions := []htmlwidgets.SelectOption{}
-	nodeTypes, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site.Name,
+	nodeTypeIds, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site.Name,
 		c.Node.Type.Id)
 	if err != nil {
 		return fmt.Errorf("Could not get addable node types: %v", err)
 	}
-	for _, id := range nodeTypes {
+	var nodeTypes []*service.NodeType
+	for _, id := range nodeTypeIds {
 		nodeType, err := c.Serv.Monsti().GetNodeType(id)
 		if err != nil {
 			return fmt.Errorf("Could not get node type: %v", err)
 		}
-		nodeTypeOptions = append(nodeTypeOptions,
-			htmlwidgets.SelectOption{nodeType.Id,
-				nodeType.Name.Get(c.UserSession.Locale), false})
+		nodeTypes = append(nodeTypes, nodeType)
 	}
-	form := htmlwidgets.NewForm(&data)
-	form.AddWidget(&htmlwidgets.SelectWidget{Options: nodeTypeOptions},
-		"NodeType", G("Content type"), "")
-	form.AddWidget(new(htmlwidgets.HiddenWidget), "New", "", "")
-	form.Action = path.Join(c.Node.Path, "@@edit")
-	body, err := h.Renderer.Render("actions/addform", mtemplate.Context{
-		"Form": form.RenderData()}, c.UserSession.Locale,
+	body, err := h.Renderer.Render("actions/add", mtemplate.Context{
+		"Session":   c.UserSession,
+		"NodeTypes": nodeTypes}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
 	if err != nil {
-		return fmt.Errorf("Can't render node add formular: %v", err)
+		return fmt.Errorf("Can't render add action template: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: G("Add content")}
+		Flags: EDIT_VIEW, Title: G("New node")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		*c.Site, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
