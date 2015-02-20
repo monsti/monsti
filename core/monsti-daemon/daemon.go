@@ -164,11 +164,11 @@ func main() {
 		executable := "monsti-" + module
 		cmd := exec.Command(executable, cfgPath)
 		cmd.Stderr = moduleLog{module, logger}
-		go func() {
+		go func(module string) {
 			if err := cmd.Run(); err != nil {
 				logger.Fatalf("Module %q failed: %v", module, err)
 			}
-		}()
+		}(module)
 	}
 	logger.Println("Waiting for modules to finish initialization...")
 	for _, module := range settings.Modules {
