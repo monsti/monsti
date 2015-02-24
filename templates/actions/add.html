@@ -1,7 +1,7 @@
 <ul>
 {{range .NodeTypes}}
   <li>
-    <a href="{{$.Node}}/@@edit?New=1;NodeType={{.Id}}"
+    <a href="{{$.Node.Path}}@@edit?New=1;NodeType={{.Id}}"
        >{{.Name.Get ($.Session.Locale)}}</a>
   </li>
 {{end}}
