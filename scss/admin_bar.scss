@@ -1,8 +1,13 @@
 @import "base";
 
+html {
+  margin-top: 32px !important;
+}
+
 #monsti--admin-bar {
   font: 12px/18px arial, sans-serif;
   position: fixed;
+  z-index: 99999;
   top: 0;
   left: 0;
   width: 100%;
