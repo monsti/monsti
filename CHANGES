@@ -9,6 +9,7 @@
     + Added rudimentary reference field type (no UI yet).
     + Added rudimentary list/repeatable field type (no UI yet).
     + Added thumbnail field.
+    + Now automatically fills name field.
  - Changes:
     + Refactored node type and field API.
     + Removed template overwrites and local fields.
