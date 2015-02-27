@@ -9,6 +9,7 @@
     + Added rudimentary reference field type (no UI yet).
     + Added rudimentary list/repeatable field type (no UI yet).
     + Added thumbnail field.
+    + Now automatically fills name field.
  - Changes:
     + Refactored node type and field API.
     + Removed template overwrites and local fields.
@@ -22,6 +23,7 @@
  - Fixed:
     + Fixed button styles.
     + Fixed race condition in module initialization.
+    + Now trying to create service path if not existing.
 
 * 0.9.0 - released 2015/02/14
  - New features:

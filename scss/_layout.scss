@@ -95,7 +95,8 @@ form {
   }
 }
 
-input[type=text], input[type=password], input[type=datetime-local], select, textarea, button, .button {
+input[type=text], input[type=password], input[type=datetime-local], select,
+textarea, button, .button {
   @include border-radius;
   border: 1px solid $primary-color;
   background: rgba($secondary-color, 0.05);
@@ -106,7 +107,7 @@ input[type=text], input[type=password], input[type=datetime-local], select, text
   margin: 5px 0;
 }
 
-.monsti-button {
+button {
   background: $primary-color;
   width: auto;
   color: white;

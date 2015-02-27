@@ -37,3 +37,36 @@
     });
   });
 })();
+
+monsti.initAutoName = function() {
+  var title = document.getElementById("Fields.core.Title");
+  var name = document.getElementById("Name");
+  if (!(title && name)) {
+    return;
+  }
+  title.parentNode.parentNode.insertBefore(title.parentNode, name.parentNode);
+  if (name.value != "") {
+    return;
+  }
+  var active = true;
+  var re1 = / /g;
+  var re2 = /[^a-zA-Z0-9.-]/g;
+  title.addEventListener("input", function(event) {
+    if (!active) {
+      return;
+    }
+    name.value = title.value.replace(re1, "-").replace(re2, "").toLowerCase();
+  },false);
+  title.addEventListener("change", function(event) {
+    active = false;
+  },false);
+  name.addEventListener("change", function(event) {
+    if (name.value == "") {
+      active = true;
+    }
+  },false);
+}
+
+monsti.initEdit = function() {
+  monsti.initAutoName();
+}
