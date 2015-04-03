@@ -1,4 +1,6 @@
-* unreleased
+* 0.11.0 - unreleased
+
+* 0.10.0 - released 2015/04/03
  - New features:
     + Implemented site settings.
     + Enabled translation for WYSIWYG editor.
