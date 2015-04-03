@@ -1,43 +1,29 @@
+"use strict";
+
+var monsti = monsti || {};
+
 (function() {
-  var monstiFileChooser = function(field_name, url, type, win) {
-    var cmsURL = window.location.toString();    // script URL - use an absolute path!
-    cmsURL = cmsURL.replace("@@edit", "@@chooser?type=" + type);
-//    alert("Field_Name: " + field_name + " URL: " + url + " Type: " + type + " Win: " + win + " CMSURL: " + cmsURL); // debug/testing
-
-    tinyMCE.activeEditor.windowManager.open({
-      file : cmsURL,
-      title : 'File Chooser',
-      width : 700,
-      height : 500,
-      resizable : "yes",
-      inline : "yes",  // This parameter only has an effect if you use the inlinepopups plugin!
-      close_previous : "no"
-    }, {
-      window : win,
-      input : field_name
-    });
-    return false;
-  }
-
-  $(document).ready(function () {
-    tinymce.init({
-      selector: ".html-field textarea",
-      plugins: "anchor autosave code hr image visualchars visualblocks table paste media link",
-      tools: "inserttable",
-      height: 300,
-      file_browser_callback: monstiFileChooser,
-      language : monsti.session.locale,
-      formats : {
-        alignleft : {selector : 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', classes : 'monsti--htmlarea-align-left'},
-        aligncenter : {selector : 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', classes : 'monsti--htmlarea-align-center'},
-        alignright : {selector : 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', classes : 'monsti--htmlarea-align-right'},
-        alignfull : {selector : 'p,h1,h2,h3,h4,h5,h6,td,th,div,ul,ol,li,table,img', classes : 'monsti--htmlarea-align-full'},
-      },
-      content_css : ["/static/css/common.css","/site-static/css/site.css"],
-    });
-  });
+  var browserPrefix = window.location.toString().replace(
+    "@@edit", "@@chooser?type=");
+  monsti.CKEditorConfig = {
+    filebrowserBrowseUrl: browserPrefix,
+    filebrowserImageBrowseUrl: browserPrefix + 'image',
+    uiColor: '#E0D4C7',
+    defaultLanguage: monsti.session.locale,
+    removePlugins: 'maximize,stylescombo',
+    removeButtons: 'SpecialChar',
+    extraPlugins: 'autogrow,image2,showblocks',
+    autoGrow_minHeight: 250,
+    autoGrow_maxHeight: 600,
+  };
 })();
 
+// addCKEditor adds an CKEditor for the textarea with the given id.
+monsti.addCKEditor = function(elementId) {
+  CKEDITOR.replace(elementId, monsti.CKEditorConfig);
+}
+
+// initAutoName initializes automatic node name filling.
 monsti.initAutoName = function() {
   var title = document.getElementById("Fields.core.Title");
   var name = document.getElementById("Name");
@@ -67,6 +53,18 @@ monsti.initAutoName = function() {
   },false);
 }
 
+// initEdit initializes edit action views.
 monsti.initEdit = function() {
   monsti.initAutoName();
+}
+
+// getQueryParam returns the given parameter of the window's query.
+monsti.getQueryParam = function(name) {
+  var reParam = new RegExp('(?:[\?&]|&)' + name + '=([^&]+)', 'i') ;
+  var match = window.location.search.match(reParam);
+  if (match && match.length > 1) {
+    return match[1];
+  } else {
+    return null;
+  }
 }
