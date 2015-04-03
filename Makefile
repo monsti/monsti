@@ -22,7 +22,7 @@ MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-tinymce-editor dep-jquery dep-webshim
+monsti: modules dep-webshim
 
 .PHONY: bcrypt
 bcrypt: 
