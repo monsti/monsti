@@ -1,4 +1,6 @@
 * 0.11.0 - unreleased
+ - Changes:
+    + Replaced TinyMCE with CKEditor.
 
 * 0.10.0 - released 2015/04/03
  - New features:

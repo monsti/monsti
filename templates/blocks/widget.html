@@ -23,6 +23,7 @@
 
   {{else if eq .Template "textarea"}}
   <textarea id="{{.Id}}" name="{{.Id}}">{{.Data}}</textarea>
+  <script>monsti.addCKEditor("{{.Id}}");</script>
 
   {{else if eq .Template "password"}}
   <input type="password" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">

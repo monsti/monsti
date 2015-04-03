@@ -16,7 +16,6 @@ DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
-TINYMCE_VERSION=4.1.7
 WEBSHIM_VERSION=1.15.5
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
@@ -116,24 +115,6 @@ clean:
 	rm static/lib/ -Rf
 	rm dist/ -Rf
 	$(MAKE) -C example/monsti-example-module clean
-
-dep-tinymce-editor: static/lib/tinymce/
-static/lib/tinymce/:
-	wget -nv http://download.moxiecode.com/tinymce/tinymce_$(TINYMCE_VERSION).zip
-	unzip -q tinymce_$(TINYMCE_VERSION).zip
-	rm tinymce_$(TINYMCE_VERSION).zip
-	mkdir -p static/lib
-	mv tinymce/js/tinymce static/lib
-	rm tinymce -R
-	wget -nv "http://www.tinymce.com/i18n/download.php?download=de" -O tinymce_languages.zip
-	unzip -q tinymce_languages.zip -d static/lib/tinymce
-	rm tinymce_languages.zip
-
-dep-jquery: static/js/jquery.min.js
-static/js/jquery.min.js:
-	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
-	mkdir -p static/lib
-	mv jquery-1.8.2.min.js static/lib/jquery.min.js
 
 dep-webshim: static/lib/webshim/
 static/lib/webshim/:
