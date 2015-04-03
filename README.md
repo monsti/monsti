@@ -7,7 +7,7 @@ small NGO websites.
 
 It provides a simple web frontend for basic site building and editing
 tasks. More advanced tasks like adding new content types have to be
-done by writing `modules` in Go that communicate to Monsti via RPC
+done by writing modules in Go that communicate to Monsti via RPC
 using a high level API.
 
 Monsti is still under development and unstable. Don't expect any
@@ -16,6 +16,7 @@ non critical websites, but the API and architecture still change a
 lot.
 
 [![Build Status](https://travis-ci.org/monsti/monsti.svg?branch=master)](https://travis-ci.org/monsti/monsti)
+[![Gratipay](https://img.shields.io/gratipay/chrneumann.svg)](https://gratipay.com/chrneumann/)
 
 Features
 --------

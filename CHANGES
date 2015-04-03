@@ -1,3 +1,30 @@
+* 0.10.0 - released 2015/04/03
+ - New features:
+    + Implemented site settings.
+    + Enabled translation for WYSIWYG editor.
+    + Added description node field; used as META description.
+    + Added "Hidden" option for node fields.
+    + Added Bool field type.
+    + Added site setting to disable caching.
+    + Added rudimentary reference field type (no UI yet).
+    + Added rudimentary list/repeatable field type (no UI yet).
+    + Added thumbnail field.
+    + Now automatically fills name field.
+ - Changes:
+    + Refactored node type and field API.
+    + Removed template overwrites and local fields.
+    + Refactored util API.
+    + Refactored signal API.
+    + Use custom classes (monsti--htmlarea-align-*) for WYSIWYG alignment /
+      floats.
+    + Removed Node.GetField and Node.GetValue.
+    + Updated admin bar layout.
+    + Made add action more user friendly.
+ - Fixed:
+    + Fixed button styles.
+    + Fixed race condition in module initialization.
+    + Now trying to create service path if not existing.
+
 * 0.9.0 - released 2015/02/14
  - New features:
     + Added list action to view and order node children.

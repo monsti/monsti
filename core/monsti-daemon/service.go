@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -90,7 +90,10 @@ func (i *MonstiService) PublishService(args PublishServiceArgs,
 func (i *MonstiService) ModuleInitDone(args string, reply *int) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
-	i.moduleInit[args] <- true
+	select {
+	case i.moduleInit[args] <- true:
+	default:
+	}
 	return nil
 }
 
@@ -278,6 +281,32 @@ func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
 	return err
 }
 
+type WriteSiteSettingsArgs struct {
+	Site     string
+	Settings []byte
+}
+
+func (i *MonstiService) WriteSiteSettings(args *WriteSiteSettingsArgs,
+	reply *int) error {
+	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
+	path := filepath.Join(site, "settings.json")
+	if err := ioutil.WriteFile(path, []byte(args.Settings), 0600); err != nil {
+		return fmt.Errorf("Could not write site settings data: %v", err)
+	}
+	return nil
+}
+
+func (i *MonstiService) LoadSiteSettings(site string, reply *[]byte) error {
+	path := filepath.Join(i.Settings.Monsti.GetSiteDataPath(site),
+		"settings.json")
+	var err error
+	*reply, err = ioutil.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Colud not read site settings: %v", err)
+	}
+	return nil
+}
+
 type WriteNodeDataArgs struct {
 	Site, Path, File string
 	Content          []byte
@@ -335,7 +364,6 @@ func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
 				return err
 			}
 			for _, rdep := range rdeps {
-				log.Println("check", rdep)
 				err := markDep(cacheRoot, rdep.Dep, 0)
 				if err != nil {
 					return err
@@ -473,7 +501,7 @@ func (m *MonstiService) RegisterNodeType(nodeType *service.NodeType,
 	}
 	if m.Settings.Config.NodeTypes == nil {
 		m.Settings.Config.NodeTypes = make(map[string]*service.NodeType)
-		m.Settings.Config.NodeFields = make(map[string]*service.NodeField)
+		m.Settings.Config.NodeFields = make(map[string]*service.FieldConfig)
 	}
 	m.Settings.Config.NodeTypes[nodeType.Id] = nodeType
 	for i, field := range nodeType.Fields {
@@ -634,13 +662,11 @@ func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
 }
 
 func markDep(root string, dep service.CacheDep, level int) error {
-	//	log.Println("markdep", dep, level)
 	rdeps, err := readRdeps(root, dep.Node)
 	if err != nil {
 		return fmt.Errorf("Could not read rdeps: %v", err)
 	}
 	if dep.Cache != "" {
-		//		log.Println("Removing cache", dep.Cache)
 		path := filepath.Join(root, dep.Node[1:], ".data", dep.Cache)
 		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 			return fmt.Errorf("Could not remove cached data: %v", err)
@@ -650,13 +676,10 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	var newDeps CacheDepMap
 	dep.Node = filepath.Clean(dep.Node)
 	for _, rdep := range rdeps {
-		//log.Println(rdep)
 		descend := rdep.Dep.Descend
 		rdep.Dep.Descend = 0
-		//log.Println(descend, level, rdep.Dep, "==", dep, "?")
 		rdep.Dep.Node = filepath.Clean(rdep.Dep.Node)
 		if descend == -1 || descend >= level && rdep.Dep == dep {
-			//log.Println("Match!")
 			toBeMarked = append(toBeMarked, rdep.RDeps...)
 		} else {
 			rdep.Dep.Descend = descend
@@ -671,7 +694,6 @@ func markDep(root string, dep service.CacheDep, level int) error {
 	}
 
 	if dep.Node != "/" {
-		//log.Printf("Marking parent. Old dep: %+v", dep)
 		dep.Node = path.Dir(dep.Node)
 		if err := markDep(root, dep, level+1); err != nil {
 			return fmt.Errorf("Could not mark parent: %v", err)

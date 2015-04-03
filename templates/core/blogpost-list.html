@@ -11,7 +11,7 @@
           {{end}}
         </div>
       </div>
-      <a href="{{.Path}}">{{(.GetField "core.Title").RenderHTML}}</a>
+      <a href="{{.Path}}">{{(index .Fields "core.Title").RenderHTML}}</a>
     </div>
   </li>
   {{end}}

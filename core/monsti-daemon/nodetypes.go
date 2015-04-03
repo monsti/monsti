@@ -26,7 +26,7 @@ import (
 	"github.com/chrneumann/htmlwidgets"
 	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/i18n"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 import "pkg.monsti.org/monsti/api/service"
@@ -38,7 +38,7 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	pathType := service.NodeType{
 		Id:   "core.Path",
 		Hide: true,
-		Name: util.GenLanguageMap(G("Path"), availableLocales),
+		Name: i18n.GenLanguageMap(G("Path"), availableLocales),
 	}
 	if err := session.Monsti().RegisterNodeType(&pathType); err != nil {
 		return fmt.Errorf("Could not register path node type: %v", err)
@@ -47,19 +47,29 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	documentType := service.NodeType{
 		Id:        "core.Document",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Document"), availableLocales),
-		Fields: []*service.NodeField{
+		Name:      i18n.GenLanguageMap(G("Document"), availableLocales),
+		Fields: []*service.FieldConfig{
 			{
 				Id:       "core.Title",
 				Required: true,
-				Name:     util.GenLanguageMap(G("Title"), availableLocales),
-				Type:     "Text",
+				Name:     i18n.GenLanguageMap(G("Title"), availableLocales),
+				Type:     new(service.TextFieldType),
+			},
+			{
+				Id:   "core.Description",
+				Name: i18n.GenLanguageMap(G("Description"), availableLocales),
+				Type: new(service.TextFieldType),
+			},
+			{
+				Id:   "core.Thumbnail",
+				Name: i18n.GenLanguageMap(G("Thumbnail"), availableLocales),
+				Type: new(service.RefFieldType),
 			},
 			{
 				Id:       "core.Body",
 				Required: true,
-				Name:     util.GenLanguageMap(G("Body"), availableLocales),
-				Type:     "HTMLArea",
+				Name:     i18n.GenLanguageMap(G("Body"), availableLocales),
+				Type:     new(service.HTMLFieldType),
 			},
 		},
 	}
@@ -70,14 +80,14 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	fileType := service.NodeType{
 		Id:        "core.File",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("File"), availableLocales),
-		Fields: []*service.NodeField{
+		Name:      i18n.GenLanguageMap(G("File"), availableLocales),
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{
 				Id:       "core.File",
 				Required: true,
-				Name:     util.GenLanguageMap(G("File"), availableLocales),
-				Type:     "File",
+				Name:     i18n.GenLanguageMap(G("File"), availableLocales),
+				Type:     new(service.FileFieldType),
 			},
 		},
 	}
@@ -89,8 +99,8 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		Id:        "core.Image",
 		Hide:      true,
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Image"), availableLocales),
-		Fields: []*service.NodeField{
+		Name:      i18n.GenLanguageMap(G("Image"), availableLocales),
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{Id: "core.File"},
 		},
@@ -102,11 +112,8 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 	contactFormType := service.NodeType{
 		Id:        "core.ContactForm",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Contact form"), availableLocales),
-		Fields: []*service.NodeField{
-			{Id: "core.Title"},
-			{Id: "core.Body"},
-		},
+		Name:      i18n.GenLanguageMap(G("Contact form"), availableLocales),
+		Fields:    service.CoreFields,
 	}
 	if err := session.Monsti().RegisterNodeType(&contactFormType); err != nil {
 		return fmt.Errorf("Could not register contactform node type: %v", err)

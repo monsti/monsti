@@ -1,8 +1,13 @@
 @import "base";
 
-.admin-bar {
-  font: 14px/20px arial, sans-serif;
+html {
+  margin-top: 32px !important;
+}
+
+#monsti--admin-bar {
+  font: 12px/18px arial, sans-serif;
   position: fixed;
+  z-index: 99999;
   top: 0;
   left: 0;
   width: 100%;
@@ -10,19 +15,17 @@
   padding: 0;
   margin: 0;
   border-bottom: 1px solid #aaa;
-  box-shadow: 0 0 2px 1px #666;
   @include background-image(linear-gradient(
                               bottom, rgb(222,222,222) 25%, rgb(247,247,247) 63%));
   &> div {
     box-sizing: border-box;
-    padding: 6px 15px;
+    padding: 0px 15px;
     @include clearfix;
   }
   .brand {
     float: left;
-    line-height: 20px;
     vertical-align: middle;
-    margin: 3px 40px 0 0;
+    margin: 2px 40px 0 0;
     padding: 0;
   }
   ul {
@@ -31,7 +34,7 @@
     margin: 0;
     li {
       float: left;
-      margin-right: 20px;
+      margin: 0 20px 0 0;
       padding: 0;
       line-height: 30px;
       img {
@@ -50,8 +53,7 @@
     color: #333;
     font-weight: 200;
   }
-}
-
-.admin-bar-item-inactive {
-  opacity: 0.5;
+  .admin-bar-item-inactive {
+    opacity: 0.5;
+  }
 }

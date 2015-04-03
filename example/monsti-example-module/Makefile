@@ -61,7 +61,7 @@ test: module
 
 .PHONY: clean
 clean:
-	rm go/* -Rf
+	rm go/ -Rf
 	rm dist/ -Rf
 
 locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-$(MODULE_NAME).mo)

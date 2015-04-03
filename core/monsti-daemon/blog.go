@@ -29,26 +29,10 @@ import (
 	"sort"
 	"strconv"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/i18n"
+	"pkg.monsti.org/monsti/api/util/nodes"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
-
-type nodeSort struct {
-	Nodes  []*service.Node
-	Sorter func(left, right *service.Node) bool
-}
-
-func (s *nodeSort) Len() int {
-	return len(s.Nodes)
-}
-
-func (s *nodeSort) Swap(i, j int) {
-	s.Nodes[i], s.Nodes[j] = s.Nodes[j], s.Nodes[i]
-}
-
-func (s *nodeSort) Less(i, j int) bool {
-	return s.Sorter(s.Nodes[i], s.Nodes[j])
-}
 
 func getBlogPosts(req *service.Request, blogPath string, s *service.Session,
 	limit int) ([]*service.Node, error) {
@@ -73,7 +57,7 @@ func getBlogPosts(req *service.Request, blogPath string, s *service.Session,
 	order := func(left, right *service.Node) bool {
 		return left.PublishTime.Before(right.PublishTime)
 	}
-	sort.Sort(sort.Reverse(&nodeSort{posts, order}))
+	sort.Sort(sort.Reverse(&nodes.Sorter{posts, order}))
 	return posts, nil
 }
 
@@ -118,15 +102,16 @@ func getBlogContext(reqId uint, embed *service.EmbedNode,
 	return map[string][]byte{"BlogPosts": rendered}, mods, nil
 }
 
-func initBlog(settings *settings, session *service.Session, logger *log.Logger,
+func initBlog(settings *settings, session *service.Session,
+	sessions *service.SessionPool, logger *log.Logger,
 	renderer *mtemplate.Renderer) error {
 	G := func(in string) string { return in }
 
 	nodeType := service.NodeType{
 		Id:        "core.Blog",
 		AddableTo: []string{"."},
-		Name:      util.GenLanguageMap(G("Blog"), availableLocales),
-		Fields: []*service.NodeField{
+		Name:      i18n.GenLanguageMap(G("Blog"), availableLocales),
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 		},
 	}
@@ -137,8 +122,8 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	nodeType = service.NodeType{
 		Id:        "core.BlogPost",
 		AddableTo: []string{"core.Blog"},
-		Name:      util.GenLanguageMap(G("Blog Post"), availableLocales),
-		Fields: []*service.NodeField{
+		Name:      i18n.GenLanguageMap(G("Blog Post"), availableLocales),
+		Fields: []*service.FieldConfig{
 			{Id: "core.Title"},
 			{Id: "core.Body"},
 		},
@@ -150,8 +135,8 @@ func initBlog(settings *settings, session *service.Session, logger *log.Logger,
 	}
 
 	// Add a signal handler
-	handler := service.NewNodeContextHandler(
-		func(req uint, nodeType string,
+	handler := service.NewNodeContextHandler(sessions,
+		func(req uint, session *service.Session, nodeType string,
 			embedNode *service.EmbedNode) (
 			map[string][]byte, *service.CacheMods, error) {
 			switch nodeType {

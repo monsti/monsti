@@ -1,4 +1,0 @@
-* 2013/07/13: Change signature of Data.GetChildren.
-* 2013/07/13: Added NodeInfo.Name().
-* 2013/07/13: Fixed data service.
-* 2013/07/13: Added 'Embed' action.

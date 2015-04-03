@@ -13,13 +13,12 @@ import (
 	"time"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
 )
 
 type tnodeJSON struct {
 	service.Node
 	Type   string
-	Fields util.NestedMap
+	Fields service.NestedMap
 }
 
 func main() {

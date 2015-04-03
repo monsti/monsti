@@ -1,5 +1,5 @@
-@import "base";
 @import "compass/reset";
+@import "base";
 
 html {
   font: 16px/23.3667px arial, sans-serif;
@@ -95,7 +95,8 @@ form {
   }
 }
 
-input[type=text], input[type=password], input[type=datetime-local], select, textarea, button, .button {
+input[type=text], input[type=password], input[type=datetime-local], select,
+textarea, button, .button {
   @include border-radius;
   border: 1px solid $primary-color;
   background: rgba($secondary-color, 0.05);
@@ -107,11 +108,8 @@ input[type=text], input[type=password], input[type=datetime-local], select, text
 }
 
 button {
-  width: auto;
-}
-
-button, .button {
   background: $primary-color;
+  width: auto;
   color: white;
   padding: 5px 15px;
   &:hover {

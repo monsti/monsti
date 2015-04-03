@@ -16,7 +16,10 @@
 
 package service
 
-import "encoding/gob"
+import (
+	"encoding/gob"
+	"fmt"
+)
 
 type NodeContextArgs struct {
 	Request   uint
@@ -43,8 +46,9 @@ type SignalHandler interface {
 }
 
 type nodeContextHandler struct {
-	f func(Request uint, NodeType string, embedNode *EmbedNode) (
+	f func(request uint, session *Session, nodeType string, embedNode *EmbedNode) (
 		map[string][]byte, *CacheMods, error)
+	sessions *SessionPool
 }
 
 func (r *nodeContextHandler) Name() string {
@@ -52,15 +56,22 @@ func (r *nodeContextHandler) Name() string {
 }
 
 func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
+	session, err := r.sessions.New()
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not get session: %v", err)
+	}
+	defer r.sessions.Free(session)
 	args_ := args.(NodeContextArgs)
-	context, mods, err := r.f(args_.Request, args_.NodeType, args_.EmbedNode)
+	context, mods, err := r.f(args_.Request, session, args_.NodeType,
+		args_.EmbedNode)
 	return NodeContextRet{context, mods}, err
 }
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
 func NewNodeContextHandler(
-	cb func(Request uint, NodeType string,
+	sessions *SessionPool,
+	cb func(request uint, session *Session, nodeType string,
 		embedNode *EmbedNode) (map[string][]byte, *CacheMods, error)) SignalHandler {
-	return &nodeContextHandler{cb}
+	return &nodeContextHandler{cb, sessions}
 }

@@ -1,6 +1,10 @@
 <meta charset="utf-8" />
 <title>{{.Page.Title}} | {{.Site.Title}}</title>
-<meta name="description" content="" />
+{{with .Page.Node}}
+<meta name="description"
+      content="{{with index .Fields "core.Description"}}{{.RenderHTML}}{{end}}"
+/>
+{{end}}
 {{if .Page.EditView}}
 {{template "blocks/headers-edit"}}
 {{else if .Session.User}}

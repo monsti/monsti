@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -30,7 +30,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -43,7 +43,7 @@ type reqContext struct {
 	Action      service.Action
 	Session     *sessions.Session
 	UserSession *service.UserSession
-	Site        *util.SiteSettings
+	Site        *msettings.Site
 	Serv        *service.Session
 }
 
@@ -152,6 +152,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"edit":                   service.EditAction,
 		"list":                   service.ListAction,
 		"chooser":                service.ChooserAction,
+		"settings":               service.SettingsAction,
 		"login":                  service.LoginAction,
 		"logout":                 service.LogoutAction,
 		"add":                    service.AddAction,
@@ -237,6 +238,8 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.List(&c)
 	case service.ChooserAction:
 		err = h.Chooser(&c)
+	case service.SettingsAction:
+		err = h.SettingsAction(&c)
 	case service.RequestPasswordTokenAction:
 		err = h.RequestPasswordToken(&c)
 	case service.ChangePasswordAction:

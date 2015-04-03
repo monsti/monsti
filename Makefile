@@ -9,7 +9,7 @@ MODULES=daemon
 
 LOCALES=de
 
-MONSTI_VERSION=0.9.0
+MONSTI_VERSION=0.10.0
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
@@ -35,7 +35,7 @@ upgrade:
 modules: $(MODULES)
 $(MODULES): %: go/bin/monsti-%
 
-dist: monsti bcrypt
+dist: all
 	rm -Rf $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/bin
 	cp go/bin/* $(DIST_PATH)/bin
@@ -54,7 +54,7 @@ dist: monsti bcrypt
 	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
-dist-deb: monsti bcrypt
+dist-deb: all
 	rm -Rf $(DIST_PATH)
 	mkdir -p $(DIST_PATH)/usr/bin
 	cp go/bin/* $(DIST_PATH)/usr/bin
@@ -99,9 +99,9 @@ $(MODULE_PROGRAMS): go/bin/%: go/src/pkg.monsti.org/monsti
 
 .PHONY: test
 test: monsti
-	cd $(GOPATH)/src/pkg.monsti.org/monsti/api && $(GO_TEST) ./...
-	cd $(GOPATH)/src/pkg.monsti.org/monsti/core && $(GO_TEST) ./...
-	cd $(GOPATH)/src/pkg.monsti.org/monsti/utils && $(GO_TEST) ./...
+	$(GO_TEST) ./core/...
+	$(GO_TEST) ./api/...
+	$(GO_TEST) ./utils/...
 
 .PHONY: test-browser
 test-browser: monsti
@@ -123,6 +123,9 @@ static/lib/tinymce/:
 	mkdir -p static/lib
 	mv tinymce/js/tinymce static/lib
 	rm tinymce -R
+	wget -nv "http://www.tinymce.com/i18n/download.php?download=de" -O tinymce_languages.zip
+	unzip -q tinymce_languages.zip -d static/lib/tinymce
+	rm tinymce_languages.zip
 
 dep-jquery: static/js/jquery.min.js
 static/js/jquery.min.js:
@@ -160,10 +163,12 @@ doc/%.html: doc/%.adoc
 
 .PHONY: example/monsti-example-module/monsti-example-module
 example/monsti-example-module/monsti-example-module:
+	ln -sf ../../go example/monsti-example-module/go
 	$(MAKE) -C example/monsti-example-module
 
 example-module: go/bin/monsti-example-module
 
 go/bin/monsti-example-module: example/monsti-example-module/monsti-example-module
 	cp example/monsti-example-module/monsti-example-module $(GOPATH)/bin
+	rm -f templates/example
 	ln -sf ../example/monsti-example-module/templates templates/example

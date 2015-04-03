@@ -1,51 +1,27 @@
 {
   "Order": 0,
   "Hide": false,
-  "TemplateOverwrites": {
-    "core/Document-view": {
-      "Template": "foo/Fields-view"
-    }
-  },
   "Embed": null,
-  "LocalFields": [
-    {
-      "Id": "foo.DateTime",
-      "Name": {
-        "": "DateTime"
-      },
-      "Required": false,
-      "Type": "DateTime"
-    },
-    {
-      "Id": "foo.HTMLArea",
-      "Name": {
-        "": "HTMLArea"
-      },
-      "Required": false,
-      "Type": "HTMLArea"
-    },
-    {
-      "Id": "foo.Text",
-      "Name": {
-        "": "Text"
-      },
-      "Required": false,
-      "Type": "Text"
-    }
-  ],
   "Public": true,
   "PublishTime": "2013-04-10T18:37:00+02:00",
-  "Changed": "2014-12-14T07:27:48.811879145Z",
-  "Type": "core.Document",
+  "Changed": "2015-02-19T14:15:54.02097356Z",
+  "Type": "example.Fields",
   "Fields": {
     "core": {
       "Body": "",
       "Title": "Fields"
     },
-    "foo": {
+    "example": {
+      "Bool": true,
       "DateTime": "2014-12-31T22:55:00Z",
       "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e",
-      "Text": "Simple Text Field"
+      "Hidden": "This field won't show up in the web interface.",
+      "Text": "Simple Text Field",
+      "TextList": [
+        "Entry one",
+        "Entry two",
+        "Entry tree"
+      ]
     }
   }
 }

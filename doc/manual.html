@@ -996,13 +996,6 @@ not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_local_fields">Local fields</h3>
-<div class="paragraph"><p>Local fields are fields that are only configured for one node, not a
-whole node type. Local fields can be specified in the node&#8217;s
-<code>node.json</code> file. Have a look at the <code>LocalFields</code> attribute and the
-example.</p></div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1153,6 +1146,25 @@ mail:
 </div>
 </div>
 <div class="sect1">
+<h2 id="_caching">Caching</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Monsti uses a dependency based caching system. Any byte data can be
+cached, e.g. whole pages, page content, thumbnails, queries, and
+calculations. Each cached data may depend on other (possibly cached)
+data. For example, the cached output of a node request depends on the
+fields of the node, the navigation content, and settings like the site
+title. If one of these dependencies get changed (dirty), all caches
+that depend on these get recursively cleared.</p></div>
+<div class="paragraph"><p>Caches are stored in the sites' data directories. To clear the cache,
+simply remove the cache directory. You may disable caching per site
+using the <code>core.CacheDisabled</code> setting (you&#8217;ll also have to clear the
+cache directory to remove old cached data). Disable caching only for
+development purposes.</p></div>
+<div class="paragraph"><p>Have a look at the <code>ToCache</code>, <code>FromCache</code>, and <code>MarkDep</code> service
+methods.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_templates">Templates</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Monsti uses Go&#8217;s
@@ -1170,13 +1182,6 @@ for an individual template named <code>foo.html</code> in a file named
 all templates of a directory tree, add the names of the templates to a
 file named <code>include</code> at the root of the tree.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_template_overwrites">Template Overwrites</h3>
-<div class="paragraph"><p>You can overwrite templates for individual nodes by setting the
-corresponding option in the node&#8217;s <code>node.json</code> file. Have a look at
-the <code>service.Node</code> API documentation or the examples for more
-information.</p></div>
-</div>
 </div>
 </div>
 </div>
@@ -1184,7 +1189,7 @@ information.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-01-30 09:56:57 CET
+ 2015-02-18 16:50:45 CET
 </div>
 </div>
 </body>

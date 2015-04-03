@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -22,6 +22,7 @@ import (
 	"net"
 	"net/rpc"
 	"os"
+	"path/filepath"
 )
 
 type Provider struct {
@@ -41,6 +42,9 @@ func NewProvider(service string, rcvr interface{}) (p *Provider) {
 // incoming rpc connections. Be sure to call Accept after that.
 func (p *Provider) Listen(path string) error {
 	os.Remove(path)
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return fmt.Errorf("service: Could not create service path")
+	}
 	var err error
 	p.listener, err = net.Listen("unix", path)
 	if err != nil {

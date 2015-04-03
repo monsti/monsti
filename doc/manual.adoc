@@ -179,15 +179,6 @@ not sure if the field types are compatible. This will result in
 undefined behaviour. If you want to keep the id you could remove the
 old field data before adding the new field.
 
-
-=== Local fields
-
-Local fields are fields that are only configured for one node, not a
-whole node type. Local fields can be specified in the node's
-`node.json` file. Have a look at the `LocalFields` attribute and the
-example.
-
-
 == Translating Monsti
 
 Monsti uses https://www.gnu.org/software/gettext/[gettext] to
@@ -241,6 +232,25 @@ The master daemon's (`monsti-daemon`) configuration.
 include::../example/config/daemon.yaml[]
 ----
 
+== Caching
+
+Monsti uses a dependency based caching system. Any byte data can be
+cached, e.g. whole pages, page content, thumbnails, queries, and
+calculations. Each cached data may depend on other (possibly cached)
+data. For example, the cached output of a node request depends on the
+fields of the node, the navigation content, and settings like the site
+title. If one of these dependencies get changed (dirty), all caches
+that depend on these get recursively cleared.
+
+Caches are stored in the sites' data directories. To clear the cache,
+simply remove the cache directory. You may disable caching per site
+using the `core.CacheDisabled` setting (you'll also have to clear the
+cache directory to remove old cached data). Disable caching only for
+development purposes.
+
+Have a look at the `ToCache`, `FromCache`, and `MarkDep` service
+methods.
+
 == Templates
 
 Monsti uses Go's
@@ -258,10 +268,3 @@ for an individual template named `foo.html` in a file named
 `foo.include` in the same directory. To include callable templates for
 all templates of a directory tree, add the names of the templates to a
 file named `include` at the root of the tree.
-
-=== Template Overwrites
-
-You can overwrite templates for individual nodes by setting the
-corresponding option in the node's `node.json` file. Have a look at
-the `service.Node` API documentation or the examples for more
-information.

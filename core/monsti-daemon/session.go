@@ -27,14 +27,14 @@ import (
 	"strings"
 	"time"
 
-	"crypto/sha256"
 	"code.google.com/p/go.crypto/bcrypt"
+	"crypto/sha256"
 	"github.com/chrneumann/htmlwidgets"
 	"github.com/gorilla/sessions"
 	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -281,7 +281,7 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 }
 
 // getSession returns a currently active or new session.
-func getSession(r *http.Request, site util.SiteSettings) (
+func getSession(r *http.Request, site msettings.Site) (
 	*sessions.Session, error) {
 	if len(site.SessionAuthKey) == 0 {
 		return nil, fmt.Errorf(`Missing "SessionAuthKey" setting.`)
@@ -381,7 +381,8 @@ func checkPermission(action service.Action, session *service.UserSession) bool {
 	auth := session.User != nil
 	switch action {
 	case service.RemoveAction, service.EditAction, service.AddAction,
-		service.LogoutAction, service.ListAction, service.ChooserAction:
+		service.LogoutAction, service.ListAction, service.ChooserAction,
+		service.SettingsAction:
 		if auth {
 			return true
 		}

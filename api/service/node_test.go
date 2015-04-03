@@ -1,4 +1,4 @@
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Affero General Public License as published by the Free
@@ -105,5 +105,14 @@ func TestGetPathPrefix(t *testing.T) {
 			t.Errorf("GetPathPrefix for node %v should be %v, got %v",
 				test.Node, test.Ret, ret)
 		}
+	}
+}
+
+func TestNestedMap(t *testing.T) {
+	theMap := NestedMap{}
+	theMap.Set("foo.bar", "hey")
+	ret := theMap.Get("foo.bar")
+	if ret.(string) != "hey" {
+		t.Errorf("Value is %q, should be 'hey'", ret)
 	}
 }

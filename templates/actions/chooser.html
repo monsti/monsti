@@ -34,7 +34,7 @@
         <a href="{{pathJoin .Path $action}}">{{.Name}}</a>
       </td>
       <td class="chooser-table-title">
-        {{with .GetField "core.Title"}}{{.RenderHTML}}{{end}}
+        {{with index .Fields "core.Title"}}{{.RenderHTML}}{{end}}
       </td>
       {{if ne $Type "image"}}
       <td class="chooser-table-action">

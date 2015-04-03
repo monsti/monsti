@@ -1,5 +1,5 @@
 {{if .Session.User}}
-<div id="admin-bar" class="admin-bar">
+<div id="monsti--admin-bar" class="monsti--admin-bar">
   <div>
     <p class="brand">
       <img src="/static/img/logo_small.png" alt="Monsti CMS"/>
@@ -32,6 +32,9 @@
           {{G "Remove"}}{{if not $inactive}}</a>{{end}}</li>
     </ul>
     <ul class="nav pull-right">
+      <li><a href="{{pathJoin $path "@@settings"}}"
+        ><img src="/static/img/icons/silk/wrench.png"/>
+        {{G "Settings"}}</a></li>
       <li><a href="{{pathJoin $path "@@change-password"}}"
         ><img src="/static/img/icons/silk/key.png"/>
         {{G "Change password"}}</a></li>

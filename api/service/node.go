@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -17,207 +17,18 @@
 package service
 
 import (
-	"fmt"
-	"html/template"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/chrneumann/htmlwidgets"
-	"pkg.monsti.org/gettext"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/i18n"
 )
 
-type Field interface {
-	// Init initializes the field.
-	Init(*MonstiClient, string) error
-	// RenderHTML returns a string or template.HTML to be used in a html
-	// template.
-	RenderHTML() interface{}
-	// String returns a raw string representation of the field.
-	String() string
-	// Load loads the field data (also see Dump).
-	Load(func(interface{}) error) error
-	// Dump dumps the field data.
-	//
-	// The dumped value must be something that can be marshalled into
-	// JSON by encoding/json.
-	Dump() interface{}
-	// Adds a form field to the node edit form.
-	ToFormField(*htmlwidgets.Form, util.NestedMap, *NodeField, string)
-	// Load values from the form submission
-	FromFormField(util.NestedMap, *NodeField)
-}
-
-// TextField is a basic unicode text field
-type TextField string
-
-func (t TextField) Init(*MonstiClient, string) error {
-	return nil
-}
-
-func (t TextField) String() string {
-	return string(t)
-}
-
-func (t TextField) RenderHTML() interface{} {
-	return t
-}
-
-func (t *TextField) Load(f func(interface{}) error) error {
-	return f(t)
-}
-
-func (t TextField) Dump() interface{} {
-	return string(t)
-}
-
-func (t TextField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
-	field *NodeField, locale string) {
-	data.Set(field.Id, string(t))
-	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	widget := new(htmlwidgets.TextWidget)
-	if field.Required {
-		widget.MinLength = 1
-		widget.ValidationError = G("Required.")
-	}
-	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *TextField) FromFormField(data util.NestedMap, field *NodeField) {
-	*t = TextField(data.Get(field.Id).(string))
-}
-
-// HTMLField is a text area containing HTML code
-type HTMLField string
-
-func (t HTMLField) Init(*MonstiClient, string) error {
-	return nil
-}
-
-func (t HTMLField) String() string {
-	return string(t)
-}
-
-func (t HTMLField) RenderHTML() interface{} {
-	return template.HTML(t)
-}
-
-func (t *HTMLField) Load(f func(interface{}) error) error {
-	return f(t)
-}
-
-func (t HTMLField) Dump() interface{} {
-	return string(t)
-}
-
-func (t HTMLField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
-	field *NodeField, locale string) {
-	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	data.Set(field.Id, string(t))
-	widget := form.AddWidget(new(htmlwidgets.TextAreaWidget), "Fields."+field.Id,
-		field.Name.Get(locale), "")
-	widget.Base().Classes = []string{"html-field"}
-}
-
-func (t *HTMLField) FromFormField(data util.NestedMap, field *NodeField) {
-	*t = HTMLField(data.Get(field.Id).(string))
-}
-
-type FileField string
-
-func (t FileField) Init(*MonstiClient, string) error {
-	return nil
-}
-
-func (t FileField) String() string {
-	return string(t)
-}
-
-func (t FileField) RenderHTML() interface{} {
-	return template.HTML(t)
-}
-
-func (t *FileField) Load(f func(interface{}) error) error {
-	return f(t)
-}
-
-func (t FileField) Dump() interface{} {
-	return ""
-}
-
-func (t FileField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
-	field *NodeField, locale string) {
-	data.Set(field.Id, "")
-	form.AddWidget(new(htmlwidgets.FileWidget), "Fields."+field.Id,
-		field.Name.Get(locale), "")
-}
-
-func (t *FileField) FromFormField(data util.NestedMap, field *NodeField) {
-	*t = FileField(data.Get(field.Id).(string))
-}
-
-type DateTimeField struct {
-	Time     time.Time
-	Location *time.Location
-}
-
-func (t *DateTimeField) Init(m *MonstiClient, site string) error {
-	var timezone string
-	err := m.GetSiteConfig(site, "core.timezone", &timezone)
-	if err != nil {
-		return fmt.Errorf("Could not get timezone: %v", err)
-	}
-	t.Location, err = time.LoadLocation(timezone)
-	if err != nil {
-		t.Location = time.UTC
-	}
-	return nil
-}
-
-func (t DateTimeField) RenderHTML() interface{} {
-	return t.Time.String()
-}
-
-func (t DateTimeField) String() string {
-	return t.Time.String()
-}
-
-func (t *DateTimeField) Load(f func(interface{}) error) error {
-	var date string
-	if err := f(&date); err != nil {
-		return err
-	}
-	val, err := time.Parse(time.RFC3339, date)
-	if err != nil {
-		return fmt.Errorf("Could not parse the date value: %v", err)
-	}
-	t.Time = val.In(t.Location)
-	return nil
-}
-
-func (t DateTimeField) Dump() interface{} {
-	return t.Time.UTC().Format(time.RFC3339)
-}
-
-func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data util.NestedMap,
-	field *NodeField, locale string) {
-	data.Set(field.Id, t.Time)
-	form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
-		"Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *DateTimeField) FromFormField(data util.NestedMap, field *NodeField) {
-	time := data.Get(field.Id).(time.Time)
-	*t = DateTimeField{Time: time}
-}
-
-// TemplateOverwrite specifies a template that should be used instead
-// of another.
-type TemplateOverwrite struct {
-	// The template to be used instead.
-	Template string
-}
+// CoreFields contains the configurations for the fields that should be used
+// by most node types.
+var CoreFields = []*FieldConfig{
+	{Id: "core.Title"}, {Id: "core.Description"}, {Id: "core.Thumbnail"},
+	{Id: "core.Body"}}
 
 type Node struct {
 	Path string `json:",omitempty"`
@@ -225,11 +36,9 @@ type Node struct {
 	Type  *NodeType `json:"-"`
 	Order int
 	// Don't show the node in navigations if Hide is true.
-	Hide               bool
-	Fields             map[string]Field `json:"-"`
-	TemplateOverwrites map[string]TemplateOverwrite
-	Embed              []EmbedNode
-	LocalFields        []*NodeField
+	Hide   bool
+	Fields map[string]Field `json:"-"`
+	Embed  []EmbedNode
 	// Public controls wether the node or its content may be viewed by
 	// unauthenticated users.
 	Public bool
@@ -243,36 +52,7 @@ type Node struct {
 
 func (n *Node) InitFields(m *MonstiClient, site string) error {
 	n.Fields = make(map[string]Field)
-	nodeFields := append(n.Type.Fields, n.LocalFields...)
-	for _, field := range nodeFields {
-		var val Field
-		switch field.Type {
-		case "DateTime":
-			val = new(DateTimeField)
-		case "File":
-			val = new(FileField)
-		case "Text":
-			val = new(TextField)
-		case "HTMLArea":
-			val = new(HTMLField)
-		default:
-			return fmt.Errorf("Unknown field type %q for node %q", field.Type, n.Path)
-		}
-		err := val.Init(m, site)
-		if err != nil {
-			return fmt.Errorf("Could not init field %q: %v", field.Id, err)
-		}
-		n.Fields[field.Id] = val
-	}
-	return nil
-}
-
-func (n Node) GetField(id string) Field {
-	return n.Fields[id]
-}
-
-func (n Node) GetValue(id string) interface{} {
-	return n.Fields[id]
+	return initFields(n.Fields, n.Type.Fields, m, site)
 }
 
 // PathToID returns an ID for the given node based on it's path.
@@ -331,16 +111,6 @@ func (n Node) GetParentPath() string {
 	return path.Dir(nodePath)
 }
 
-type NodeField struct {
-	// The Id of the field including a namespace,
-	// e.g. "namespace.somefieldype".
-	Id string
-	// The name of the field as shown in the web interface.
-	Name     util.LanguageMap
-	Required bool
-	Type     string
-}
-
 type EmbedNode struct {
 	Id  string
 	URI string
@@ -367,8 +137,8 @@ type NodeType struct {
 	AddableTo []string
 	// The name of the node type as shown in the web interface,
 	// specified as a translation map (language -> msg).
-	Name   util.LanguageMap
-	Fields []*NodeField
+	Name   i18n.LanguageMap
+	Fields []*FieldConfig
 	Embed  []EmbedNode
 	// If true, never show nodes of this type in the navigation.
 	Hide bool

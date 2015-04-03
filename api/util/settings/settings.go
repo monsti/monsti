@@ -1,4 +1,22 @@
-package util
+// This file is part of Monsti.
+// Copyright 2012-2015 Christian Neumann
+
+// Monsti is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+
+// Monsti is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with Monsti. If not, see <http://www.gnu.org/licenses/>.
+
+/* Package settings implements configuration types and functions for
+   Monsti and its sites.  */
+package settings
 
 import (
 	"fmt"
@@ -8,10 +26,34 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"pkg.monsti.org/monsti/api/util/yaml"
 )
 
+// MakeAbsolute converts a possibly relative path to an absolute one using the
+// given root.
+func MakeAbsolute(path *string, root string) {
+	if !filepath.IsAbs(*path) {
+		*path = filepath.Join(root, *path)
+	}
+}
+
+// Get the absolute config directory path using given command line path
+// argument.
+func GetConfigPath(arg string) (cfgPath string) {
+	cfgPath = arg
+	if !filepath.IsAbs(cfgPath) {
+		wd, err := os.Getwd()
+		if err != nil {
+			panic("Could not get working directory: " + err.Error())
+		}
+		cfgPath = filepath.Join(wd, cfgPath)
+	}
+	return
+}
+
 // Site configuration.
-type SiteSettings struct {
+type Site struct {
 	// Name of the site for internal use.
 	Name string
 	// Title as used in HTML head.
@@ -39,8 +81,8 @@ type SiteSettings struct {
 	Locale string
 }
 
-// MonstiSettings holds common Monsti settings.
-type MonstiSettings struct {
+// Monsti holds common Monsti settings.
+type Monsti struct {
 	// Absolute paths to used directories.
 	Directories struct {
 		// Configuration directory
@@ -56,67 +98,67 @@ type MonstiSettings struct {
 	}
 	// Sites hosted by this monsti instance.
 	//
-	// Load settings with *MonstiSettings.LoadSiteSettings()
-	Sites map[string]SiteSettings
+	// Load settings with *Monsti.LoadSiteSettings()
+	Sites map[string]Site
 }
 
 // GetServicePath returns the path to the given service's socket.
-func (s MonstiSettings) GetServicePath(service string) string {
+func (s Monsti) GetServicePath(service string) string {
 	return filepath.Join(s.Directories.Run, strings.ToLower(service)+".socket")
 }
 
 // GetSiteConfigPath returns the path to the given site's configuration
 // directory.
-func (s MonstiSettings) GetSiteConfigPath(site string) string {
+func (s Monsti) GetSiteConfigPath(site string) string {
 	return filepath.Join(s.Directories.Config, "sites", site)
 }
 
 // GetSiteCachePath returns the path to the given site's cache directory.
-func (s MonstiSettings) GetSiteCachePath(site string) string {
+func (s Monsti) GetSiteCachePath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "cache")
 }
 
 // GetSiteNodesPath returns the path to the given site's node directory.
-func (s MonstiSettings) GetSiteNodesPath(site string) string {
+func (s Monsti) GetSiteNodesPath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "nodes")
 }
 
 // GetSiteStaticsPath returns the path to the given site's site-static
 // directory.
-func (s MonstiSettings) GetSiteStaticsPath(site string) string {
+func (s Monsti) GetSiteStaticsPath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "site-static")
 }
 
 // GetSiteDataPath returns the path to the given site's data
 // directory.
-func (s MonstiSettings) GetSiteDataPath(site string) string {
+func (s Monsti) GetSiteDataPath(site string) string {
 	return filepath.Join(s.Directories.Data, site)
 }
 
 // GetSiteTemplatesPath returns the path to the given site's templates
 // directory.
-func (s MonstiSettings) GetSiteTemplatesPath(site string) string {
+func (s Monsti) GetSiteTemplatesPath(site string) string {
 	return filepath.Join(s.Directories.Data, site, "templates")
 }
 
 // GetStaticsPath returns the path to the global site-static directory.
-func (s MonstiSettings) GetStaticsPath() string {
+func (s Monsti) GetStaticsPath() string {
 	return filepath.Join(s.Directories.Share, "static")
 }
 
 // GetTemplatesPath returns the path to the global templates directory.
-func (s MonstiSettings) GetTemplatesPath() string {
+func (s Monsti) GetTemplatesPath() string {
 	return filepath.Join(s.Directories.Share, "templates")
 }
 
 // loadSiteSettings returns the site settings in the given directory.
-func loadSiteSettings(sitesDir string) (map[string]SiteSettings, error) {
+func loadSiteSettings(sitesDir string) (map[string]Site, error) {
 	sitesPath := filepath.Join(sitesDir)
 	siteDirs, err := ioutil.ReadDir(sitesPath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not read sites directory: %v", err)
 	}
-	sites := make(map[string]SiteSettings)
+	sites := make(map[string]Site)
 	for _, siteDir := range siteDirs {
 		siteName := siteDir.Name()
 		sitePath := filepath.Join(sitesPath, siteName)
@@ -125,8 +167,8 @@ func loadSiteSettings(sitesDir string) (map[string]SiteSettings, error) {
 			log.Println(err)
 			continue
 		}
-		var siteSettings SiteSettings
-		err = ParseYAML(filepath.Join(sitePath, "site.yaml"),
+		var siteSettings Site
+		err = yaml.Parse(filepath.Join(sitePath, "site.yaml"),
 			&siteSettings)
 		if err != nil {
 			return nil, fmt.Errorf("Could not load settings for site %q: %v",
@@ -141,7 +183,7 @@ func loadSiteSettings(sitesDir string) (map[string]SiteSettings, error) {
 }
 
 // LoadSiteSettings loads the configurated sites' settings.
-func (s *MonstiSettings) LoadSiteSettings() error {
+func (s *Monsti) LoadSiteSettings() error {
 	sites, err := loadSiteSettings(filepath.Join(s.Directories.Config, "sites"))
 	if err != nil {
 		return err
@@ -155,7 +197,7 @@ func (s *MonstiSettings) LoadSiteSettings() error {
 // module is the name of the module, e.g. "data"
 // cfgPath is the path to the configuration directory
 // settings is a pointer to a struct to be filled with the module settings. It
-// must contain a field named "Monsti" of type util.MonstiSettings to be filled
+// must contain a field named "Monsti" of type settings.Monsti to be filled
 // with Monsti's common settings.
 func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 	// Value checking
@@ -169,12 +211,12 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 	if reflect.ValueOf(monstiSettings).Kind() != reflect.Struct {
 		return fmt.Errorf("util: LoadModuleSettings expects its third " +
 			`argument to contain a field named "Monsti" of type ` +
-			`util.MonstiSettings`)
+			`settings.Monsti`)
 	}
 
 	// Load module settings
 	path := filepath.Join(cfgPath, module+".yaml")
-	if err := ParseYAML(path, settings); err != nil {
+	if err := yaml.Parse(path, settings); err != nil {
 		return fmt.Errorf("util: Could not parse module settings: %v", err)
 	}
 
@@ -187,10 +229,10 @@ func LoadModuleSettings(module, cfgPath string, settings interface{}) error {
 	return nil
 }
 
-func LoadMonstiSettings(cfgPath string) (*MonstiSettings, error) {
+func LoadMonstiSettings(cfgPath string) (*Monsti, error) {
 	path := filepath.Join(cfgPath, "monsti.yaml")
-	var settings MonstiSettings
-	if err := ParseYAML(path, &settings); err != nil {
+	var settings Monsti
+	if err := yaml.Parse(path, &settings); err != nil {
 		return nil, fmt.Errorf("util: Could not parse Monsti settings: %v", err)
 	}
 	settings.Directories.Config = cfgPath

@@ -27,14 +27,14 @@ import (
 
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	"pkg.monsti.org/monsti/api/util/settings"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
 // ModuleContext is used as argument for the StartModule setup
 // function.
 type ModuleContext struct {
-	Settings *util.MonstiSettings
+	Settings *settings.Monsti
 	Sessions *service.SessionPool
 	// Session is one allocated session of the pool that must not be
 	// freed.
@@ -51,8 +51,8 @@ func StartModule(name string, setup func(context *ModuleContext) error) {
 	if flag.NArg() != 1 {
 		logger.Fatal("Expecting configuration path.")
 	}
-	cfgPath := util.GetConfigPath(flag.Arg(0))
-	settings, err := util.LoadMonstiSettings(cfgPath)
+	cfgPath := settings.GetConfigPath(flag.Arg(0))
+	settings, err := settings.LoadMonstiSettings(cfgPath)
 	if err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}

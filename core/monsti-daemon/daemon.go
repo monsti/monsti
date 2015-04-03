@@ -1,5 +1,5 @@
 // This file is part of Monsti, a web content management system.
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // Monsti is free software: you can redistribute it and/or modify it under the
 // terms of the GNU Affero General Public License as published by the Free
@@ -34,7 +34,7 @@ import (
 	"sync"
 
 	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util"
+	msettings "pkg.monsti.org/monsti/api/util/settings"
 
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/template"
@@ -42,14 +42,14 @@ import (
 
 // Settings for the application and the sites.
 type settings struct {
-	Monsti util.MonstiSettings
+	Monsti msettings.Monsti
 	// Listen is the host and port to listen for incoming HTTP connections.
 	Listen string
 	// List of modules to be activated.
 	Modules []string
 	Config  struct {
 		NodeTypes  map[string]*service.NodeType
-		NodeFields map[string]*service.NodeField
+		NodeFields map[string]*service.FieldConfig
 	}
 	Mail struct {
 		Host     string
@@ -97,9 +97,9 @@ func main() {
 		logger.Fatalf("Usage: %v <config_directory>\n",
 			filepath.Base(os.Args[0]))
 	}
-	cfgPath := util.GetConfigPath(flag.Arg(0))
+	cfgPath := msettings.GetConfigPath(flag.Arg(0))
 	var settings settings
-	if err := util.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
+	if err := msettings.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
@@ -141,7 +141,8 @@ func main() {
 	if err := initNodeTypes(&settings, session, logger); err != nil {
 		logger.Fatalf("Could not init node types: %v", err)
 	}
-	if err := initBlog(&settings, session, logger, &renderer); err != nil {
+	if err := initBlog(&settings, session, sessions, logger,
+		&renderer); err != nil {
 		logger.Fatalf("Could not init blog: %v", err)
 	}
 
@@ -157,17 +158,17 @@ func main() {
 	// Start modules
 	monsti.moduleInit = make(map[string]chan bool)
 	for _, module := range settings.Modules {
-		monsti.moduleInit[module] = make(chan bool)
+		monsti.moduleInit[module] = make(chan bool, 1)
 	}
 	for _, module := range settings.Modules {
 		executable := "monsti-" + module
 		cmd := exec.Command(executable, cfgPath)
 		cmd.Stderr = moduleLog{module, logger}
-		go func() {
+		go func(module string) {
 			if err := cmd.Run(); err != nil {
 				logger.Fatalf("Module %q failed: %v", module, err)
 			}
-		}()
+		}(module)
 	}
 	logger.Println("Waiting for modules to finish initialization...")
 	for _, module := range settings.Modules {

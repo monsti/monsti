@@ -1,4 +1,4 @@
-// Copyright 2012-2013 Christian Neumann
+// Copyright 2012-2015 Christian Neumann
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU Affero General Public License as published by the Free
@@ -47,39 +47,28 @@ func TestDataToNode(t *testing.T) {
 	nodeType := NodeType{
 		Id:   "foo.Bar",
 		Name: map[string]string{"en": "A Bar"},
-		Fields: []*NodeField{
-			{"foo.FooField", map[string]string{"en": "A FooField"}, false, "Text"},
-		},
+		Fields: []*FieldConfig{{
+			Id:   "foo.FooField",
+			Name: map[string]string{"en": "A FooField"},
+			Type: new(TextFieldType),
+		}},
 		Embed: nil}
 	data := []byte(`
 { "Type": "foo.Bar",
   "Fields": {
     "foo": {
-      "FooField": "Foo Value",
-      "BarField": "Bar Value"
+      "FooField": "Foo Value"
     }
-  },
-  "LocalFields": [
-		{
-			"Id": "foo.BarField",
-			"Name": null,
-			"Required": false,
-			"Type": "Text"
-		}
-	]
+  }
 }`)
 	getNodeType := func(id string) (*NodeType, error) { return &nodeType, nil }
 	node, err := dataToNode(data, getNodeType, nil, "")
 	if err != nil {
 		t.Fatalf("dataToNode returns error: %v", err)
 	}
-	ret := node.GetField("foo.FooField").String()
+	ret := node.Fields["foo.FooField"].Value().(string)
 	if ret != "Foo Value" {
-		t.Errorf(`node.GetField(foo.FooField) = %q, should be "Foo Value"`, ret)
-	}
-	ret = node.GetField("foo.BarField").String()
-	if ret != "Bar Value" {
-		t.Errorf(`node.GetField(foo.BarField) = %q, should be "Bar Value"`, ret)
+		t.Errorf(`Field foo.FooField = %q, should be "Foo Value"`, ret)
 	}
 }
 
@@ -88,13 +77,10 @@ func TestNodeToData(t *testing.T) {
 		Path: "/foo",
 		Type: &NodeType{
 			Id: "foo.Bar",
-			Fields: []*NodeField{
-				{"foo.FooField", nil, false, "Text"},
-			},
-			Embed: nil,
-		},
-		LocalFields: []*NodeField{
-			{"foo.BarField", nil, false, "Text"},
+			Fields: []*FieldConfig{{
+				Id:   "foo.FooField",
+				Type: new(TextFieldType),
+			}},
 		},
 	}
 	node.InitFields(nil, "")
@@ -107,28 +93,16 @@ func TestNodeToData(t *testing.T) {
 		*(in.(*TextField)) = "BarValue"
 		return nil
 	}
-	node.Fields["foo.BarField"].Load(f)
-
 	expected := `{
 		  "Order": 0,
 		  "Hide": false,
-		  "TemplateOverwrites": null,
 		  "Embed": null,
-		  "LocalFields": [
-				{
-					"Id": "foo.BarField",
-					"Name": null,
-					"Required": false,
-					"Type": "Text"
-				}
-			],
 		  "Public": false,
 		  "PublishTime": "0001-01-01T00:00:00Z",
       "Changed":"0001-01-01T00:00:00Z",
 		  "Type": "foo.Bar",
 		  "Fields": {
 		    "foo": {
-		      "BarField": "BarValue",
 		      "FooField": "FooValue"
 		    }
 		  }

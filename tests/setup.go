@@ -65,10 +65,10 @@ func (b *Browser) Quit() {
 func (b *Browser) FillById(id, content string) error {
 	elem, err := b.wd.FindElement(selenium.ById, id)
 	if err != nil {
-		return fmt.Errorf("browser: Could not find element to fill: %v")
+		return fmt.Errorf("browser: Could not find element to fill: %v", id)
 	}
 	if err := elem.Clear(); err != nil {
-		return fmt.Errorf("browser: Could not clear element to fill: %v")
+		return fmt.Errorf("browser: Could not clear element to fill: %v", id)
 	}
 	if err := elem.SendKeys(content); err != nil {
 		return fmt.Errorf("browser: Could not fill element: %v", err)
