@@ -400,23 +400,6 @@ func (s *MonstiClient) GetSiteConfig(site, name string, out interface{}) error {
 	return getConfig(reply, out)
 }
 
-/*
-
-// GetConfig puts the named global configuration into the variable out.
-func (s *MonstiClient) GetConfig(name string, out interface{}) error {
-	if s.Error != nil {
-		return s.Error
-	}
-	var reply []byte
-	err := s.RPCClient.Call("Monsti.GetConfig", name, &reply)
-	if err != nil {
-		return fmt.Errorf("service: GetConfig error: %v", err)
-	}
-	return getConfig(reply, out)
-}
-
-*/
-
 // RegisterNodeType registers a new node type.
 //
 // Known field types will be reused. Just specify the id. All other //
