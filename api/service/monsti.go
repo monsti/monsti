@@ -387,6 +387,8 @@ func getConfig(reply []byte, out interface{}) error {
 
 // GetSiteConfig puts the named site local configuration into the
 // variable out.
+//
+// Deprecated: Use site settings instead (e.g. LoadSiteSettings).
 func (s *MonstiClient) GetSiteConfig(site, name string, out interface{}) error {
 	if s.Error != nil {
 		return s.Error
