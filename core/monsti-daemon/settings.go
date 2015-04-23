@@ -35,7 +35,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	m := c.Serv.Monsti()
 
-	settings, err := m.LoadSiteSettings(c.Site.Name)
+	settings, err := m.LoadSiteSettings(c.Site)
 	if err != nil {
 		return fmt.Errorf("Could not load site settings: %v", err)
 	}
@@ -62,7 +62,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 					settings.Fields[field.Id].FromFormField(formData.Fields, field)
 				}
 			}
-			if err := m.WriteSiteSettings(c.Site.Name, settings); err != nil {
+			if err := m.WriteSiteSettings(c.Site, settings); err != nil {
 				return fmt.Errorf("Could not update settings: %v", err)
 			}
 			/*
@@ -83,7 +83,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 		mtemplate.Context{
 			"Form":  form.RenderData(),
 			"Saved": c.Req.FormValue("saved"),
-		}, c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		}, c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 
 	if err != nil {
 		return fmt.Errorf("Could not render settings template: %v", err)
@@ -92,7 +92,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	content, _ := renderInMaster(h.Renderer, []byte(rendered),
 		masterTmplEnv{Node: c.Node, Session: c.UserSession,
 			Title: G("Settings"), Flags: EDIT_VIEW},
-		h.Settings, *c.Site, c.UserSession.Locale, c.Serv)
+		h.Settings, c.Site, c.UserSession.Locale, c.Serv)
 
 	c.Res.Write(content)
 	return nil

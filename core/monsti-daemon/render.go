@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	"pkg.monsti.org/monsti/api/service"
-	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -53,7 +52,7 @@ func splitFirstDir(path string) string {
 
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
-	settings *settings, site msettings.Site, locale string,
+	settings *settings, site, locale string,
 	s *service.Session) ([]byte, *service.CacheMods) {
 	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: "/", Descend: -1}}}
 	if env.Flags&EDIT_VIEW != 0 {
@@ -67,7 +66,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 				"Content":  htmlT.HTML(content),
 			},
 			"Session": env.Session}, locale,
-			settings.Monsti.GetSiteTemplatesPath(site.Name))
+			settings.Monsti.GetSiteTemplatesPath(site))
 		if err != nil {
 			panic("Can't render: " + err.Error())
 		}
@@ -75,11 +74,11 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	}
 	firstDir := splitFirstDir(env.Node.Path)
 	getNodeFn := func(path string) (*service.Node, error) {
-		node, err := s.Monsti().GetNode(site.Name, path)
+		node, err := s.Monsti().GetNode(site, path)
 		return node, err
 	}
 	getChildrenFn := func(path string) ([]*service.Node, error) {
-		return s.Monsti().GetChildren(site.Name, path)
+		return s.Monsti().GetChildren(site, path)
 	}
 	prinav, err := getNav("/", path.Join("/", firstDir), env.Session.User == nil,
 		getNodeFn, getChildrenFn)
@@ -109,7 +108,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Content":          htmlT.HTML(content),
 			"ShowSecondaryNav": len(secnav) > 0},
 		"Session": env.Session}, locale,
-		settings.Monsti.GetSiteTemplatesPath(site.Name))
+		settings.Monsti.GetSiteTemplatesPath(site))
 	if err != nil {
 		panic("Can't render: " + err.Error())
 	}

@@ -79,9 +79,15 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 	G := func(in string) string { return in }
 	types := []*FieldConfig{
 		{
-			Id:       "core.SiteTitle",
+			Id:       "core.Title",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Title"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.BaseURL",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Base URL"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{
@@ -103,15 +109,15 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Type:     new(TextFieldType),
 		},
 		{
-			Id:       "core.SiteOwnerName",
+			Id:       "core.OwnerName",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site owner name"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Owner name"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{
-			Id:       "core.SiteOwnerEmail",
+			Id:       "core.OwnerEmail",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site owner email address"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Owner email address"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{

@@ -30,21 +30,21 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
 	"pkg.monsti.org/monsti/api/service"
-	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
 // Context holds information about a request
 type reqContext struct {
-	Id          uint
-	Res         http.ResponseWriter
-	Req         *http.Request
-	Node        *service.Node
-	Action      service.Action
-	Session     *sessions.Session
-	UserSession *service.UserSession
-	Site        *msettings.Site
-	Serv        *service.Session
+	Id           uint
+	Res          http.ResponseWriter
+	Req          *http.Request
+	Node         *service.Node
+	Action       service.Action
+	Session      *sessions.Session
+	UserSession  *service.UserSession
+	Site         string
+	SiteSettings *service.Settings
+	Serv         *service.Session
 }
 
 // nodeHandler is a net/http handler to process incoming HTTP requests.
@@ -73,7 +73,7 @@ func (n *nodeHandler) GetRequest(id uint) *service.Request {
 	return &service.Request{
 		Id:       id,
 		NodePath: req.Node.Path,
-		Site:     req.Site.Name,
+		Site:     req.Site,
 		Query:    req.Req.URL.Query(),
 		// TODO add method
 		Session:  req.UserSession,
@@ -160,26 +160,27 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"request-password-token": service.RequestPasswordTokenAction,
 		"change-password":        service.ChangePasswordAction,
 	}[action]
-	site_name, ok := h.Hosts[c.Req.Host]
-	if !ok {
+	var ok bool
+	if c.Site, ok = h.Hosts[c.Req.Host]; !ok {
 		serveError("No site found for host %v", c.Req.Host)
 	}
-	site := h.Settings.Monsti.Sites[site_name]
-	c.Site = &site
-	c.Site.Name = site_name
-	c.Session, err = getSession(c.Req, *c.Site)
+	c.SiteSettings, err = c.Serv.Monsti().LoadSiteSettings(c.Site)
+	if err != nil {
+		serveError("Could not load site settings: %v", err)
+	}
+	c.Session, err = getSession(c.Req, c.SiteSettings.StringValue("core.SessionAuthKey"))
 	if err != nil {
 		serveError("Could not get session: %v", err)
 	}
 	defer context.Clear(c.Req)
 	c.UserSession, err = getClientSession(c.Session,
-		h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteDataPath(c.Site))
 	if err != nil {
 		serveError("Could not get client session: %v", err)
 	}
-	c.UserSession.Locale = c.Site.Locale
+	c.UserSession.Locale = c.SiteSettings.Fields["core.Locale"].Value().(string)
 
-	h.Log.Printf("(%v) %v %v", c.Site.Name, c.Req.Method, c.Req.URL.Path)
+	h.Log.Printf("(%v) %v %v", c.Site, c.Req.Method, c.Req.URL.Path)
 
 	if err := c.Req.ParseForm(); err != nil {
 		serveError("Could not parse form: %v", err)
@@ -189,7 +190,7 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.UserSession.User == nil && c.Action == service.ViewAction &&
 		nodePath[len(nodePath)-1] == '/' &&
 		len(c.Req.Form) == 0 {
-		content, _, err := c.Serv.Monsti().FromCache(c.Site.Name, nodePath,
+		content, _, err := c.Serv.Monsti().FromCache(c.Site, nodePath,
 			"core.page.full")
 		if err == nil && content != nil {
 			c.Res.Write(content)
@@ -197,15 +198,15 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Node, err = c.Serv.Monsti().GetNode(c.Site.Name, nodePath)
+	c.Node, err = c.Serv.Monsti().GetNode(c.Site, nodePath)
 	if err != nil {
 		serveError("Error getting node %v of site %v: %v",
-			nodePath, c.Site.Name, err)
+			nodePath, c.Site, err)
 	}
 	if c.Node == nil ||
 		(c.Action == service.ViewAction && c.UserSession.User == nil &&
 			(c.Node.Public == false || c.Node.PublishTime.After(time.Now()))) {
-		h.Log.Printf("Node not found: %v @ %v", nodePath, c.Site.Name)
+		h.Log.Printf("Node not found: %v @ %v", nodePath, c.Site)
 		c.Node = &service.Node{Path: nodePath}
 		http.Error(c.Res, "Document not found", http.StatusNotFound)
 		return

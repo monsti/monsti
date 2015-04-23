@@ -103,10 +103,6 @@ func main() {
 		logger.Fatal("Could not load settings: ", err)
 	}
 
-	if err := (&settings).Monsti.LoadSiteSettings(); err != nil {
-		logger.Fatal("Could not load site settings: ", err)
-	}
-
 	gettext.DefaultLocales.Domain = "monsti-daemon"
 	gettext.DefaultLocales.LocaleDir = settings.Monsti.Directories.Locale
 
@@ -188,13 +184,15 @@ func main() {
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
 	handler.Hosts = make(map[string]string)
-	for site_title, site := range settings.Monsti.Sites {
-		for _, host := range site.Hosts {
-			handler.Hosts[host] = site_title
-			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
-				filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
+	/*
+		for site_title, site := range settings.Monsti.Sites {
+			for _, host := range site.Hosts {
+				handler.Hosts[host] = site_title
+				http.Handle(host+"/site-static/", http.FileServer(http.Dir(
+					filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
+			}
 		}
-	}
+	*/
 	http.Handle("/", &handler)
 	waitGroup.Add(1)
 	go func() {

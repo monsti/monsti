@@ -127,7 +127,9 @@ type contactFormData struct {
 
 func renderContactForm(c *reqContext, context template.Context,
 	formValues url.Values, h *nodeHandler) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("", c.Site.Locale)
+	G, _, _, _ := gettext.DefaultLocales.Use("",
+		c.SiteSettings.Fields["core.Locale"].Value().(string))
+	m := c.Serv.Monsti()
 	data := contactFormData{}
 	form := htmlwidgets.NewForm(&data)
 	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
@@ -147,18 +149,22 @@ func renderContactForm(c *reqContext, context template.Context,
 	case "POST":
 		if form.Fill(formValues) {
 			mail := gomail.NewMessage()
-			site := h.Settings.Monsti.Sites[c.Site.Name]
-			mail.SetAddressHeader("From", site.EmailAddress, site.EmailName)
-			mail.SetAddressHeader("To", site.Owner.Email, site.Owner.Name)
+			mail.SetAddressHeader("From",
+				c.SiteSettings.StringValue("core.EmailAddress"),
+				c.SiteSettings.StringValue("core.EmailName"))
+			mail.SetAddressHeader("To",
+				c.SiteSettings.StringValue("core.OwnerEmail"),
+				c.SiteSettings.StringValue("core.OwnerName"))
 			mail.SetAddressHeader("Reply-To", data.Email, data.Name)
 			mail.SetHeader("Subject", data.Subject)
 			body := fmt.Sprintf("%v\n%v\n\n%v",
-				fmt.Sprintf(G("Received from contact form at %v"), c.Site.Title),
+				fmt.Sprintf(G("Received from contact form at %v"),
+					c.SiteSettings.StringValue("core.Title")),
 				fmt.Sprintf(G("Name: %v | Email: %v"), data.Name, data.Email),
 				data.Message)
 			mail.SetBody("text/plain", body)
 			mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
-				c.Serv.Monsti().SendMailFunc()))
+				m.SendMailFunc()))
 			err := mailer.Send(mail)
 			if err != nil {
 				return fmt.Errorf("Could not send mail: %v", err)

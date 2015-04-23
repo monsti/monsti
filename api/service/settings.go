@@ -27,6 +27,11 @@ type Settings struct {
 	Fields       map[string]Field `json:"-"`
 }
 
+// StringValue returns the value of the given string field.
+func (n *Settings) StringValue(field string) string {
+	return n.Fields[field].Value().(string)
+}
+
 func (n *Settings) InitFields(m *MonstiClient, site string) error {
 	n.Fields = make(map[string]Field)
 	return initFields(n.Fields, n.FieldConfigs, m, site)
