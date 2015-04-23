@@ -1,4 +1,6 @@
 * 0.11.0 - unreleased
+ - New features:
+    + Added Integer field type.
  - Changes:
     + Replaced TinyMCE with CKEditor.
 

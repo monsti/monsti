@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"strconv"
 	"strings"
 	"time"
 
@@ -213,6 +214,64 @@ func (f *RefField) FromFormData(data interface{}) {
 }
 
 func (f RefField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
+type IntegerFieldType int
+
+func (_ IntegerFieldType) Field() Field {
+	return new(IntegerField)
+}
+
+// IntegerField is a basic integer field.
+type IntegerField int
+
+func (t IntegerField) Init(*MonstiClient, string, FieldType) error {
+	return nil
+}
+
+func (t IntegerField) Value() interface{} {
+	return int(t)
+}
+
+func (t IntegerField) RenderHTML() interface{} {
+	return strconv.Itoa(int(t))
+}
+
+func (t *IntegerField) Load(f func(interface{}) error) error {
+	return f(t)
+}
+
+func (t IntegerField) Dump() interface{} {
+	return int(t)
+}
+
+func (t IntegerField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+	data.Set(field.Id, int(t))
+	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
+	widget := new(htmlwidgets.TextWidget)
+	if field.Required {
+		widget.MinLength = 1
+		widget.ValidationError = G("Required.")
+	}
+	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
+}
+
+func (t *IntegerField) FromFormField(data NestedMap, field *FieldConfig) {
+	*t = IntegerField(data.Get(field.Id).(int))
+}
+
+func (f IntegerField) FormData() interface{} {
+	panic("Not implemented")
+}
+
+func (f *IntegerField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f IntegerField) FormWidget() htmlwidgets.Widget {
 	panic("Not implemented")
 	return nil
 }
