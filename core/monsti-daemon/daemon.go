@@ -40,6 +40,8 @@ import (
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
+const monstiVersion = "0.11.0"
+
 // Settings for the application and the sites.
 type settings struct {
 	Monsti msettings.Monsti
@@ -101,10 +103,6 @@ func main() {
 	var settings settings
 	if err := msettings.LoadModuleSettings("daemon", cfgPath, &settings); err != nil {
 		logger.Fatal("Could not load settings: ", err)
-	}
-
-	if err := (&settings).Monsti.LoadSiteSettings(); err != nil {
-		logger.Fatal("Could not load site settings: ", err)
 	}
 
 	gettext.DefaultLocales.Domain = "monsti-daemon"
@@ -184,17 +182,11 @@ func main() {
 		Sessions: sessions,
 	}
 	monsti.Handler = &handler
+	monsti.siteMutexes = make(map[string]*sync.RWMutex)
 
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
-	handler.Hosts = make(map[string]string)
-	for site_title, site := range settings.Monsti.Sites {
-		for _, host := range site.Hosts {
-			handler.Hosts[host] = site_title
-			http.Handle(host+"/site-static/", http.FileServer(http.Dir(
-				filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
-		}
-	}
+	handler.InitializedSites = make(map[string]bool)
 	http.Handle("/", &handler)
 	waitGroup.Add(1)
 	go func() {

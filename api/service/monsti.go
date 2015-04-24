@@ -38,6 +38,19 @@ type MonstiClient struct {
 	SignalHandlers map[string]func(interface{}) (interface{}, error)
 }
 
+// InitSite initializes the site for the given host.
+//
+// Returns false, iff there is no site for the given host.
+func (s *MonstiClient) InitSite(host string) (found bool, err error) {
+	if s.Error != nil {
+		return false, s.Error
+	}
+	if err = s.RPCClient.Call("Monsti.InitSite", host, &found); err != nil {
+		err = fmt.Errorf("service: InitSite error: %v", err)
+	}
+	return
+}
+
 // NewMonstiConnection establishes a new RPC connection to a Monsti service.
 //
 // path is the unix domain socket path to the service.
@@ -79,15 +92,27 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 	G := func(in string) string { return in }
 	types := []*FieldConfig{
 		{
-			Id:       "core.SiteTitle",
+			Id:       "core.Title",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Title"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.BaseURL",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Base URL"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{
 			Id:       "core.Locale",
 			Required: true,
 			Name:     i18n.GenLanguageMap(G("Locale"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.Timezone",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Timezone"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{
@@ -103,15 +128,15 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Type:     new(TextFieldType),
 		},
 		{
-			Id:       "core.SiteOwnerName",
+			Id:       "core.OwnerName",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site owner name"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Owner name"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{
-			Id:       "core.SiteOwnerEmail",
+			Id:       "core.OwnerEmail",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site owner email address"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Owner email address"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
 		},
 		{

@@ -1,0 +1,13 @@
+{
+  "core": {
+    "CacheDisabled": true,
+    "Title": "Hallo Welt",
+    "BaseURL": "http://localhost:8080",
+    "EmailName": "Example site",
+    "EmailAddress": "noreply@localhost",
+    "OwnerName": "The Owner",
+    "OwnerEmail": "owner@example.com",
+    "SessionAuthKey": "aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao",
+    "PasswordTokenKey": "foobarblacruz"
+  }
+}

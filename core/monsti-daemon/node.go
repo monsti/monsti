@@ -175,7 +175,7 @@ func (nav *navigation) MakeAbsolute(root string) {
 // Add handles add requests.
 func (h *nodeHandler) Add(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
-	nodeTypeIds, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site.Name,
+	nodeTypeIds, err := c.Serv.Monsti().GetAddableNodeTypes(c.Site,
 		c.Node.Type.Id)
 	if err != nil {
 		return fmt.Errorf("Could not get addable node types: %v", err)
@@ -191,14 +191,14 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	body, err := h.Renderer.Render("actions/add", mtemplate.Context{
 		"Session":   c.UserSession,
 		"NodeTypes": nodeTypes}, c.UserSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render add action template: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("New node")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -218,7 +218,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 		data.Confirm = "ok"
 	case "POST":
 		if form.Fill(c.Req.Form) && data.Confirm == "ok" {
-			if err := c.Serv.Monsti().RemoveNode(c.Site.Name, c.Node.Path); err != nil {
+			if err := c.Serv.Monsti().RemoveNode(c.Site, c.Node.Path); err != nil {
 				return fmt.Errorf("Could not remove node: %v", err)
 			}
 			http.Redirect(c.Res, c.Req, path.Dir(c.Node.Path), http.StatusSeeOther)
@@ -229,14 +229,14 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	}
 	body, err := h.Renderer.Render("actions/removeform", mtemplate.Context{
 		"Form": form.RenderData(), "Node": c.Node},
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -259,24 +259,25 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 			size.Width = 150
 			size.Height = 150
 		} else {
-			err = c.Serv.Monsti().GetSiteConfig(c.Site.Name,
-				"core.image.sizes."+sizeName, &size)
+			// TODO Use site configuration.
+			size.Width = 1000
+			size.Height = 1000
 		}
 		if err != nil || size.Width == 0 {
 			if err != nil {
 				h.Log.Printf("Could not get size config: %v", err)
 			} else {
 				h.Log.Printf("Could not find size %q for site %q: %v", sizeName,
-					c.Site.Name, err)
+					c.Site, err)
 			}
 		} else {
 			cacheId := "core.image.thumbnail." + size.String()
-			body, _, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path, cacheId)
+			body, _, err = c.Serv.Monsti().FromCache(c.Site, c.Node.Path, cacheId)
 			if err != nil {
 				return fmt.Errorf("Could not get thumbnail from cache: %v", err)
 			}
 			if body == nil {
-				body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+				body, err = c.Serv.Monsti().GetNodeData(c.Site, c.Node.Path,
 					"__file_core.File")
 				if err != nil {
 					return fmt.Errorf("Could not get image data: %v", err)
@@ -298,7 +299,7 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 				if err != nil {
 					return fmt.Errorf("Could not encode resized image: %v", err)
 				}
-				if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+				if err := c.Serv.Monsti().ToCache(c.Site, c.Node.Path,
 					cacheId, body,
 					&service.CacheMods{Deps: []service.CacheDep{{Node: c.Node.Path}}}); err != nil {
 					return fmt.Errorf("Could not cache resized image data: %v", err)
@@ -307,7 +308,7 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 		}
 	}
 	if body == nil {
-		body, err = c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+		body, err = c.Serv.Monsti().GetNodeData(c.Site, c.Node.Path,
 			"__file_core.File")
 		if err != nil {
 			return fmt.Errorf("Could not read image: %v", err)
@@ -328,7 +329,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 		if c.Node.Type.Id == "core.Image" {
 			return h.viewImage(c)
 		} else if c.Node.Type.Id == "core.File" {
-			content, err := c.Serv.Monsti().GetNodeData(c.Site.Name, c.Node.Path,
+			content, err := c.Serv.Monsti().GetNodeData(c.Site, c.Node.Path,
 				"__file_core.File")
 			if err != nil {
 				return fmt.Errorf("Could not read file: %v", err)
@@ -349,7 +350,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 	var err error
 	mods := new(service.CacheMods)
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-		rendered, mods, err = c.Serv.Monsti().FromCache(c.Site.Name, c.Node.Path,
+		rendered, mods, err = c.Serv.Monsti().FromCache(c.Site, c.Node.Path,
 			"core.page.partial")
 		if err != nil {
 			return fmt.Errorf("Could not get partial cache: %v", err)
@@ -361,7 +362,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-			if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+			if err := c.Serv.Monsti().ToCache(c.Site, c.Node.Path,
 				"core.page.partial", rendered, mods); err != nil {
 				return fmt.Errorf("Could not cache page: %v", err)
 			}
@@ -369,10 +370,10 @@ func (h *nodeHandler) View(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	content, renderMods := renderInMaster(h.Renderer, rendered, env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	mods.Join(renderMods)
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
-		if err := c.Serv.Monsti().ToCache(c.Site.Name, c.Node.Path,
+		if err := c.Serv.Monsti().ToCache(c.Site, c.Node.Path,
 			"core.page.full", content, mods); err != nil {
 			return fmt.Errorf("Could not cache page: %v", err)
 		}
@@ -407,7 +408,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 		if err != nil {
 			return nil, nil, fmt.Errorf("Could not get calculate path: %v", err)
 		}
-		reqNode, err = c.Serv.Monsti().GetNode(c.Site.Name, embedPath)
+		reqNode, err = c.Serv.Monsti().GetNode(c.Site, embedPath)
 		if err != nil || reqNode == nil {
 			return nil, nil, fmt.Errorf("Could not find node %q to embed: %v",
 				embedPath, err)
@@ -452,7 +453,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 
 	context["Site"] = c.Site
 	rendered, err := h.Renderer.Render(template, context,
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not render template: %v", err)
 	}
@@ -505,7 +506,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	if newNode {
 		formData.NodeType = nodeType.Id
 		formData.Node.Type = nodeType
-		err := formData.Node.InitFields(c.Serv.Monsti(), c.Site.Name)
+		err := formData.Node.InitFields(c.Serv.Monsti(), c.Site)
 		if err != nil {
 			return fmt.Errorf("Could not init node fields: %v", err)
 		}
@@ -522,12 +523,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"),
 		G("Is the node accessible by every visitor?"))
-	var timezone string
-	err := c.Serv.Monsti().GetSiteConfig(c.Site.Name, "core.timezone", &timezone)
-	if err != nil {
-		return fmt.Errorf("Could not get timezone: %v", err)
-	}
-	location, err := time.LoadLocation(timezone)
+	location, err := time.LoadLocation(c.SiteSettings.StringValue("core.Timezone"))
 	if err != nil {
 		location = time.UTC
 	}
@@ -572,7 +568,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 			renamed := !newNode && c.Node.Name() != "" && oldPath != node.Path
 			writeNode := true
 			if newNode || renamed {
-				existing, err := c.Serv.Monsti().GetNode(c.Site.Name, node.Path)
+				existing, err := c.Serv.Monsti().GetNode(c.Site, node.Path)
 				if err != nil {
 					return fmt.Errorf("Could not fetch possibly existing node: %v", err)
 				}
@@ -580,7 +576,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 					form.AddError("Name", G("A node with this name does already exist"))
 					writeNode = false
 				}
-				if err = node.InitFields(c.Serv.Monsti(), c.Site.Name); err != nil {
+				if err = node.InitFields(c.Serv.Monsti(), c.Site); err != nil {
 					return fmt.Errorf("Could not init node fields: %v", err)
 				}
 			}
@@ -604,7 +600,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 			if writeNode {
 				if renamed {
-					err := c.Serv.Monsti().RenameNode(c.Site.Name, c.Node.Path, node.Path)
+					err := c.Serv.Monsti().RenameNode(c.Site, c.Node.Path, node.Path)
 					if err != nil {
 						return fmt.Errorf("Could not move node: %v", err)
 					}
@@ -614,7 +610,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 						node.Fields[field.Id].FromFormField(formData.Fields, field)
 					}
 				}
-				err := c.Serv.Monsti().WriteNode(c.Site.Name, node.Path, &node)
+				err := c.Serv.Monsti().WriteNode(c.Site, node.Path, &node)
 				if err != nil {
 					return fmt.Errorf("Could not update node: %v", err)
 				}
@@ -628,7 +624,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 							if err != nil {
 								return fmt.Errorf("Could not read multipart file: %v", err)
 							}
-							if err = c.Serv.Monsti().WriteNodeData(c.Site.Name, node.Path,
+							if err = c.Serv.Monsti().WriteNodeData(c.Site, node.Path,
 								"__file_"+name, content); err != nil {
 								return fmt.Errorf("Could not save file: %v", err)
 							}
@@ -637,7 +633,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				http.Redirect(c.Res, c.Req, node.Path+"/", http.StatusSeeOther)
 				err = c.Serv.Monsti().MarkDep(
-					c.Site.Name, service.CacheDep{Node: path.Clean(node.Path)})
+					c.Site, service.CacheDep{Node: path.Clean(node.Path)})
 				if err != nil {
 					return fmt.Errorf("Could not mark node: %v", err)
 				}
@@ -649,14 +645,14 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	rendered, err := h.Renderer.Render("edit",
 		mtemplate.Context{"Form": form.RenderData()},
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 
 	if err != nil {
 		return fmt.Errorf("Could not render template: %v", err)
 	}
 
 	content, _ := renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 
 	c.Res.Write(content)
 	return nil
@@ -680,7 +676,7 @@ func (n orderedNodes) Swap(i, j int) {
 func (h *nodeHandler) List(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	m := c.Serv.Monsti()
-	children, err := m.GetChildren(c.Site.Name, c.Node.Path)
+	children, err := m.GetChildren(c.Site, c.Node.Path)
 	if err != nil {
 		return fmt.Errorf("Could not get children of node: %v", err)
 	}
@@ -694,7 +690,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 					child.Order = order
 				}
 				if oldOrder != child.Order {
-					err := c.Serv.Monsti().WriteNode(c.Site.Name, child.Path, child)
+					err := c.Serv.Monsti().WriteNode(c.Site, child.Path, child)
 					if err != nil {
 						return fmt.Errorf("Could not update node: %v", err)
 					}
@@ -709,7 +705,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 	parentPath := path.Dir(c.Node.Path)
 	if parentPath != c.Node.Path {
 		var err error
-		if parent, err = m.GetNode(c.Site.Name, parentPath); err != nil {
+		if parent, err = m.GetNode(c.Site, parentPath); err != nil {
 			return fmt.Errorf("Could not get parent of node: %v", err)
 		}
 	}
@@ -718,14 +714,14 @@ func (h *nodeHandler) List(c *reqContext) error {
 		"Parent":   parent,
 		"Children": children,
 		"Node":     c.Node},
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render node list: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("List \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -756,7 +752,7 @@ func getSplittedPath(nodePath string) (ret []splittedPathElement) {
 func (h *nodeHandler) Chooser(c *reqContext) error {
 	G, _, _, _ := gettext.DefaultLocales.Use("", c.UserSession.Locale)
 	m := c.Serv.Monsti()
-	children, err := m.GetChildren(c.Site.Name, c.Node.Path)
+	children, err := m.GetChildren(c.Site, c.Node.Path)
 	if err != nil {
 		return fmt.Errorf("Could not get children of node: %v", err)
 	}
@@ -769,7 +765,7 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 	parentPath := path.Dir(c.Node.Path)
 	if parentPath != c.Node.Path {
 		var err error
-		if parent, err = m.GetNode(c.Site.Name, parentPath); err != nil {
+		if parent, err = m.GetNode(c.Site, parentPath); err != nil {
 			return fmt.Errorf("Could not get parent of node: %v", err)
 		}
 	}
@@ -793,7 +789,7 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 	}
 
 	body, err := h.Renderer.Render("actions/chooser", context,
-		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render node chooser: %v", err)
 	}
@@ -801,7 +797,7 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 		Flags: EDIT_VIEW | SLIM_VIEW,
 		Title: fmt.Sprintf(G("Chooser \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }

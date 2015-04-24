@@ -454,12 +454,11 @@ type DateTimeField struct {
 
 func (t *DateTimeField) Init(m *MonstiClient, site string,
 	config FieldType) error {
-	var timezone string
-	err := m.GetSiteConfig(site, "core.timezone", &timezone)
+	settings, err := m.LoadSiteSettings(site)
 	if err != nil {
 		return fmt.Errorf("Could not get timezone: %v", err)
 	}
-	t.Location, err = time.LoadLocation(timezone)
+	t.Location, err = time.LoadLocation(settings.StringValue("core.Timezone"))
 	if err != nil {
 		t.Location = time.UTC
 	}
