@@ -81,7 +81,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -174,7 +174,7 @@ This is an automatically generated email. Please don't reply to it.
 		Title:   G("Request new password"),
 		Flags:   EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -277,7 +277,7 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 		Title:   G("Change password"),
 		Flags:   EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="{{.Site.Locale}}">
+<html class="no-js" lang="{{.SiteSettings.StringValue "core.Locale"}}">
   <head>
     {{template "blocks/headers" .}}
     <link rel="stylesheet" type="text/css" href="/static/css/monsti.css" />
@@ -13,7 +13,7 @@
         <div class="header-wrap">
           <div class="header">
             <div class="site-title">
-              <a href="/">{{.Site.Title}}</a>
+              <a href="/">{{.SiteSettings.StringValue "core.Title"}}</a>
             </div>
             <div class="primary-nav">
               {{template "blocks/navigation" .Page.PrimaryNav}}

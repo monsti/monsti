@@ -40,6 +40,8 @@ import (
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
+const monstiVersion = "0.11.0"
+
 // Settings for the application and the sites.
 type settings struct {
 	Monsti msettings.Monsti
@@ -183,16 +185,7 @@ func main() {
 
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
-	handler.Hosts = make(map[string]string)
-	/*
-		for site_title, site := range settings.Monsti.Sites {
-			for _, host := range site.Hosts {
-				handler.Hosts[host] = site_title
-				http.Handle(host+"/site-static/", http.FileServer(http.Dir(
-					filepath.Dir(settings.Monsti.GetSiteStaticsPath(site_title)))))
-			}
-		}
-	*/
+	handler.InitializedSites = make(map[string]bool)
 	http.Handle("/", &handler)
 	waitGroup.Add(1)
 	go func() {

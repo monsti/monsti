@@ -198,7 +198,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: G("New node")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -236,7 +236,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -369,7 +369,7 @@ func (h *nodeHandler) View(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession}
 	content, renderMods := renderInMaster(h.Renderer, rendered, env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	mods.Join(renderMods)
 	if c.UserSession.User == nil && len(c.Req.Form) == 0 {
 		if err := c.Serv.Monsti().ToCache(c.Site, c.Node.Path,
@@ -656,7 +656,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 
 	content, _ := renderInMaster(h.Renderer, []byte(rendered), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 
 	c.Res.Write(content)
 	return nil
@@ -725,7 +725,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("List \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -801,7 +801,7 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 		Flags: EDIT_VIEW | SLIM_VIEW,
 		Title: fmt.Sprintf(G("Chooser \"%v\""), c.Node.Name())}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }

@@ -7,7 +7,7 @@
     "EmailAddress": "noreply@localhost",
     "OwnerName": "The Owner",
     "OwnerEmail": "owner@example.com",
-    "Sessionauthkey": "aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao",
-    "Passwordtokenkey": "foobarblacruz",
+    "SessionAuthKey": "aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao",
+    "PasswordTokenKey": "foobarblacruz"
   }
 }

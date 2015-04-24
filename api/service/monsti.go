@@ -38,6 +38,19 @@ type MonstiClient struct {
 	SignalHandlers map[string]func(interface{}) (interface{}, error)
 }
 
+// InitSite initializes the site for the given host.
+//
+// Returns false, iff there is no site for the given host.
+func (s *MonstiClient) InitSite(host string) (found bool, err error) {
+	if s.Error != nil {
+		return false, s.Error
+	}
+	if err = s.RPCClient.Call("Monsti.InitSite", host, &found); err != nil {
+		err = fmt.Errorf("service: InitSite error: %v", err)
+	}
+	return
+}
+
 // NewMonstiConnection establishes a new RPC connection to a Monsti service.
 //
 // path is the unix domain socket path to the service.

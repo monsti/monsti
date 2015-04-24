@@ -92,7 +92,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	content, _ := renderInMaster(h.Renderer, []byte(rendered),
 		masterTmplEnv{Node: c.Node, Session: c.UserSession,
 			Title: G("Settings"), Flags: EDIT_VIEW},
-		h.Settings, c.Site, c.UserSession.Locale, c.Serv)
+		h.Settings, c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 
 	c.Res.Write(content)
 	return nil

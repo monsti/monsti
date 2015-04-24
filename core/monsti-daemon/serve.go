@@ -49,10 +49,9 @@ type reqContext struct {
 
 // nodeHandler is a net/http handler to process incoming HTTP requests.
 type nodeHandler struct {
-	Renderer template.Renderer
-	Settings *settings
-	// Hosts is a map from hosts to site names.
-	Hosts map[string]string
+	Renderer         template.Renderer
+	Settings         *settings
+	InitializedSites map[string]bool
 	// Log is the logger used by the node handler.
 	Log *log.Logger
 	// Info is a connection to an INFO service.
@@ -160,9 +159,18 @@ func (h *nodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"request-password-token": service.RequestPasswordTokenAction,
 		"change-password":        service.ChangePasswordAction,
 	}[action]
-	var ok bool
-	if c.Site, ok = h.Hosts[c.Req.Host]; !ok {
-		serveError("No site found for host %v", c.Req.Host)
+	c.Site = strings.SplitN(c.Req.Host, ":", 2)[0]
+	if v, ok := h.InitializedSites[c.Site]; !(ok && v) {
+		ok, err := c.Serv.Monsti().InitSite(c.Site)
+		if err != nil {
+			serveError("Error initializing site for host %v: %v", c.Site, err)
+		}
+		if !ok {
+			serveError("No site found for host %v", c.Site)
+		}
+		http.Handle(c.Req.Host+"/site-static/", http.FileServer(http.Dir(
+			filepath.Dir(h.Settings.Monsti.GetSiteStaticsPath(c.Site)))))
+		h.InitializedSites[c.Site] = true
 	}
 	c.SiteSettings, err = c.Serv.Monsti().LoadSiteSettings(c.Site)
 	if err != nil {

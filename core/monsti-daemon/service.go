@@ -67,6 +67,24 @@ type PublishServiceArgs struct {
 	Service, Path string
 }
 
+func (i *MonstiService) InitSite(host *string, reply *bool) error {
+	root := i.Settings.Monsti.GetSiteDataPath(filepath.Base(*host))
+	version, err := ioutil.ReadFile(filepath.Join(root, "version"))
+	log.Println(version, *reply, err)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("Could not read version of site %v: %v", host, err)
+	}
+	if strings.Trim(string(version), " ") != monstiVersion {
+		return fmt.Errorf("Wrong database version for %v: %v, expected %v",
+			host, version, monstiVersion)
+	}
+	*reply = true
+	return nil
+}
+
 func (i *MonstiService) PublishService(args PublishServiceArgs,
 	reply *int) error {
 	i.mutex.Lock()
