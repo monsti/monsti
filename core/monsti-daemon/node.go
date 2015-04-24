@@ -259,8 +259,9 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 			size.Width = 150
 			size.Height = 150
 		} else {
-			err = c.Serv.Monsti().GetSiteConfig(c.Site,
-				"core.image.sizes."+sizeName, &size)
+			// TODO Use site configuration.
+			size.Width = 1000
+			size.Height = 1000
 		}
 		if err != nil || size.Width == 0 {
 			if err != nil {
@@ -522,12 +523,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	}
 	form.AddWidget(new(htmlwidgets.BoolWidget), "Node.Public", G("Public"),
 		G("Is the node accessible by every visitor?"))
-	var timezone string
-	err := c.Serv.Monsti().GetSiteConfig(c.Site, "core.timezone", &timezone)
-	if err != nil {
-		return fmt.Errorf("Could not get timezone: %v", err)
-	}
-	location, err := time.LoadLocation(timezone)
+	location, err := time.LoadLocation(c.SiteSettings.StringValue("core.Timezone"))
 	if err != nil {
 		location = time.UTC
 	}

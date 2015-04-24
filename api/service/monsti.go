@@ -110,6 +110,12 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Type:     new(TextFieldType),
 		},
 		{
+			Id:       "core.Timezone",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Timezone"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
 			Id:       "core.EmailName",
 			Required: true,
 			Name:     i18n.GenLanguageMap(G("Email name"), []string{"de", "en"}),
