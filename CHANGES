@@ -3,6 +3,7 @@
     + Added Integer field type.
  - Changes:
     + Replaced TinyMCE with CKEditor.
+    + Lock site data on access.
 
 * 0.10.0 - released 2015/04/03
  - New features:

@@ -182,6 +182,7 @@ func main() {
 		Sessions: sessions,
 	}
 	monsti.Handler = &handler
+	monsti.siteMutexes = make(map[string]*sync.RWMutex)
 
 	http.Handle("/static/", http.FileServer(http.Dir(
 		filepath.Dir(settings.Monsti.GetStaticsPath()))))
