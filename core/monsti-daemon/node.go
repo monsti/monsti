@@ -196,7 +196,7 @@ func (h *nodeHandler) Add(c *reqContext) error {
 		return fmt.Errorf("Can't render add action template: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: G("New node")}
+		Flags: EDIT_VIEW, Title: G("New child node")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
@@ -234,7 +234,7 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 		panic("Can't render node remove formular: " + err.Error())
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("Remove \"%v\""), c.Node.Name())}
+		Flags: EDIT_VIEW, Title: G("Remove node")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
@@ -493,10 +493,9 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 
 	if c.Action == service.EditAction {
 		if newNode {
-			env.Title = fmt.Sprintf(G("Add %v to \"%s\""),
-				nodeType.Name.Get(c.UserSession.Locale), c.Node.Path)
+			env.Title = G("Add a new node")
 		} else {
-			env.Title = fmt.Sprintf(G("Edit \"%s\""), c.Node.Path)
+			env.Title = G("Edit node")
 		}
 		env.Flags = EDIT_VIEW
 	}
@@ -719,7 +718,7 @@ func (h *nodeHandler) List(c *reqContext) error {
 		return fmt.Errorf("Can't render node list: %v", err)
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
-		Flags: EDIT_VIEW, Title: fmt.Sprintf(G("List \"%v\""), c.Node.Name())}
+		Flags: EDIT_VIEW, Title: G("List child nodes")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
@@ -795,7 +794,7 @@ func (h *nodeHandler) Chooser(c *reqContext) error {
 	}
 	env := masterTmplEnv{Node: c.Node, Session: c.UserSession,
 		Flags: EDIT_VIEW | SLIM_VIEW,
-		Title: fmt.Sprintf(G("Chooser \"%v\""), c.Node.Name())}
+		Title: G("Node chooser")}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
 		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)

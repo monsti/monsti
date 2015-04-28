@@ -1,16 +1,14 @@
 <article>
   <h1>{{.Page.Title}}</h1>
   {{if .Parent}}
-  <p><strong>{{G "Node path:"}}</strong> {{.Node.Path}}
-    <br>
+  <p>
     <strong>{{G "Parent node:"}}</strong>
     <a href="{{pathJoin .Parent.Path "@@list"}}">
       {{with index .Parent.Fields "core.Title"}}{{.RenderHTML}}{{else}}
       {{with .Parent.Name}}[{{.}}]{{else}}/{{end}}
       {{end}}</a>
-  {{end}}
   </p>
-  <h2>{{G "Child nodes"}}</h2>
+  {{end}}
   {{with .Children}}
   <form method="POST">
     <ul class="node-list">

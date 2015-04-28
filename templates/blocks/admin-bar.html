@@ -36,6 +36,19 @@
         >{{end}}<img src="/static/img/icons/silk/page_white_delete.png"/>
           {{G "Remove"}}{{if not $inactive}}</a>{{end}}</li>
     </ul>
+
+    <p class="current-node">
+      {{ G "Node:" }}
+      {{with (index .Page.Node.Fields "core.Title")}}
+      <span class="current-node-title">
+        {{.}}
+      </span>
+      {{end}}
+      <span class="current-node-path">
+        ({{.Page.Node.Path}})
+      </span>
+    </p>
+
     <ul class="nav pull-right">
       <li><a href="{{pathJoin $path "@@settings"}}"
         title="{{G "Edit the settings of this site"}}"

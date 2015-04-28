@@ -57,3 +57,14 @@ html {
     opacity: 0.5;
   }
 }
+
+.current-node {
+  margin: 0;
+  float: left;
+  line-height: 30px;
+  margin-left: 30px;
+}
+
+.current-node-title {
+  font-style: italic;
+}
