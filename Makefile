@@ -46,10 +46,9 @@ dist: all
 	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/doc
 	mkdir -p $(DIST_PATH)/etc
 	cp -R example/config/* $(DIST_PATH)/etc
-	mv $(DIST_PATH)/etc/sites/example $(DIST_PATH)/etc/sites/default
 	mkdir -p $(DIST_PATH)/run
 	mkdir -p $(DIST_PATH)/data
-	cp -R example/data/example $(DIST_PATH)/data/default
+	cp -R example/data/localhost $(DIST_PATH)/data/localhost
 	cp example/start.sh $(DIST_PATH)/
 	sed -i 's/\.\.\/go\///' $(DIST_PATH)/start.sh
 	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
@@ -74,10 +73,9 @@ dist-deb: all
 	sed -i 's/\.\.\/share/\/usr\/share\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
 	sed -i 's/\.\.\/data/\/var\/lib\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
 	sed -i 's/\.\.\/run/\/var\/run\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	mv $(DIST_PATH)/etc/monsti/sites/example $(DIST_PATH)/etc/monsti/sites/default
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
-	cp -R example/data/example $(DIST_PATH)/usr/share/doc/monsti/examples/default
+	cp -R example/data/localhost $(DIST_PATH)/usr/share/doc/monsti/examples/localhost
 	find $(DIST_PATH) -type d -exec chmod 755 {} \;
 	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
 	chmod 755 $(DIST_PATH)/usr/bin/*
