@@ -10,35 +10,43 @@
       <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
         {{if not $inactive}}
         <a href="{{$path}}"
+           title="{{G "View the current node"}}"
            >{{end}}<img src="/static/img/icons/silk/layout_content.png"/>
         {{G "View"}}{{if not $inactive}}</a>{{end}}</li>
       <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
         {{if not $inactive}}
         <a href="{{pathJoin $path "@@edit"}}"
+           title="{{G "Edit the current node"}}"
         >{{end}}<img src="/static/img/icons/silk/page_white_edit.png"/>
         {{G "Edit"}}{{if not $inactive}}</a>{{end}}</li>
       <li><a href="{{pathJoin $path "@@list"}}"
+           title="{{G "List and navigate the children of the current node"}}"
         ><img src="/static/img/icons/silk/page_white_stack.png"/>
         {{G "List"}}</a></li>
       <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
         {{if not $inactive}}
         <a href="{{pathJoin $path "@@add"}}"
+           title="{{G "Add a new child node below the current node"}}"
         >{{end}}<img src="/static/img/icons/silk/page_white_add.png"/>
           {{G "Add"}}{{if not $inactive}}</a>{{end}}</li>
       <li class="{{if $inactive}}admin-bar-item-inactive{{end}}">
         {{if not $inactive}}
         <a href="{{pathJoin $path "@@remove"}}"
+           title="{{G "Remove the current node and its descendants"}}"
         >{{end}}<img src="/static/img/icons/silk/page_white_delete.png"/>
           {{G "Remove"}}{{if not $inactive}}</a>{{end}}</li>
     </ul>
     <ul class="nav pull-right">
       <li><a href="{{pathJoin $path "@@settings"}}"
+        title="{{G "Edit the settings of this site"}}"
         ><img src="/static/img/icons/silk/wrench.png"/>
         {{G "Settings"}}</a></li>
       <li><a href="{{pathJoin $path "@@change-password"}}"
+        title="{{G "Change your password"}}"
         ><img src="/static/img/icons/silk/key.png"/>
         {{G "Change password"}}</a></li>
       <li><a href="{{pathJoin $path "@@logout"}}"
+        title="{{G "Logout from this site"}}"
         ><img src="/static/img/icons/silk/stop.png"/>
         {{G "Logout"}}</a></li>
     </ul>
