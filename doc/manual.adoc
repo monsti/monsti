@@ -44,14 +44,18 @@ In the main directory, run the following command to start Monsti.
 
 `$ go/bin/monsti-daemon <configuration directory>`
 
-To run the example site, go to the example site directory (example/)
-and run the start script: +
-`$ ./start.sh` +
+To run the example site, go to the example site directory (`example/`)
+and run the start script:
+
+`$ ./start.sh`
+
 Monsti will be listening on http://localhost:8080
 
 === Deployment
 
-Create a tar archive containing all needed resources: +
+To create a tar archive containing all needed resources, run the
+following command in the main directory:
+
 `$ make dist`
 
 Copy the archive (`dist/monsti-$VERSION.tar.gz`) to your server and
@@ -66,13 +70,14 @@ the `-syslog` option.
 
 ==== Debian
 
-If you use Debian, you might create a simple `deb` package using using
-https://github.com/jordansissel/fpm[fpm]:
+If you use Debian, you might create a simple `deb` package using
+https://github.com/jordansissel/fpm[fpm]. Use the following command in
+the main directory:
 
 `$ make dist-deb`
 
-Install the package and run Monsti with `monsti-daemon /etc/monsti`.
-
+Install the package (`dist/monsti-$VERSION.deb`) and run Monsti with
+`monsti-daemon /etc/monsti`.
 
 === Documentation
 

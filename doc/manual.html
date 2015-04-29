@@ -796,15 +796,16 @@ that), run the Makefile with the <code>test</code> target:</p></div>
 <h3 id="_run">Run</h3>
 <div class="paragraph"><p>In the main directory, run the following command to start Monsti.</p></div>
 <div class="paragraph"><p><code>$ go/bin/monsti-daemon &lt;configuration directory&gt;</code></p></div>
-<div class="paragraph"><p>To run the example site, go to the example site directory (example/)
-and run the start script:<br />
-<code>$ ./start.sh</code><br />
-Monsti will be listening on <a href="http://localhost:8080">http://localhost:8080</a></p></div>
+<div class="paragraph"><p>To run the example site, go to the example site directory (<code>example/</code>)
+and run the start script:</p></div>
+<div class="paragraph"><p><code>$ ./start.sh</code></p></div>
+<div class="paragraph"><p>Monsti will be listening on <a href="http://localhost:8080">http://localhost:8080</a></p></div>
 </div>
 <div class="sect2">
 <h3 id="_deployment">Deployment</h3>
-<div class="paragraph"><p>Create a tar archive containing all needed resources:<br />
-<code>$ make dist</code></p></div>
+<div class="paragraph"><p>To create a tar archive containing all needed resources, run the
+following command in the main directory:</p></div>
+<div class="paragraph"><p><code>$ make dist</code></p></div>
 <div class="paragraph"><p>Copy the archive (<code>dist/monsti-$VERSION.tar.gz</code>) to your server and
 unpack it, e.g. in <code>/opt</code>. A startup script (<code>start.sh</code>) is included
 to start Monsti. The user running Monsti must have read-write access
@@ -816,10 +817,12 @@ directory) or use a software like
 the <code>-syslog</code> option.</p></div>
 <div class="sect3">
 <h4 id="_debian">Debian</h4>
-<div class="paragraph"><p>If you use Debian, you might create a simple <code>deb</code> package using using
-<a href="https://github.com/jordansissel/fpm">fpm</a>:</p></div>
+<div class="paragraph"><p>If you use Debian, you might create a simple <code>deb</code> package using
+<a href="https://github.com/jordansissel/fpm">fpm</a>. Use the following command in
+the main directory:</p></div>
 <div class="paragraph"><p><code>$ make dist-deb</code></p></div>
-<div class="paragraph"><p>Install the package and run Monsti with <code>monsti-daemon /etc/monsti</code>.</p></div>
+<div class="paragraph"><p>Install the package (<code>dist/monsti-$VERSION.deb</code>) and run Monsti with
+<code>monsti-daemon /etc/monsti</code>.</p></div>
 </div>
 </div>
 <div class="sect2">
@@ -1278,7 +1281,7 @@ file named <code>include</code> at the root of the tree.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-04-29 15:24:19 CEST
+ 2015-04-29 15:29:58 CEST
 </div>
 </div>
 </body>
