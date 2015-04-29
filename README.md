@@ -15,6 +15,15 @@ backward compatibility at this point. It's already in use to host some
 non critical websites, but the API and architecture still change a
 lot.
 
+If you have a problem, please first have a look at Monsti's manual in
+the `doc` directory or
+[online](https://github.com/monsti/monsti/blob/master/doc/manual.adoc). Also
+have a look at and search the [open
+issues](https://github.com/monsti/monsti/issues). If you can't find
+any help in the manual or open issues, you might (open a new
+issue)[https://github.com/monsti/monsti/issues/new] or contact the
+author: (c@2foo.net)[mailto:c@2foo.net].
+
 [![Build Status](https://travis-ci.org/monsti/monsti.svg?branch=master)](https://travis-ci.org/monsti/monsti)
 [![Gratipay](https://img.shields.io/gratipay/chrneumann.svg)](https://gratipay.com/chrneumann/)
 
