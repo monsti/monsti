@@ -23,15 +23,24 @@ https://gitorious.org/monsti/monsti/
 
 === Build
 
+To fetch the dependencies and compile the sources, run the Makefile in
+the main directory using the `make` command:
+
 `$ make`
 
 === Tests
 
+To start all the tests (excluding the Selenium tests, see below for
+that), run the Makefile with the `test` target:
+
 `$ make test`
 
-For Selenium tests, have a look at `tests/README`
+For Selenium tests (browser/integration tests), have a look at
+`tests/README`.
 
 === Run
+
+In the main directory, run the following command to start Monsti.
 
 `$ go/bin/monsti-daemon <configuration directory>`
 
