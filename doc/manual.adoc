@@ -18,12 +18,12 @@ https://gitorious.org/monsti/monsti/
 - C compiler
 - Git, Bazaar, Mercurial (to fetch Go packages)
 - Go 1.3 or later
+- wget
 
 
 === Build
 
 `$ make`
-
 
 === Tests
 
@@ -42,13 +42,28 @@ Monsti will be listening on http://localhost:8080
 
 === Deployment
 
-Create packages to deploy (if you like):
-
-tar: +
+Create a tar archive containing all needed resources: +
 `$ make dist`
 
-Debian archive (using https://github.com/jordansissel/fpm[fpm]): +
+Copy the archive (`dist/monsti-$VERSION.tar.gz`) to your server and
+unpack it, e.g. in `/opt`. A startup script (`start.sh`) is included
+to start Monsti. The user running Monsti must have read-write access
+to the `data` and `run` directories and read access to all other
+unpacked directories. To start Monsti on boot, write an init script
+(you'll find an example init script for Debian in the `example`
+directory) or use a software like
+http://supervisord.org/[supervisord]. To use syslog, run Monsti with
+the `-syslog` option.
+
+==== Debian
+
+If you use Debian, you might create a simple `deb` package using using
+https://github.com/jordansissel/fpm[fpm]:
+
 `$ make dist-deb`
+
+Install the package and run Monsti with `monsti-daemon /etc/monsti`.
+
 
 === Documentation
 

@@ -771,6 +771,11 @@ Git, Bazaar, Mercurial (to fetch Go packages)
 Go 1.3 or later
 </p>
 </li>
+<li>
+<p>
+wget
+</p>
+</li>
 </ul></div>
 </div>
 <div class="sect2">
@@ -792,11 +797,24 @@ Monsti will be listening on <a href="http://localhost:8080">http://localhost:808
 </div>
 <div class="sect2">
 <h3 id="_deployment">Deployment</h3>
-<div class="paragraph"><p>Create packages to deploy (if you like):</p></div>
-<div class="paragraph"><p>tar:<br />
+<div class="paragraph"><p>Create a tar archive containing all needed resources:<br />
 <code>$ make dist</code></p></div>
-<div class="paragraph"><p>Debian archive (using <a href="https://github.com/jordansissel/fpm">fpm</a>):<br />
-<code>$ make dist-deb</code></p></div>
+<div class="paragraph"><p>Copy the archive (<code>dist/monsti-$VERSION.tar.gz</code>) to your server and
+unpack it, e.g. in <code>/opt</code>. A startup script (<code>start.sh</code>) is included
+to start Monsti. The user running Monsti must have read-write access
+to the <code>data</code> and <code>run</code> directories and read access to all other
+unpacked directories. To start Monsti on boot, write an init script
+(you&#8217;ll find an example init script for Debian in the <code>example</code>
+directory) or use a software like
+<a href="http://supervisord.org/">supervisord</a>. To use syslog, run Monsti with
+the <code>-syslog</code> option.</p></div>
+<div class="sect3">
+<h4 id="_debian">Debian</h4>
+<div class="paragraph"><p>If you use Debian, you might create a simple <code>deb</code> package using using
+<a href="https://github.com/jordansissel/fpm">fpm</a>:</p></div>
+<div class="paragraph"><p><code>$ make dist-deb</code></p></div>
+<div class="paragraph"><p>Install the package and run Monsti with <code>monsti-daemon /etc/monsti</code>.</p></div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_documentation">Documentation</h3>
@@ -1189,7 +1207,7 @@ file named <code>include</code> at the root of the tree.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-02-18 16:50:45 CET
+ 2015-04-29 08:40:02 CEST
 </div>
 </div>
 </body>
