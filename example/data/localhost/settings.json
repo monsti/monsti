@@ -2,6 +2,7 @@
   "core": {
     "CacheDisabled": true,
     "Title": "Hallo Welt",
+    "Timezone": "Europe/Berlin",
     "BaseURL": "http://localhost:8080",
     "EmailName": "Example site",
     "EmailAddress": "noreply@localhost",
