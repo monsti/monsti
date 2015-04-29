@@ -49,9 +49,9 @@ dist: all
 	mkdir -p $(DIST_PATH)/run
 	mkdir -p $(DIST_PATH)/data
 	cp -R example/data/localhost $(DIST_PATH)/data/localhost
-	cp example/start.sh $(DIST_PATH)/
-	sed -i 's/\.\.\/go\///' $(DIST_PATH)/start.sh
-	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
+	cp -p example/start.sh $(DIST_PATH)/start.sh
+	sed -e 's/\.\.\/go\///' -e 's/config/etc/' example/start.sh \
+		> $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
 dist-deb: all
@@ -65,14 +65,14 @@ dist-deb: all
 	rm -f $(DIST_PATH)/usr/share/locale/*.pot
 	mkdir -p $(DIST_PATH)/usr/share/doc/monsti/examples
 	cp example/start.sh $(DIST_PATH)/usr/share/doc/monsti/examples
-	sed -i 's/\.\.\/go\///' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
-	sed -i 's/config/etc\/monsti/' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
+	sed -e 's/config/etc\/monsti/' -e 's/\.\.\/go\///' \
+		example/start.sh > $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
 	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/usr/share/doc/monsti
 	mkdir -p $(DIST_PATH)/etc/monsti/sites
 	cp -R example/config/* $(DIST_PATH)/etc/monsti
-	sed -i 's/\.\.\/share/\/usr\/share\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	sed -i 's/\.\.\/data/\/var\/lib\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	sed -i 's/\.\.\/run/\/var\/run\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
+	sed -e 's/\.\.\/run/\/var\/run\/monsti/' -e 's/\.\.\/data/\/var\/lib\/monsti/' \
+		-e 's/\.\.\/share/\/usr\/share\/monsti/' example/config/monsti.yaml \
+		> $(DIST_PATH)/etc/monsti/monsti.yaml
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
 	cp -R example/data/localhost $(DIST_PATH)/usr/share/doc/monsti/examples/localhost

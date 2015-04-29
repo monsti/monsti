@@ -4,6 +4,8 @@
  - Changes:
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.
+ - Fixed:
+    + Fix Makefile for MacOSX
 
 * 0.10.0 - released 2015/04/03
  - New features:
