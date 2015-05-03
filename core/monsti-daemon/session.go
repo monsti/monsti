@@ -130,21 +130,21 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 					c.SiteSettings.StringValue("core.EmailName"))
 				mail.SetAddressHeader("To", user.Email, user.Login)
 				mail.SetHeader("Subject", G("Password request"))
-				mail.SetBody("text/plain", fmt.Sprintf(`Hello,
 
-someone, possibly you, requested a new password for your account %v at
-"%v".
-
-To change your password, visit the following link within 24 hours.
-If you did not request a new password, you may ignore this email.
-%v
-
-This is an automatically generated email. Please don't reply to it.
-`, data.User, c.SiteSettings.StringValue("core.Title"),
-					c.SiteSettings.StringValue("core.BaseURL")+"/@@change-password?token="+link))
+				body, err := h.Renderer.Render("mails/change_password",
+					template.Context{
+						"SiteSettings": c.SiteSettings,
+						"Account":      data.User,
+						"ChangeLink": c.SiteSettings.StringValue("core.BaseURL") +
+							"/@@change-password?token=" + link,
+					}, c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
+				if err != nil {
+					return fmt.Errorf("Can't render password change mail: %v", err)
+				}
+				mail.SetBody("text/plain", string(body))
 				mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
 					c.Serv.Monsti().SendMailFunc()))
-				err := mailer.Send(mail)
+				err = mailer.Send(mail)
 				if err != nil {
 					return fmt.Errorf("Could not send mail: %v", err)
 				}

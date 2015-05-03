@@ -4,6 +4,7 @@
  - Changes:
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.
+    + Moved mail contents to template.
  - Fixed:
     + Fix Makefile for MacOSX
 
