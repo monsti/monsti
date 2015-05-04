@@ -108,6 +108,11 @@ func setup(c *module.ModuleContext) error {
 				Name: i18n.GenLanguageMap(G("Text list"), availableLocales),
 				Type: &service.ListFieldType{new(service.TextFieldType)},
 			},
+			{
+				Id:   "example.Map",
+				Name: i18n.GenLanguageMap(G("Map"), availableLocales),
+				Type: &service.MapFieldType{new(service.TextFieldType)},
+			},
 		},
 	}
 	if err := m.RegisterNodeType(&nodeType); err != nil {

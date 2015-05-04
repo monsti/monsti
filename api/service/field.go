@@ -38,6 +38,7 @@ func init() {
 	gob.Register(new(FileFieldType))
 	gob.Register(new(RefFieldType))
 	gob.Register(new(ListFieldType))
+	gob.Register(new(MapFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -625,6 +626,84 @@ func (t *ListField) FromFormField(data NestedMap, field *FieldConfig) {
 		time := data.Get(field.Id).(time.Time)
 		*t = DateTimeField{Time: time}
 	*/
+}
+
+type MapFieldType struct {
+	ElementType FieldType
+}
+
+func (t MapFieldType) Field() Field {
+	return &MapField{fieldType: &t}
+}
+
+type MapField struct {
+	Fields    map[string]Field
+	fieldType FieldType
+}
+
+func (f *MapField) Init(m *MonstiClient, site string) error {
+	f.Fields = make(map[string]Field)
+	return nil
+}
+
+func (f MapField) RenderHTML() interface{} {
+	var out []interface{}
+	for k, field := range f.Fields {
+		out = append(out, fmt.Sprintf("%v:", k), field.RenderHTML())
+	}
+	return out
+}
+
+func (f MapField) Value() interface{} {
+	return f.Fields
+}
+
+func (f *MapField) Load(dataFnc func(interface{}) error) error {
+	var data map[string]json.RawMessage
+	if err := dataFnc(&data); err != nil {
+		return err
+	}
+	elementType := f.fieldType.(*MapFieldType).ElementType
+	for k, msg := range data {
+		fieldDataFnc := func(in interface{}) error {
+			return json.Unmarshal(msg, in)
+		}
+		field := elementType.Field()
+		if err := field.Load(fieldDataFnc); err != nil {
+			return fmt.Errorf("Could not parse map data: %v", err)
+		}
+		f.Fields[k] = field
+	}
+	return nil
+}
+
+func (f MapField) Dump() interface{} {
+	out := make(map[string]interface{})
+	for k, field := range f.Fields {
+		out[k] = field.Dump()
+	}
+	return out
+}
+
+func (f MapField) FormData() interface{} {
+	panic("Not implemented")
+	return nil
+}
+
+func (f *MapField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f MapField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
+func (t MapField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+}
+
+func (t *MapField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type FieldType interface {

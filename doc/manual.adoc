@@ -137,6 +137,10 @@ The DateTime field stores a point in time. Views and form inputs will
 honour the site's time zone (i.e. the user will see and enter times in
 the configured time zone (`core.Timezone` setting)).
 
+=== Map
+
+Map fields map string keys to fields of a configurable type.
+
 == Node types
 
 === Core Node Types
