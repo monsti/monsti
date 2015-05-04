@@ -158,6 +158,21 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Hidden: true,
 			Type:   new(BoolFieldType),
 		},
+		{
+			Id:     "core.ImageStyles",
+			Hidden: true,
+			Type: &MapFieldType{
+				&CombinedFieldType{
+					map[string]FieldConfig{
+						"width": {
+							Type: new(IntegerFieldType),
+						},
+						"height": {
+							Type: new(IntegerFieldType),
+						},
+					}},
+			},
+		},
 	}
 
 	settings, err := newSettingsFromData(reply, types, s, site)

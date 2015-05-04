@@ -167,29 +167,15 @@ can be access via `/foo/my_image.jpeg`.
 
 ===== Automatic resizing
 
-WARNING: Resizing is currently broken.
-
 Monsti features automatic resizing of images. First, you have to
-register your allowed image sizes in
-`<config_dir>/sites/<your_site>/image.json`.
-
-.Example for image sizes "thumbnail" (200x100) and "icon" (20x20)
-[source,javascript]
-----
-{
-  "sizes": {
-    "thumbnail": { "Width":200, "Height":100 },
-    "icon": { "Width":20, "Height":20 },
-  }
-}
-----
+configure your allowed image sizes. Have a look at the
+`core.ImageStyles` setting of the example site.
 
 To access these sizes, add `?size=<size_name>` to the image URL,
 e.g. `/foo/my_image.jpeg?size=thumbnail`.
 
 Monsti will generate the specified size if it has not been generated
 before and saves it in the node's directory.
-
 
 === Modifying node types
 

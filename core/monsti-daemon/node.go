@@ -259,9 +259,14 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 			size.Width = 150
 			size.Height = 150
 		} else {
-			// TODO Use site configuration.
-			size.Width = 1000
-			size.Height = 1000
+			style, ok := c.SiteSettings.Fields["core.ImageStyles"].(*service.MapField).
+				Fields[sizeName]
+			if ok {
+				size.Width = uint(style.(*service.CombinedField).
+					Fields["width"].Value().(int))
+				size.Height = uint(style.(*service.CombinedField).
+					Fields["height"].Value().(int))
+			}
 		}
 		if err != nil || size.Width == 0 {
 			if err != nil {

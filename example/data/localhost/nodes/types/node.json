@@ -3,12 +3,14 @@
   "Hide": false,
   "Embed": null,
   "Public": true,
-  "PublishTime": "2014-11-12T15:14:31.19798318+01:00",
-  "Changed": "2014-11-12T15:14:31.197983207+01:00",
+  "PublishTime": "2014-11-12T15:14:00+01:00",
+  "Changed": "2015-05-04T13:40:46.665553685Z",
   "Type": "core.Document",
   "Fields": {
     "core": {
-      "Body": "\u003cp style=\"\"\u003eFile:\u003c/p\u003e\u003cp style=\"\"\u003e\u003cimg class=\"\" style=\"height: 22px; width: 111px; position: relative; resize: none; display: inline-block; top: 0px; left: 0px;\" src=\"/types/file\" title=\"\"\u003e\u003c/p\u003e\u003cp style=\"\"\u003eImage:\u003c/p\u003e\u003cp style=\"\"\u003e\u003c/p\u003e\u003cdiv class=\"ui-wrapper aloha-image-box-active Aloha_Image_Resize aloha\" style=\"overflow: hidden; position: relative; width: 176px; height: 100px; top: 0px; left: 0px; margin: 0px; display: inline-block; float: none;\" contenteditable=\"false\"\u003e\u003cimg class=\"\" src=\"/types/image?size=foo\" title=\"\"\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-ne\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-sw\"\u003e\u003c/div\u003e\u003cdiv style=\"z-index: 1000;\" class=\"ui-resizable-handle ui-resizable-nw\"\u003e\u003c/div\u003e\u003c/div\u003e\u003cbr style=\"\"\u003e\u003cp\u003e\u003c/p\u003e",
+      "Body": "\u003cp\u003eFile:\u003c/p\u003e\r\n\r\n\u003cp\u003e\u003cimg alt=\"\" height=\"22\" src=\"/types/file\" width=\"111\" /\u003e\u003c/p\u003e\r\n\r\n\u003cp\u003eImage:\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u003cimg alt=\"\" height=\"187\" src=\"/types/image?size=example.Foo\" width=\"250\" /\u003e\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n",
+      "Description": "",
+      "Thumbnail": "",
       "Title": "Node Types"
     }
   }

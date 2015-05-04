@@ -40,6 +40,7 @@ func init() {
 	gob.Register(new(ListFieldType))
 	gob.Register(new(MapFieldType))
 	gob.Register(new(CombinedFieldType))
+	gob.Register(new(IntegerFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -173,10 +174,14 @@ func (t CombinedFieldType) Field() Field {
 type CombinedField struct {
 	Fields    map[string]Field
 	fieldType *CombinedFieldType
+	monsti    *MonstiClient
+	site      string
 }
 
 func (f *CombinedField) Init(m *MonstiClient, site string) error {
 	f.Fields = make(map[string]Field)
+	f.monsti = m
+	f.site = site
 	return nil
 }
 
@@ -202,6 +207,7 @@ func (f *CombinedField) Load(dataFnc func(interface{}) error) error {
 			return json.Unmarshal(msg, in)
 		}
 		field := f.fieldType.Fields[k].Type.Field()
+		field.Init(f.monsti, f.site)
 		if err := field.Load(fieldDataFnc); err != nil {
 			return fmt.Errorf("Could not parse combined field data: %v", err)
 		}
@@ -617,9 +623,13 @@ func (t ListFieldType) Field() Field {
 type ListField struct {
 	Fields    []Field
 	fieldType FieldType
+	monsti    *MonstiClient
+	site      string
 }
 
 func (f *ListField) Init(m *MonstiClient, site string) error {
+	f.monsti = m
+	f.site = site
 	return nil
 }
 
@@ -646,6 +656,7 @@ func (f *ListField) Load(dataFnc func(interface{}) error) error {
 			return json.Unmarshal(msg, in)
 		}
 		field := elementType.Field()
+		field.Init(f.monsti, f.site)
 		if err := field.Load(fieldDataFnc); err != nil {
 			return fmt.Errorf("Could not parse the date value: %v", err)
 		}
@@ -717,10 +728,14 @@ func (t MapFieldType) Field() Field {
 type MapField struct {
 	Fields    map[string]Field
 	fieldType FieldType
+	monsti    *MonstiClient
+	site      string
 }
 
 func (f *MapField) Init(m *MonstiClient, site string) error {
 	f.Fields = make(map[string]Field)
+	f.monsti = m
+	f.site = site
 	return nil
 }
 
@@ -747,6 +762,7 @@ func (f *MapField) Load(dataFnc func(interface{}) error) error {
 			return json.Unmarshal(msg, in)
 		}
 		field := elementType.Field()
+		field.Init(f.monsti, f.site)
 		if err := field.Load(fieldDataFnc); err != nil {
 			return fmt.Errorf("Could not parse map data: %v", err)
 		}

@@ -9,6 +9,12 @@
     "OwnerName": "The Owner",
     "OwnerEmail": "owner@example.com",
     "SessionAuthKey": "aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao",
-    "PasswordTokenKey": "foobarblacruz"
+    "PasswordTokenKey": "foobarblacruz",
+    "ImageStyles": {
+      "example.Foo": {
+        "width": 250,
+        "height": 250
+      }
+    }
   }
 }

@@ -119,12 +119,10 @@ func setup(c *module.ModuleContext) error {
 				Type: &service.CombinedFieldType{
 					map[string]service.FieldConfig{
 						"Text": {
-							Id:   "Text",
 							Name: i18n.GenLanguageMap(G("Text"), availableLocales),
 							Type: new(service.TextFieldType),
 						},
 						"Bool": {
-							Id:   "Bool",
 							Name: i18n.GenLanguageMap(G("Bool"), availableLocales),
 							Type: new(service.BoolFieldType),
 						},
