@@ -71,7 +71,7 @@ func (n NestedMap) Set(id string, value interface{}) {
 
 type Field interface {
 	// Init initializes the field.
-	Init(*MonstiClient, string, FieldType) error
+	Init(*MonstiClient, string) error
 	// RenderHTML returns a string or template.HTML to be used in a html
 	// template.
 	RenderHTML() interface{}
@@ -112,7 +112,7 @@ func (_ BoolFieldType) Field() Field {
 // BoolField is a basic boolean field rendered as checkbox.
 type BoolField bool
 
-func (t BoolField) Init(*MonstiClient, string, FieldType) error {
+func (t BoolField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -169,7 +169,7 @@ func (_ RefFieldType) Field() Field {
 // RefField contains a reference to another node.
 type RefField string
 
-func (t RefField) Init(*MonstiClient, string, FieldType) error {
+func (t RefField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -227,7 +227,7 @@ func (_ IntegerFieldType) Field() Field {
 // IntegerField is a basic integer field.
 type IntegerField int
 
-func (t IntegerField) Init(*MonstiClient, string, FieldType) error {
+func (t IntegerField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -285,7 +285,7 @@ func (_ TextFieldType) Field() Field {
 // TextField is a basic unicode text field
 type TextField string
 
-func (t TextField) Init(*MonstiClient, string, FieldType) error {
+func (t TextField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -343,7 +343,7 @@ func (_ HTMLFieldType) Field() Field {
 // HTMLField is a text area containing HTML code
 type HTMLField string
 
-func (t HTMLField) Init(*MonstiClient, string, FieldType) error {
+func (t HTMLField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -397,7 +397,7 @@ func (_ FileFieldType) Field() Field {
 
 type FileField string
 
-func (t FileField) Init(*MonstiClient, string, FieldType) error {
+func (t FileField) Init(*MonstiClient, string) error {
 	return nil
 }
 
@@ -452,8 +452,7 @@ type DateTimeField struct {
 	Location *time.Location
 }
 
-func (t *DateTimeField) Init(m *MonstiClient, site string,
-	config FieldType) error {
+func (t *DateTimeField) Init(m *MonstiClient, site string) error {
 	settings, err := m.LoadSiteSettings(site)
 	if err != nil {
 		return fmt.Errorf("Could not get timezone: %v", err)
@@ -519,7 +518,7 @@ func initFields(fields map[string]Field, configs []*FieldConfig,
 	m *MonstiClient, site string) error {
 	for _, config := range configs {
 		val := config.Type.Field()
-		err := val.Init(m, site, config.Type)
+		err := val.Init(m, site)
 		if err != nil {
 			return fmt.Errorf("Could not init field %q: %v", config.Id, err)
 		}
@@ -532,8 +531,8 @@ type ListFieldType struct {
 	ElementType FieldType
 }
 
-func (_ ListFieldType) Field() Field {
-	return &ListField{}
+func (t ListFieldType) Field() Field {
+	return &ListField{fieldType: &t}
 }
 
 type ListField struct {
@@ -541,9 +540,7 @@ type ListField struct {
 	fieldType FieldType
 }
 
-func (f *ListField) Init(m *MonstiClient, site string,
-	fieldType FieldType) error {
-	f.fieldType = fieldType
+func (f *ListField) Init(m *MonstiClient, site string) error {
 	return nil
 }
 
