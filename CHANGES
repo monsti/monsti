@@ -1,6 +1,6 @@
 * 0.11.0 - unreleased
  - New features:
-    + Added Integer and Map field types.
+    + Added Combined, Integer and Map field types.
  - Changes:
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.

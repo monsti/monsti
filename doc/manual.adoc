@@ -131,6 +131,10 @@ requested node's parameter.
 
 == Field types
 
+=== Combined
+
+Combined fields allow to group multiple fields of arbitrary types.
+
 === DateTime
 
 The DateTime field stores a point in time. Views and form inputs will

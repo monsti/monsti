@@ -37,3 +37,10 @@ Field is {{if not ((index .Node.Fields "example.Bool").Bool)}}un{{end}}checked!
   {{$key}}: {{$value.Value}}<br>
   {{end}}
 </p>
+
+<h2>Combined fields (no GUI yet)</h2>
+<p>
+  {{range $key, $value := ((index .Node.Fields "example.Combined").Value)}}
+  {{$key}}: {{$value.Value}}<br>
+  {{end}}
+</p>

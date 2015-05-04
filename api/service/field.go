@@ -39,6 +39,7 @@ func init() {
 	gob.Register(new(RefFieldType))
 	gob.Register(new(ListFieldType))
 	gob.Register(new(MapFieldType))
+	gob.Register(new(CombinedFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -159,6 +160,83 @@ func (f *BoolField) FromFormData(data interface{}) {
 func (f BoolField) FormWidget() htmlwidgets.Widget {
 	panic("Not implemented")
 	return nil
+}
+
+type CombinedFieldType struct {
+	Fields map[string]FieldConfig
+}
+
+func (t CombinedFieldType) Field() Field {
+	return &CombinedField{fieldType: &t}
+}
+
+type CombinedField struct {
+	Fields    map[string]Field
+	fieldType *CombinedFieldType
+}
+
+func (f *CombinedField) Init(m *MonstiClient, site string) error {
+	f.Fields = make(map[string]Field)
+	return nil
+}
+
+func (f CombinedField) RenderHTML() interface{} {
+	var out []interface{}
+	for k, field := range f.Fields {
+		out = append(out, fmt.Sprintf("%v:", k), field.RenderHTML())
+	}
+	return out
+}
+
+func (f CombinedField) Value() interface{} {
+	return f.Fields
+}
+
+func (f *CombinedField) Load(dataFnc func(interface{}) error) error {
+	var data map[string]json.RawMessage
+	if err := dataFnc(&data); err != nil {
+		return err
+	}
+	for k, msg := range data {
+		fieldDataFnc := func(in interface{}) error {
+			return json.Unmarshal(msg, in)
+		}
+		field := f.fieldType.Fields[k].Type.Field()
+		if err := field.Load(fieldDataFnc); err != nil {
+			return fmt.Errorf("Could not parse combined field data: %v", err)
+		}
+		f.Fields[k] = field
+	}
+	return nil
+}
+
+func (f CombinedField) Dump() interface{} {
+	out := make(map[string]interface{})
+	for k, field := range f.Fields {
+		out[k] = field.Dump()
+	}
+	return out
+}
+
+func (f CombinedField) FormData() interface{} {
+	panic("Not implemented")
+	return nil
+}
+
+func (f *CombinedField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f CombinedField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
+func (t CombinedField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+}
+
+func (t *CombinedField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type RefFieldType int

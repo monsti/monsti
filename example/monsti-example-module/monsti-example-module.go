@@ -113,6 +113,23 @@ func setup(c *module.ModuleContext) error {
 				Name: i18n.GenLanguageMap(G("Map"), availableLocales),
 				Type: &service.MapFieldType{new(service.TextFieldType)},
 			},
+			{
+				Id:   "example.Combined",
+				Name: i18n.GenLanguageMap(G("Combined"), availableLocales),
+				Type: &service.CombinedFieldType{
+					map[string]service.FieldConfig{
+						"Text": {
+							Id:   "Text",
+							Name: i18n.GenLanguageMap(G("Text"), availableLocales),
+							Type: new(service.TextFieldType),
+						},
+						"Bool": {
+							Id:   "Bool",
+							Name: i18n.GenLanguageMap(G("Bool"), availableLocales),
+							Type: new(service.BoolFieldType),
+						},
+					}},
+			},
 		},
 	}
 	if err := m.RegisterNodeType(&nodeType); err != nil {
