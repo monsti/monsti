@@ -227,6 +227,11 @@ translations in this directory.
 To help improving an existing translation, get in touch with the
 author(s) of the translation (the authors are noted in the `.po` files).
 
+== Navigations
+
+The `core.Navigation` setting currently allows to configure the main
+navigation (no GUI yet). The corresponding map key is `core.Main`.
+
 == Modules
 
 Modules allow to add new functionality or alter Monsti's

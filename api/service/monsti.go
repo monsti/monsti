@@ -159,6 +159,19 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Type:   new(BoolFieldType),
 		},
 		{
+			Id:     "core.Navigations",
+			Name:   i18n.GenLanguageMap(G("Navigations"), []string{"de", "en"}),
+			Hidden: true,
+			Type: &MapFieldType{
+				&CombinedFieldType{
+					map[string]FieldConfig{
+						"depth": {
+							Type: new(IntegerFieldType),
+						},
+					}},
+			},
+		},
+		{
 			Id:     "core.ImageStyles",
 			Hidden: true,
 			Type: &MapFieldType{

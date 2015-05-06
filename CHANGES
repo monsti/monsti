@@ -1,6 +1,8 @@
 * 0.11.0 - unreleased
  - New features:
     + Added Combined, Integer and Map field types.
+    + Added core.Navigations setting which allows to specify the depth
+      of the main navigation.
  - Changes:
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.

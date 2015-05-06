@@ -37,33 +37,35 @@ import (
 	"github.com/nfnt/resize"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/util/nodes"
 	mtemplate "pkg.monsti.org/monsti/api/util/template"
 )
 
 // navLink represents a link in the navigation.
 type navLink struct {
-	Name, Target               string
-	Active, ActiveBelow, Child bool
-	Order                      int
+	Name, Target        string
+	Active, ActiveBelow bool
+	Order, Level        int
+	Children            navigation
+}
+
+func (n navLink) Child() bool {
+	return n.Level > 0
 }
 
 type navigation []navLink
 
-// Len is the number of elements in the navigation.
-func (n navigation) Len() int {
-	return len(n)
-}
-
-// Less returns whether the element with index i should sort
-// before the element with index j.
-func (n navigation) Less(i, j int) bool {
-	return n[i].Order < n[j].Order || (n[i].Order == n[j].Order &&
-		n[i].Name < n[j].Name)
-}
-
-// Swap swaps the elements with indexes i and j.
-func (n *navigation) Swap(i, j int) {
-	(*n)[i], (*n)[j] = (*n)[j], (*n)[i]
+// MakeAbsolute converts relative targets to absolute ones by adding the given
+// root path. It also adds a trailing slash.
+func (nav *navigation) MakeAbsolute(root string) {
+	for i := range *nav {
+		if (*nav)[i].Target[0] != '/' {
+			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
+		}
+		if !strings.HasSuffix((*nav)[i].Target, "/") {
+			(*nav)[i].Target = (*nav)[i].Target + "/"
+		}
+	}
 }
 
 // getNodeTitle tries to get a title of a node
@@ -78,98 +80,120 @@ func getNodeTitle(node *service.Node) string {
 type getNodeFunc func(path string) (*service.Node, error)
 type getChildrenFunc func(path string) ([]*service.Node, error)
 
+func getNavLinks(node *service.Node, includeRoot, public bool, getNodeFn getNodeFunc,
+	getChildrenFn getChildrenFunc, depth int) (
+	navLinks navigation, err error) {
+	return getNavLinksRec(node, includeRoot, public, getNodeFn, getChildrenFn, depth,
+		0)
+}
+
+func getNavLinksRec(node *service.Node, includeRoot, public bool, getNodeFn getNodeFunc,
+	getChildrenFn getChildrenFunc, depth int, level int) (
+	navigation, error) {
+
+	if depth < 0 || node.Hide || node.Type.Hide || public && !node.Public {
+		return nil, nil
+	}
+
+	// Search children and sort them by their orders and names.
+	children, err := getChildrenFn(node.Path)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get children: %v", err)
+	}
+	sort.Sort(&nodes.Sorter{children, func(left, right *service.Node) bool {
+		return left.Order < right.Order || (left.Order == right.Order &&
+			getNodeTitle(left) < getNodeTitle(right))
+	}})
+	var childNavLinks navigation
+	for _, child := range children {
+		tmpNavLinks, err := getNavLinksRec(child, true, public, getNodeFn,
+			getChildrenFn, depth-1, level+1)
+		if err != nil {
+			return nil, err
+		}
+		childNavLinks = append(childNavLinks, tmpNavLinks...)
+	}
+
+	if includeRoot {
+		return navigation{
+			navLink{
+				Name:     getNodeTitle(node),
+				Target:   node.Path,
+				Order:    node.Order,
+				Level:    level,
+				Children: childNavLinks,
+			}}, nil
+	}
+	return childNavLinks, nil
+}
+
 // getNav returns the navigation for the given node.
 //
 // If public is true, show only public pages.
 // nodePath is the absolute path of the node for which to get the navigation.
 // active is the absolute path to the currently active node.
+// Descends until the given depth.
 func getNav(nodePath, active string, public bool,
-	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc) (
+	getNodeFn getNodeFunc, getChildrenFn getChildrenFunc, depth int) (
 	navLinks navigation, err error) {
+
+	node, err := getNodeFn(nodePath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get node: %v", err)
+	}
 
 	// Search children
 	children, err := getChildrenFn(nodePath)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get children: %v", err)
 	}
-	childrenNavLinks := navLinks[:]
-	for _, child := range children {
-		if child.Hide || child.Type.Hide || public && !child.Public {
-			continue
+
+	// If there are no children, return the navigation for the parent
+	// node unless this or the parent node is the root node. In the
+	// first case, there is no parent, and in the second case, this
+	// often makes no sense as the navigation would be similar to the
+	// main navigation.
+	//
+	// In this case, the navigation of the parent node gives more
+	// context than only listing this node with its siblings.
+	if nodePath == "/" || path.Dir(nodePath) == "/" {
+		navLinks, err = getNavLinks(node, nodePath == "/" || len(children) > 0,
+			public, getNodeFn, getChildrenFn, depth)
+		if nodePath == "/" && len(navLinks) > 0 {
+			navLinks = append(navLinks, navLinks[0].Children...)
+			navLinks[0].Children = nil
 		}
-		childrenNavLinks = append(childrenNavLinks, navLink{
-			Name:   getNodeTitle(child),
-			Target: path.Join(nodePath, child.Name()),
-			Child:  true, Order: child.Order})
-	}
-	if len(childrenNavLinks) == 0 {
-		if nodePath == "/" || path.Dir(nodePath) == "/" {
-			return nil, nil
-		}
-		return getNav(path.Dir(nodePath), active, public, getNodeFn, getChildrenFn)
-	}
-	sort.Sort(&childrenNavLinks)
-	siblingsNavLinks := navLinks[:]
-	// Search siblings
-	if path.Dir(nodePath) == "/" {
-		node, err := getNodeFn(nodePath)
+	} else if len(children) == 0 {
+		parent, err := getNodeFn(path.Dir(nodePath))
 		if err != nil {
-			return nil, fmt.Errorf("Could not get node: %v", err)
+			return nil, fmt.Errorf("Could not get parent node: %v", err)
 		}
-		siblingsNavLinks = append(siblingsNavLinks, navLink{
-			Name:   getNodeTitle(node),
-			Target: nodePath, Order: node.Order})
-	} else if nodePath != "/" {
-		parent := path.Dir(nodePath)
-		siblings, err := getChildrenFn(parent)
-		if err != nil {
-			return nil, fmt.Errorf("Could not get siblings: %v", err)
-		}
-		for _, sibling := range siblings {
-			if sibling.Hide || sibling.Type.Hide || public && !sibling.Public {
-				continue
-			}
-			siblingsNavLinks = append(siblingsNavLinks, navLink{
-				Name:   getNodeTitle(sibling),
-				Target: path.Join(nodePath, "..", sibling.Name()), Order: sibling.Order})
-		}
+		navLinks, err = getNavLinks(parent, true, public, getNodeFn,
+			getChildrenFn, depth)
+	} else {
+		navLinks, err = getNavLinks(node, true, public, getNodeFn,
+			getChildrenFn, depth)
 	}
-	sort.Sort(&siblingsNavLinks)
-	// Insert children at their parent
-	for i, link := range siblingsNavLinks {
-		if link.Target == nodePath {
-			navLinks = append(navLinks, siblingsNavLinks[:i+1]...)
-			navLinks = append(navLinks, childrenNavLinks...)
-			navLinks = append(navLinks, siblingsNavLinks[i+1:]...)
-			break
-		}
+	if err != nil {
+		return nil, err
 	}
-	if len(navLinks) == 0 {
-		navLinks = childrenNavLinks
-	}
+
 	// Compute node paths relative to active node and search and set the Active
 	// link
-	for i, link := range navLinks {
-		if active == link.Target {
-			navLinks[i].Active = true
-		} else if strings.HasPrefix(active, link.Target) {
-			navLinks[i].ActiveBelow = true
+	var relPaths func(navigation)
+	relPaths = func(nav navigation) {
+		for i, link := range nav {
+			if active == link.Target {
+				nav[i].Active = true
+			} else if strings.HasPrefix(active, link.Target) {
+				nav[i].ActiveBelow = true
+			}
+			relPaths(link.Children)
 		}
 	}
-	return
-}
+	relPaths(navLinks)
 
-// MakeAbsolute converts relative targets to absolute ones by adding the given
-// root path. It also adds a trailing slash.
-func (nav *navigation) MakeAbsolute(root string) {
-	for i := range *nav {
-		if (*nav)[i].Target[0] != '/' {
-			(*nav)[i].Target = path.Join(root, (*nav)[i].Target)
-		}
-		if !strings.HasSuffix((*nav)[i].Target, "/") {
-			(*nav)[i].Target = (*nav)[i].Target + "/"
-		}
-	}
+	return
 }
 
 // Add handles add requests.
