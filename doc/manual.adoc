@@ -174,8 +174,7 @@ configure your allowed image sizes. Have a look at the
 To access these sizes, add `?size=<size_name>` to the image URL,
 e.g. `/foo/my_image.jpeg?size=thumbnail`.
 
-Monsti will generate the specified size if it has not been generated
-before and saves it in the node's directory.
+Resized images will be cached.
 
 === Modifying node types
 
