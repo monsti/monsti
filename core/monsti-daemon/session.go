@@ -343,7 +343,7 @@ func writeUserDatabase(users map[string]service.User, dataDir string) error {
 	if err != nil {
 		return fmt.Errorf("Could not marshal user database: %v", err)
 	}
-	if err = ioutil.WriteFile(path, content, 0600); err != nil {
+	if err = ioutil.WriteFile(path, content, 0660); err != nil {
 		return fmt.Errorf("Could not write user database: %v", err)
 	}
 	return nil

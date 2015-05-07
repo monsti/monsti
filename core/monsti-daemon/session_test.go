@@ -66,7 +66,7 @@ func TestGetUser(t *testing.T) {
 "bar":{"name":"Mrs. Bar","email":"bar@example.com","password":"other pass"}}
 `)
 	if err = ioutil.WriteFile(filepath.Join(root, "users.json"),
-		db, 0600); err != nil {
+		db, 0660); err != nil {
 		t.Fatalf("Could not write navigation: %s", err)
 	}
 	tests := []struct {

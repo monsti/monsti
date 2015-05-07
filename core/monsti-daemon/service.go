@@ -319,7 +319,7 @@ func (i *MonstiService) WriteSiteSettings(args *WriteSiteSettingsArgs,
 	defer i.siteMutexes[args.Site].Unlock()
 	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
 	path := filepath.Join(site, "settings.json")
-	if err := ioutil.WriteFile(path, []byte(args.Settings), 0600); err != nil {
+	if err := ioutil.WriteFile(path, []byte(args.Settings), 0660); err != nil {
 		return fmt.Errorf("Could not write site settings data: %v", err)
 	}
 	return nil
@@ -349,11 +349,11 @@ func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
 	defer i.siteMutexes[args.Site].Unlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
-	err := os.MkdirAll(filepath.Dir(path), 0700)
+	err := os.MkdirAll(filepath.Dir(path), 0770)
 	if err != nil {
 		return fmt.Errorf("Could not create node directory: %v", err)
 	}
-	err = ioutil.WriteFile(path, []byte(args.Content), 0600)
+	err = ioutil.WriteFile(path, []byte(args.Content), 0660)
 	if err != nil {
 		return fmt.Errorf("Could not write node data: %v", err)
 	}
@@ -427,7 +427,7 @@ func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
 	defer i.siteMutexes[args.Site].Unlock()
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	if err := os.MkdirAll(
-		filepath.Dir(filepath.Join(root, args.Target)), 0700); err != nil {
+		filepath.Dir(filepath.Join(root, args.Target)), 0770); err != nil {
 		return fmt.Errorf("Can't create parent directory: %v", err)
 	}
 	if err := os.Rename(
@@ -634,10 +634,10 @@ func writeRdeps(root, node string, rdeps CacheDepMap) error {
 		return fmt.Errorf("Could not marshal rdeps: %v", err)
 	}
 	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
-	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0770); err != nil {
 		return fmt.Errorf("Could not create node cache directory: %v", err)
 	}
-	if err := ioutil.WriteFile(rdepsPath, content, 0600); err != nil {
+	if err := ioutil.WriteFile(rdepsPath, content, 0660); err != nil {
 		return fmt.Errorf("Could not write rdeps: %v", err)
 	}
 	return nil
@@ -672,7 +672,7 @@ func toCache(root, node, id string, content []byte,
 	// Write cache to filesystem.
 	nodePath := filepath.Join(root, node[1:])
 	path := filepath.Join(nodePath, ".data", filepath.Base(id))
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0770); err != nil {
 		return fmt.Errorf("Could not create node cache directory: %v", err)
 	}
 	if mods != nil {
@@ -684,7 +684,7 @@ func toCache(root, node, id string, content []byte,
 	if err := enc.Encode(&data); err != nil {
 		return fmt.Errorf("Could not encode cache data: %v", err)
 	}
-	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
+	if err := ioutil.WriteFile(path, raw.Bytes(), 0660); err != nil {
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
 

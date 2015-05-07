@@ -7,6 +7,8 @@
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.
     + Moved mail contents to template.
+    + Change created file/directory permission from 0600 to 0660 and
+      from 0700 to 0770.
  - Fixed:
     + Fix Makefile for MacOSX
 
