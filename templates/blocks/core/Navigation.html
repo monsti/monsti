@@ -1,10 +1,15 @@
 {{define "navLinks"}}
 {{with .}}
-{{range .}}<li class="{{if .ActiveBelow}}nav-active-below {{end}}{{if .Child}}nav-child {{end}}{{if .Active}}nav-active{{end}}"><a href="{{.Target}}" class="nav-link nav-link-level-{{.Level}}"><span class="nav-name">{{.Name}}</span></a><ul class="nav-links nav-links-level-{{.Level}}">{{template "navLinks" .Children}}</ul></li>{{end}}
+{{range .}}<li class="nav__link nav__link-level-{{.Level}}
+{{if .ActiveBelow}}nav__link--active-below{{end}}"
+><a href="{{.Target}}"
+    ><span class="nav__name">{{.Name}}</span></a
+><ul class="nav__links nav__children nav__children-level-{{.Level}}"
+     >{{template "navLinks" .Children}}</ul></li>{{end}}
 {{end}}
 {{end}}
-<nav class="nav-{{.Id}}">
-  <ul class="nav-links nav-links-level-0">
+<nav class="nav nav-{{idToClass .Id}}">
+  <ul class="nav__links">
     {{template "navLinks" .Links}}
   </ul>
 </nav>

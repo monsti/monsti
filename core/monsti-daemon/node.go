@@ -162,6 +162,7 @@ func getNav(nodePath, active string, public bool,
 		if nodePath == "/" && len(navLinks) > 0 {
 			navLinks = append(navLinks, navLinks[0].Children...)
 			navLinks[0].Children = nil
+			navLinks[0].Level = 1
 		}
 	} else if len(children) == 0 {
 		parent, err := getNodeFn(path.Dir(nodePath))
@@ -187,6 +188,9 @@ func getNav(nodePath, active string, public bool,
 				nav[i].Active = true
 			} else if strings.HasPrefix(active, link.Target) {
 				nav[i].ActiveBelow = true
+			}
+			if nodePath == "/" {
+				nav[i].Level = nav[i].Level - 1
 			}
 			relPaths(link.Children)
 		}
