@@ -17,7 +17,6 @@
 package service
 
 import (
-	"strings"
 	"time"
 
 	"pkg.monsti.org/monsti/api/util/i18n"
@@ -36,14 +35,6 @@ type Block struct {
 func (n *Block) InitFields(m *MonstiClient, site string) error {
 	n.Fields = make(map[string]Field)
 	return initFields(n.Fields, n.Type.Fields, m, site)
-}
-
-// TypeToID returns an ID for the given block type.
-//
-// The ID is simply the type of the block with the namespace dot
-// replaced by a hyphen and the result prefixed with "block-type-".
-func (n Block) TypeToID() string {
-	return "block-type-" + strings.Replace(n.Type.Id, ".", "-", 1)
 }
 
 type BlockType struct {
