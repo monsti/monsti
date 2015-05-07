@@ -50,6 +50,11 @@ func splitFirstDir(path string) string {
 	return strings.SplitN(path, "/", 2)[0]
 }
 
+type renderedBlock struct {
+	Block    *service.Block
+	Rendered htmlT.HTML
+}
+
 // renderInMaster renders the content in the master template.
 func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 	settings *settings, site string, siteSettings *service.Settings,
@@ -106,18 +111,38 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		secnav.MakeAbsolute(env.Node.Path)
 	}
 
+	blocks := make(map[string][]renderedBlock)
+
+	// EXPERIMENTAL Render blocks
+	if _, ok := siteSettings.Fields["core.RegionBlocks"].(*service.MapField).
+		Fields["core.PrimaryNavigation"].(*service.ListField); ok {
+		renderedNav, err := r.Render("blocks/core/Navigation", template.Context{
+			"Id":    "core.PrimaryNavigation",
+			"Links": prinav,
+		}, userLocale, settings.Monsti.GetSiteTemplatesPath(site))
+		if err != nil {
+			panic(fmt.Sprintf("Could not render navigation: %v", err))
+		}
+		blocks["core.PrimaryNavigation"] = append(blocks["core.PrimaryNavigation"],
+			renderedBlock{
+				Rendered: htmlT.HTML(renderedNav),
+			})
+	}
+
 	title := getNodeTitle(env.Node)
 	ret, err := r.Render("master", template.Context{
 		"Site":         site,
 		"SiteSettings": siteSettings,
 		"Page": template.Context{
 			"Node":             env.Node,
-			"PrimaryNav":       prinav,
-			"SecondaryNav":     secnav,
+			"PrimaryNav":       prinav, // TODO DEPRECATED
+			"SecondaryNav":     secnav, // TODO DEPRECATED
 			"EditView":         env.Flags&EDIT_VIEW != 0,
 			"Title":            title,
 			"Content":          htmlT.HTML(content),
-			"ShowSecondaryNav": len(secnav) > 0},
+			"ShowSecondaryNav": len(secnav) > 0, // TODO DEPRECATED
+			"Blocks":           blocks,
+		},
 		"Session": env.Session}, userLocale,
 		settings.Monsti.GetSiteTemplatesPath(site))
 	if err != nil {

@@ -186,6 +186,15 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 					}},
 			},
 		},
+		{
+			// EXPERIMENTAL
+			Id:     "core.RegionBlocks",
+			Hidden: true,
+			Type: &MapFieldType{
+				&ListFieldType{
+					&CombinedFieldType{map[string]FieldConfig{
+						"id": {Type: new(TextFieldType)}}}}},
+		},
 	}
 
 	settings, err := newSettingsFromData(reply, types, s, site)
