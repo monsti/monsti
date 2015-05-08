@@ -126,8 +126,8 @@ locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
 
 .PHONY: locale/monsti-daemon.pot
 locale/monsti-daemon.pot:
-	find templates/ core/ -name "*.html" -o -name "*.go"| xargs cat \
-	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
+	find templates/ core/ api/ -name "*.html" -o -name "*.go"| xargs cat \
+	  | sed 's|{{G "\(.*\)"}}|\ngettext("\1");\n|g' \
 	  | xgettext -d monsti-daemon -L C -p locale/ -kG -kGN:1,2 \
 	      -o monsti-daemon.pot -
 

@@ -47,7 +47,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	data := loginFormData{}
 
 	form := htmlwidgets.NewForm(&data)
-	form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("Login"), "")
+	form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("User name"), "")
 	form.AddWidget(new(htmlwidgets.PasswordWidget), "Password", G("Password"), "")
 
 	switch c.Req.Method {
