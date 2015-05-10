@@ -12,10 +12,11 @@ var monsti = monsti || {};
     defaultLanguage: monsti.session.locale,
     removePlugins: 'maximize,stylescombo',
     removeButtons: 'SpecialChar',
-    extraPlugins: 'autogrow,image2,showblocks',
+    extraPlugins: 'autogrow,image2,showblocks,onetimewidget',
     autoGrow_minHeight: 250,
     autoGrow_maxHeight: 600,
   };
+  CKEDITOR.plugins.addExternal('onetimewidget', '/static/lib/onetimewidget/', 'plugin.js' );
 })();
 
 // addCKEditor adds an CKEditor for the textarea with the given id.

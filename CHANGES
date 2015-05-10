@@ -3,6 +3,7 @@
     + Added Combined, Integer and Map field types.
     + Added core.Navigations setting which allows to specify the depth
       of the main navigation.
+    + Added CKEditor plugin One Time Widget.
  - Changes:
     + Replaced TinyMCE with CKEditor.
     + Lock site data on access.
