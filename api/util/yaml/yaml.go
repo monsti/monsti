@@ -24,7 +24,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"launchpad.net/goyaml"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Parse loads the given YAML file and unmarshals it into the given
@@ -35,7 +35,7 @@ func Parse(path string, out interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Could not load YAML file to be parsed: %v", err.Error())
 	}
-	err = goyaml.Unmarshal(content, out)
+	err = yaml.Unmarshal(content, out)
 	if err != nil {
 		return fmt.Errorf("Could not unmarshal YAML file: %v", err.Error())
 	}
