@@ -16,9 +16,7 @@
               <a href="/">{{.SiteSettings.StringValue "core.Title"}}</a>
             </div>
             <div class="primary-nav">
-              {{range (index .Page.Blocks "core.PrimaryNavigation" )}}
-              {{.Rendered}}
-              {{end}}
+              {{template "blocks/navigation" .Page.PrimaryNav}}
             </div>
           </div>
         </div>
