@@ -77,14 +77,14 @@ func TestGetNav(t *testing.T) {
 	}{
 		{"/", "/", 1, true, navigation{
 			{Target: "/", Active: true},
-			{Target: "/cruz", Level: 1, Order: -2},
-			{Target: "/foo", Level: 1},
-			{Target: "/bar", Level: 1, Order: 2}}},
+			{Target: "/cruz", Order: -2},
+			{Target: "/foo"},
+			{Target: "/bar", Order: 2}}},
 		{"/", "/foo/child2/child1", 1, true, navigation{
 			{Target: "/", Active: false, ActiveBelow: true},
-			{Target: "/cruz", Level: 1, Order: -2},
-			{Target: "/foo", Level: 1, ActiveBelow: true},
-			{Target: "/bar", Level: 1, Order: 2}}},
+			{Target: "/cruz", Order: -2},
+			{Target: "/foo", ActiveBelow: true},
+			{Target: "/bar", Order: 2}}},
 		{"/foo", "/foo", 1, true, navigation{
 			{Target: "/foo", Active: true, Children: navigation{
 				{Target: "/foo/child1", Level: 1},
