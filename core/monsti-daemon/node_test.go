@@ -71,47 +71,60 @@ func TestGetNav(t *testing.T) {
 	}
 	tests := []struct {
 		Path, Active string
+		Depth        int
 		Public       bool
 		Expected     navigation
 	}{
-		{"/", "/", true, navigation{
-			{Target: "/", Child: false, Active: true},
-			{Target: "/cruz", Child: true, Order: -2},
-			{Target: "/foo", Child: true},
-			{Target: "/bar", Child: true, Order: 2}}},
-		{"/", "/foo/child2/child1", true, navigation{
-			{Target: "/", Child: false, Active: false, ActiveBelow: true},
-			{Target: "/cruz", Child: true, Order: -2},
-			{Target: "/foo", Child: true, ActiveBelow: true},
-			{Target: "/bar", Child: true, Order: 2}}},
-		{"/foo", "/foo", true, navigation{
-			{Target: "/foo", Active: true},
-			{Target: "/foo/child1", Child: true},
-			{Target: "/foo/child2", Child: true}}},
-		{"/foo/child1", "/foo/child1", true, navigation{
-			{Target: "/foo", Active: false, ActiveBelow: true},
-			{Target: "/foo/child1", Child: true, Active: true},
-			{Target: "/foo/child2", Child: true}}},
-		{"/foo/child2", "/foo/child2", true, navigation{
-			{Target: "/foo/child1"},
-			{Target: "/foo/child2", Active: true},
-			{Target: "/foo/child2/child1", Child: true}}},
-		{"/foo/child2/child1", "/foo/child2/child1", true, navigation{
-			{Target: "/foo/child1"},
-			{Target: "/foo/child2", Active: false, ActiveBelow: true},
-			{Target: "/foo/child2/child1", Active: true, Child: true}}},
-		{"/bar", "/bar", true, navigation{}},
-		{"/cruz", "/cruz", true, navigation{
-			{Target: "/cruz", Active: true, Order: -2},
-			{Target: "/cruz/child1", Child: true}}}}
+		{"/", "/", 1, true, navigation{
+			{Target: "/", Active: true},
+			{Target: "/cruz", Order: -2},
+			{Target: "/foo"},
+			{Target: "/bar", Order: 2}}},
+		{"/", "/foo/child2/child1", 1, true, navigation{
+			{Target: "/", Active: false, ActiveBelow: true},
+			{Target: "/cruz", Order: -2},
+			{Target: "/foo", ActiveBelow: true},
+			{Target: "/bar", Order: 2}}},
+		{"/foo", "/foo", 1, true, navigation{
+			{Target: "/foo", Active: true, Children: navigation{
+				{Target: "/foo/child1", Level: 1},
+				{Target: "/foo/child2", Level: 1}}}}},
+		{"/foo", "/foo", 2, true, navigation{
+			{Target: "/foo", Active: true, Children: navigation{
+				{Target: "/foo/child1", Level: 1},
+				{Target: "/foo/child2", Level: 1, Children: navigation{
+					{Target: "/foo/child2/child1", Level: 2}}}}}}},
+		{"/foo/child1", "/foo/child1", 1, true, navigation{
+			{Target: "/foo", Active: false, ActiveBelow: true, Children: navigation{
+				{Target: "/foo/child1", Level: 1, Active: true},
+				{Target: "/foo/child2", Level: 1}}}}},
+		{"/foo/child2", "/foo/child2", 1, true, navigation{
+			/*			{Target: "/foo/child1"},*/
+			{Target: "/foo/child2", Active: true, Children: navigation{
+				{Target: "/foo/child2/child1", Level: 1}}}}},
+		{"/foo/child2/child1", "/foo/child2/child1", 1, true, navigation{
+			/*			{Target: "/foo/child1"},*/
+			{Target: "/foo/child2", Active: false, ActiveBelow: true, Children: navigation{
+				{Target: "/foo/child2/child1", Active: true, Level: 1}}}}},
+		{"/bar", "/bar", 1, true, navigation{}},
+		{"/cruz", "/cruz", 1, true, navigation{
+			{Target: "/cruz", Active: true, Order: -2, Children: navigation{
+				{Target: "/cruz/child1", Level: 1}}}}}}
 	for _, test := range tests {
-		for i, _ := range test.Expected {
-			test.Expected[i].Name = "Untitled"
+		var makeTitle func(nav *navigation)
+		makeTitle = func(nav *navigation) {
+			for i, _ := range *nav {
+				(*nav)[i].Name = "Untitled"
+				makeTitle(&((*nav)[i].Children))
+			}
 		}
-		ret, err := getNav(test.Path, test.Active, test.Public, getNodeFn, getChildrenFn)
-		if err != nil || !(len(ret) == 0 && len(test.Expected) == 0 || reflect.DeepEqual(ret, test.Expected)) {
-			t.Errorf("getNav(%q, %q, _) is\n%v, %v\nshould be\n%v, nil",
-				test.Path, test.Active, ret, err, test.Expected)
+		makeTitle(&test.Expected)
+		ret, err := getNav(test.Path, test.Active, test.Public, getNodeFn,
+			getChildrenFn, test.Depth)
+		if err != nil || !(len(ret) == 0 && len(test.Expected) == 0 ||
+			reflect.DeepEqual(ret, test.Expected)) {
+			t.Errorf("getNav(%q, %q, _) is\n%v, %v\nshould be\n%v, <nil> %v",
+				test.Path, test.Active, ret, err, test.Expected, reflect.DeepEqual(ret, test.Expected))
 		}
 	}
 }

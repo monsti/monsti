@@ -18,37 +18,66 @@ https://gitorious.org/monsti/monsti/
 - C compiler
 - Git, Bazaar, Mercurial (to fetch Go packages)
 - Go 1.3 or later
+- wget
 
 
 === Build
 
-`$ make`
+To fetch the dependencies and compile the sources, run the Makefile in
+the main directory using the `make` command:
 
+`$ make`
 
 === Tests
 
+To start all the tests (excluding the Selenium tests, see below for
+that), run the Makefile with the `test` target:
+
 `$ make test`
 
-For Selenium tests, have a look at `tests/README`
+For Selenium tests (browser/integration tests), have a look at
+`tests/README`.
 
 === Run
 
+In the main directory, run the following command to start Monsti.
+
 `$ go/bin/monsti-daemon <configuration directory>`
 
-To run the example site, go to the example site directory (example/)
-and run the start script: +
-`$ ./start.sh` +
+To run the example site, go to the example site directory (`example/`)
+and run the start script:
+
+`$ ./start.sh`
+
 Monsti will be listening on http://localhost:8080
 
 === Deployment
 
-Create packages to deploy (if you like):
+To create a tar archive containing all needed resources, run the
+following command in the main directory:
 
-tar: +
 `$ make dist`
 
-Debian archive (using https://github.com/jordansissel/fpm[fpm]): +
+Copy the archive (`dist/monsti-$VERSION.tar.gz`) to your server and
+unpack it, e.g. in `/opt`. A startup script (`start.sh`) is included
+to start Monsti. The user running Monsti must have read-write access
+to the `data` and `run` directories and read access to all other
+unpacked directories. To start Monsti on boot, write an init script
+(you'll find an example init script for Debian in the `example`
+directory) or use a software like
+http://supervisord.org/[supervisord]. To use syslog, run Monsti with
+the `-syslog` option.
+
+==== Debian
+
+If you use Debian, you might create a simple `deb` package using
+https://github.com/jordansissel/fpm[fpm]. Use the following command in
+the main directory:
+
 `$ make dist-deb`
+
+Install the package (`dist/monsti-$VERSION.deb`) and run Monsti with
+`monsti-daemon /etc/monsti`.
 
 === Documentation
 
@@ -102,11 +131,19 @@ requested node's parameter.
 
 == Field types
 
+=== Combined
+
+Combined fields allow to group multiple fields of arbitrary types.
+
 === DateTime
 
 The DateTime field stores a point in time. Views and form inputs will
 honour the site's time zone (i.e. the user will see and enter times in
-the the configured time zone).
+the configured time zone (`core.Timezone` setting)).
+
+=== Map
+
+Map fields map string keys to fields of a configurable type.
 
 == Node types
 
@@ -131,26 +168,13 @@ can be access via `/foo/my_image.jpeg`.
 ===== Automatic resizing
 
 Monsti features automatic resizing of images. First, you have to
-register your allowed image sizes in
-`<config_dir>/sites/<your_site>/image.json`.
-
-.Example for image sizes "thumbnail" (200x100) and "icon" (20x20)
-[source,javascript]
-----
-{
-  "sizes": {
-    "thumbnail": { "Width":200, "Height":100 },
-    "icon": { "Width":20, "Height":20 },
-  }
-}
-----
+configure your allowed image sizes. Have a look at the
+`core.ImageStyles` setting of the example site.
 
 To access these sizes, add `?size=<size_name>` to the image URL,
 e.g. `/foo/my_image.jpeg?size=thumbnail`.
 
-Monsti will generate the specified size if it has not been generated
-before and saves it in the node's directory.
-
+Resized images will be cached.
 
 === Modifying node types
 
@@ -201,6 +225,11 @@ produce a file `monsti-daemon.po`, wich will be placed into
 translations in this directory.
 To help improving an existing translation, get in touch with the
 author(s) of the translation (the authors are noted in the `.po` files).
+
+== Navigations
+
+The `core.Navigation` setting currently allows to configure the main
+navigation (no GUI yet). The corresponding map key is `core.Main`.
 
 == Modules
 

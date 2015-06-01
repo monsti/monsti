@@ -27,14 +27,13 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/go.crypto/bcrypt"
 	"crypto/sha256"
+	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/chrneumann/htmlwidgets"
 	"github.com/gorilla/sessions"
 	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"
-	msettings "pkg.monsti.org/monsti/api/util/settings"
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
@@ -48,7 +47,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	data := loginFormData{}
 
 	form := htmlwidgets.NewForm(&data)
-	form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("Login"), "")
+	form.AddWidget(new(htmlwidgets.TextWidget), "Login", G("User name"), "")
 	form.AddWidget(new(htmlwidgets.PasswordWidget), "Password", G("Password"), "")
 
 	switch c.Req.Method {
@@ -56,7 +55,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	case "POST":
 		if form.Fill(c.Req.Form) {
 			user, err := getUser(data.Login,
-				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+				h.Settings.Monsti.GetSiteDataPath(c.Site))
 			if err != nil {
 				return fmt.Errorf("Could not get user: %v", err)
 			}
@@ -74,7 +73,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 	data.Password = ""
 	body, err := h.Renderer.Render("actions/loginform", template.Context{
 		"Form": form.RenderData()}, c.UserSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render login form: %v", err)
 	}
@@ -82,7 +81,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 		Description: G("Login with your site account."),
 		Flags:       EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -116,34 +115,36 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 	case "POST":
 		if form.Fill(c.Req.Form) {
 			user, err := getUser(data.User,
-				h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+				h.Settings.Monsti.GetSiteDataPath(c.Site))
 			if err != nil {
 				return fmt.Errorf("Could not get user: %v", err)
 			}
 			if user != nil {
-				site := h.Settings.Monsti.Sites[c.Site.Name]
-				link := getRequestPasswordToken(c.Site.Name, data.User,
-					site.PasswordTokenKey)
+				link := getRequestPasswordToken(c.Site, data.User,
+					c.SiteSettings.StringValue("core.PasswordTokenKey"))
 
 				// Send email to user
 				mail := gomail.NewMessage()
-				mail.SetAddressHeader("From", site.EmailAddress, site.EmailName)
+				mail.SetAddressHeader("From",
+					c.SiteSettings.StringValue("core.EmailAddress"),
+					c.SiteSettings.StringValue("core.EmailName"))
 				mail.SetAddressHeader("To", user.Email, user.Login)
 				mail.SetHeader("Subject", G("Password request"))
-				mail.SetBody("text/plain", fmt.Sprintf(`Hello,
 
-someone, possibly you, requested a new password for your account %v at
-"%v".
-
-To change your password, visit the following link within 24 hours.
-If you did not request a new password, you may ignore this email.
-%v
-
-This is an automatically generated email. Please don't reply to it.
-`, data.User, site.Title, site.BaseURL+"/@@change-password?token="+link))
+				body, err := h.Renderer.Render("mails/change_password",
+					template.Context{
+						"SiteSettings": c.SiteSettings,
+						"Account":      data.User,
+						"ChangeLink": c.SiteSettings.StringValue("core.BaseURL") +
+							"/@@change-password?token=" + link,
+					}, c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
+				if err != nil {
+					return fmt.Errorf("Can't render password change mail: %v", err)
+				}
+				mail.SetBody("text/plain", string(body))
 				mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
 					c.Serv.Monsti().SendMailFunc()))
-				err := mailer.Send(mail)
+				err = mailer.Send(mail)
 				if err != nil {
 					return fmt.Errorf("Could not send mail: %v", err)
 				}
@@ -163,7 +164,7 @@ This is an automatically generated email. Please don't reply to it.
 		template.Context{
 			"Sent": sent,
 			"Form": form.RenderData()}, c.UserSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render login form: %v", err)
 	}
@@ -173,7 +174,7 @@ This is an automatically generated email. Please don't reply to it.
 		Title:   G("Request new password"),
 		Flags:   EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
@@ -208,11 +209,12 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 			return nil
 		}
 		getUserFn := func(login string) (*service.User, error) {
-			return getUser(login, h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+			return getUser(login, h.Settings.Monsti.GetSiteDataPath(c.Site))
 		}
 		var err error
 		user, err = verifyRequestPasswordToken(
-			c.Site.Name, getUserFn, c.Site.PasswordTokenKey, token)
+			c.Site, getUserFn, c.SiteSettings.StringValue("core.PasswordTokenKey"),
+			token)
 		if err != nil {
 			return fmt.Errorf("Could not verify request password token: %v", err)
 		}
@@ -246,7 +248,7 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 					}
 					user.PasswordChanged = time.Now().UTC()
 					user.Password = string(hashed)
-					err = writeUser(user, h.Settings.Monsti.GetSiteDataPath(c.Site.Name))
+					err = writeUser(user, h.Settings.Monsti.GetSiteDataPath(c.Site))
 					if err != nil {
 						return fmt.Errorf("Could not change user password: %v", err)
 					}
@@ -265,7 +267,7 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 			"TokenInvalid": tokenInvalid,
 			"Changed":      changed,
 			"Form":         form.RenderData()}, c.UserSession.Locale,
-		h.Settings.Monsti.GetSiteTemplatesPath(c.Site.Name))
+		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render ChangePassword form: %v", err)
 	}
@@ -275,18 +277,18 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 		Title:   G("Change password"),
 		Flags:   EDIT_VIEW}
 	rendered, _ := renderInMaster(h.Renderer, []byte(body), env, h.Settings,
-		*c.Site, c.UserSession.Locale, c.Serv)
+		c.Site, c.SiteSettings, c.UserSession.Locale, c.Serv)
 	c.Res.Write(rendered)
 	return nil
 }
 
 // getSession returns a currently active or new session.
-func getSession(r *http.Request, site msettings.Site) (
+func getSession(r *http.Request, key string) (
 	*sessions.Session, error) {
-	if len(site.SessionAuthKey) == 0 {
-		return nil, fmt.Errorf(`Missing "SessionAuthKey" setting.`)
+	if len(key) == 0 {
+		return nil, fmt.Errorf("Missing session auth key")
 	}
-	store := sessions.NewCookieStore([]byte(site.SessionAuthKey))
+	store := sessions.NewCookieStore([]byte(key))
 	session, _ := store.Get(r, "monsti-session")
 	return session, nil
 }
@@ -341,7 +343,7 @@ func writeUserDatabase(users map[string]service.User, dataDir string) error {
 	if err != nil {
 		return fmt.Errorf("Could not marshal user database: %v", err)
 	}
-	if err = ioutil.WriteFile(path, content, 0600); err != nil {
+	if err = ioutil.WriteFile(path, content, 0660); err != nil {
 		return fmt.Errorf("Could not write user database: %v", err)
 	}
 	return nil

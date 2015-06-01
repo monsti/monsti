@@ -21,7 +21,16 @@
         "Entry one",
         "Entry two",
         "Entry tree"
-      ]
+      ],
+      "Map": {
+        "Key One": "Value One",
+        "Key Two": "Value Two",
+        "Key Tree": "Value Three"
+      },
+      "Combined": {
+        "Text": "Text Value",
+        "Bool": true
+      }
     }
   }
 }

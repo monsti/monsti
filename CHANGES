@@ -1,3 +1,18 @@
+* 0.11.0 - released 2015/06/01
+ - New features:
+    + Added Combined, Integer and Map field types.
+    + Added core.Navigations setting which allows to specify the depth
+      of the main navigation.
+    + Added Dutch translation.
+ - Changes:
+    + Replaced TinyMCE with CKEditor.
+    + Lock site data on access.
+    + Moved mail contents to template.
+    + Change created file/directory permission from 0600 to 0660 and
+      from 0700 to 0770.
+ - Fixed:
+    + Fix Makefile for MacOSX
+
 * 0.10.0 - released 2015/04/03
  - New features:
     + Implemented site settings.

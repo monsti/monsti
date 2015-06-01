@@ -70,7 +70,7 @@ func (n Node) PathToID() string {
 	return "node-" + strings.Replace(n.Path, "/", "__", -1)
 }
 
-// TypeToID returns an ID for the given node type.
+// DEPRECATED TypeToID returns an ID for the given node type.
 //
 // The ID is simply the type of the node with the namespace dot
 // replaced by a hyphen and the result prefixed with "node-type-".

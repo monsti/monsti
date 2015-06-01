@@ -28,6 +28,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"pkg.monsti.org/gettext"
 )
@@ -81,6 +82,12 @@ func getIncludes(roots []string, name string) ([]string, error) {
 	return includes, nil
 }
 
+// IdToClass converts an id ("namespace.TheName") to a CSS class name
+// ("namespace-thename").
+func IdToClass(id string) string {
+	return strings.ToLower(strings.Replace(id, ".", "-", 1))
+}
+
 // Render the named template with given context.
 //
 // name is the name of the template (e.g. "blocks/sidebar").
@@ -100,11 +107,12 @@ func (r Renderer) Render(name string, context interface{},
 	tmpl := template.New(name)
 	G, GN, GD, GDN := gettext.DefaultLocales.Use("", locale)
 	funcs := template.FuncMap{
-		"pathJoin": path.Join,
-		"G":        G,
-		"GN":       GN,
-		"GD":       GD,
-		"GDN":      GDN,
+		"pathJoin":  path.Join,
+		"idToClass": IdToClass,
+		"G":         G,
+		"GN":        GN,
+		"GD":        GD,
+		"GDN":       GDN,
 		"RawHTML": func(in interface{}) template.HTML {
 			return template.HTML(fmt.Sprintf("%s", in))
 		},

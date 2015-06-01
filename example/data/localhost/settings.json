@@ -1,0 +1,20 @@
+{
+  "core": {
+    "CacheDisabled": true,
+    "Title": "Hallo Welt",
+    "Timezone": "Europe/Berlin",
+    "BaseURL": "http://localhost:8080",
+    "EmailName": "Example site",
+    "EmailAddress": "noreply@localhost",
+    "OwnerName": "The Owner",
+    "OwnerEmail": "owner@example.com",
+    "SessionAuthKey": "aoeuiaoeuiaoeuiaoeuiaoeuiaoeuiaoaoeuiaoeuiaoeuiaoeuiaoeuiaoeuiao",
+    "PasswordTokenKey": "foobarblacruz",
+    "ImageStyles": {
+      "example.Foo": {
+        "width": 250,
+        "height": 250
+      }
+    }
+  }
+}

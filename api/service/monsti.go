@@ -38,6 +38,19 @@ type MonstiClient struct {
 	SignalHandlers map[string]func(interface{}) (interface{}, error)
 }
 
+// InitSite initializes the site for the given host.
+//
+// Returns false, iff there is no site for the given host.
+func (s *MonstiClient) InitSite(host string) (found bool, err error) {
+	if s.Error != nil {
+		return false, s.Error
+	}
+	if err = s.RPCClient.Call("Monsti.InitSite", host, &found); err != nil {
+		err = fmt.Errorf("service: InitSite error: %v", err)
+	}
+	return
+}
+
 // NewMonstiConnection establishes a new RPC connection to a Monsti service.
 //
 // path is the unix domain socket path to the service.
@@ -79,15 +92,108 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 	G := func(in string) string { return in }
 	types := []*FieldConfig{
 		{
-			Id:       "core.SiteTitle",
+			Id:       "core.Title",
 			Required: true,
-			Name:     i18n.GenLanguageMap(G("Site title"), []string{"de", "en"}),
+			Name:     i18n.GenLanguageMap(G("Title"), []string{"de", "en"}),
 			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.BaseURL",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Base URL"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.Locale",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Locale"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.Timezone",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Timezone"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.EmailName",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Email name"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.EmailAddress",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Email address"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.OwnerName",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Owner name"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.OwnerEmail",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Owner email address"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+		},
+		{
+			Id:       "core.SessionAuthKey",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Session auth key"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+			Hidden:   true,
+		},
+		{
+			Id:       "core.PasswordTokenKey",
+			Required: true,
+			Name:     i18n.GenLanguageMap(G("Password token key"), []string{"de", "en"}),
+			Type:     new(TextFieldType),
+			Hidden:   true,
 		},
 		{
 			Id:     "core.CacheDisabled",
 			Hidden: true,
 			Type:   new(BoolFieldType),
+		},
+		{
+			Id:     "core.Navigations",
+			Name:   i18n.GenLanguageMap(G("Navigations"), []string{"de", "en"}),
+			Hidden: true,
+			Type: &MapFieldType{
+				&CombinedFieldType{
+					map[string]FieldConfig{
+						"depth": {
+							Type: new(IntegerFieldType),
+						},
+					}},
+			},
+		},
+		{
+			Id:     "core.ImageStyles",
+			Hidden: true,
+			Type: &MapFieldType{
+				&CombinedFieldType{
+					map[string]FieldConfig{
+						"width": {
+							Type: new(IntegerFieldType),
+						},
+						"height": {
+							Type: new(IntegerFieldType),
+						},
+					}},
+			},
+		},
+		{
+			// EXPERIMENTAL
+			Id:     "core.RegionBlocks",
+			Hidden: true,
+			Type: &MapFieldType{
+				&ListFieldType{
+					&CombinedFieldType{map[string]FieldConfig{
+						"id": {Type: new(TextFieldType)}}}}},
 		},
 	}
 
@@ -387,6 +493,8 @@ func getConfig(reply []byte, out interface{}) error {
 
 // GetSiteConfig puts the named site local configuration into the
 // variable out.
+//
+// Deprecated: Use site settings instead (e.g. LoadSiteSettings).
 func (s *MonstiClient) GetSiteConfig(site, name string, out interface{}) error {
 	if s.Error != nil {
 		return s.Error
@@ -399,23 +507,6 @@ func (s *MonstiClient) GetSiteConfig(site, name string, out interface{}) error {
 	}
 	return getConfig(reply, out)
 }
-
-/*
-
-// GetConfig puts the named global configuration into the variable out.
-func (s *MonstiClient) GetConfig(name string, out interface{}) error {
-	if s.Error != nil {
-		return s.Error
-	}
-	var reply []byte
-	err := s.RPCClient.Call("Monsti.GetConfig", name, &reply)
-	if err != nil {
-		return fmt.Errorf("service: GetConfig error: %v", err)
-	}
-	return getConfig(reply, out)
-}
-
-*/
 
 // RegisterNodeType registers a new node type.
 //

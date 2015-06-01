@@ -771,32 +771,59 @@ Git, Bazaar, Mercurial (to fetch Go packages)
 Go 1.3 or later
 </p>
 </li>
+<li>
+<p>
+wget
+</p>
+</li>
 </ul></div>
 </div>
 <div class="sect2">
 <h3 id="_build">Build</h3>
+<div class="paragraph"><p>To fetch the dependencies and compile the sources, run the Makefile in
+the main directory using the <code>make</code> command:</p></div>
 <div class="paragraph"><p><code>$ make</code></p></div>
 </div>
 <div class="sect2">
 <h3 id="_tests">Tests</h3>
+<div class="paragraph"><p>To start all the tests (excluding the Selenium tests, see below for
+that), run the Makefile with the <code>test</code> target:</p></div>
 <div class="paragraph"><p><code>$ make test</code></p></div>
-<div class="paragraph"><p>For Selenium tests, have a look at <code>tests/README</code></p></div>
+<div class="paragraph"><p>For Selenium tests (browser/integration tests), have a look at
+<code>tests/README</code>.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_run">Run</h3>
+<div class="paragraph"><p>In the main directory, run the following command to start Monsti.</p></div>
 <div class="paragraph"><p><code>$ go/bin/monsti-daemon &lt;configuration directory&gt;</code></p></div>
-<div class="paragraph"><p>To run the example site, go to the example site directory (example/)
-and run the start script:<br />
-<code>$ ./start.sh</code><br />
-Monsti will be listening on <a href="http://localhost:8080">http://localhost:8080</a></p></div>
+<div class="paragraph"><p>To run the example site, go to the example site directory (<code>example/</code>)
+and run the start script:</p></div>
+<div class="paragraph"><p><code>$ ./start.sh</code></p></div>
+<div class="paragraph"><p>Monsti will be listening on <a href="http://localhost:8080">http://localhost:8080</a></p></div>
 </div>
 <div class="sect2">
 <h3 id="_deployment">Deployment</h3>
-<div class="paragraph"><p>Create packages to deploy (if you like):</p></div>
-<div class="paragraph"><p>tar:<br />
-<code>$ make dist</code></p></div>
-<div class="paragraph"><p>Debian archive (using <a href="https://github.com/jordansissel/fpm">fpm</a>):<br />
-<code>$ make dist-deb</code></p></div>
+<div class="paragraph"><p>To create a tar archive containing all needed resources, run the
+following command in the main directory:</p></div>
+<div class="paragraph"><p><code>$ make dist</code></p></div>
+<div class="paragraph"><p>Copy the archive (<code>dist/monsti-$VERSION.tar.gz</code>) to your server and
+unpack it, e.g. in <code>/opt</code>. A startup script (<code>start.sh</code>) is included
+to start Monsti. The user running Monsti must have read-write access
+to the <code>data</code> and <code>run</code> directories and read access to all other
+unpacked directories. To start Monsti on boot, write an init script
+(you&#8217;ll find an example init script for Debian in the <code>example</code>
+directory) or use a software like
+<a href="http://supervisord.org/">supervisord</a>. To use syslog, run Monsti with
+the <code>-syslog</code> option.</p></div>
+<div class="sect3">
+<h4 id="_debian">Debian</h4>
+<div class="paragraph"><p>If you use Debian, you might create a simple <code>deb</code> package using
+<a href="https://github.com/jordansissel/fpm">fpm</a>. Use the following command in
+the main directory:</p></div>
+<div class="paragraph"><p><code>$ make dist-deb</code></p></div>
+<div class="paragraph"><p>Install the package (<code>dist/monsti-$VERSION.deb</code>) and run Monsti with
+<code>monsti-daemon /etc/monsti</code>.</p></div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_documentation">Documentation</h3>
@@ -862,10 +889,18 @@ requested node&#8217;s parameter.</p></div>
 <h2 id="_field_types">Field types</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="_combined">Combined</h3>
+<div class="paragraph"><p>Combined fields allow to group multiple fields of arbitrary types.</p></div>
+</div>
+<div class="sect2">
 <h3 id="_datetime">DateTime</h3>
 <div class="paragraph"><p>The DateTime field stores a point in time. Views and form inputs will
 honour the site&#8217;s time zone (i.e. the user will see and enter times in
-the the configured time zone).</p></div>
+the configured time zone (<code>core.Timezone</code> setting)).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_map">Map</h3>
+<div class="paragraph"><p>Map fields map string keys to fields of a configurable type.</p></div>
 </div>
 </div>
 </div>
@@ -890,24 +925,11 @@ can be access via <code>/foo/my_image.jpeg</code>.</p></div>
 <div class="sect4">
 <h5 id="_automatic_resizing">Automatic resizing</h5>
 <div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
-register your allowed image sizes in
-<code>&lt;config_dir&gt;/sites/&lt;your_site&gt;/image.json</code>.</p></div>
-<div class="listingblock">
-<div class="title">Example for image sizes "thumbnail" (200x100) and "icon" (20x20)</div>
-<div class="content"><!-- Generator: GNU source-highlight 3.1.7
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">{</span>
-  <span style="color: #FF0000">"sizes"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span>
-    <span style="color: #FF0000">"thumbnail"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">200</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">100</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-    <span style="color: #FF0000">"icon"</span><span style="color: #990000">:</span> <span style="color: #FF0000">{</span> <span style="color: #FF0000">"Width"</span><span style="color: #990000">:</span><span style="color: #993399">20</span><span style="color: #990000">,</span> <span style="color: #FF0000">"Height"</span><span style="color: #990000">:</span><span style="color: #993399">20</span> <span style="color: #FF0000">}</span><span style="color: #990000">,</span>
-  <span style="color: #FF0000">}</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
+configure your allowed image sizes. Have a look at the
+<code>core.ImageStyles</code> setting of the example site.</p></div>
 <div class="paragraph"><p>To access these sizes, add <code>?size=&lt;size_name&gt;</code> to the image URL,
 e.g. <code>/foo/my_image.jpeg?size=thumbnail</code>.</p></div>
-<div class="paragraph"><p>Monsti will generate the specified size if it has not been generated
-before and saves it in the node&#8217;s directory.</p></div>
+<div class="paragraph"><p>Resized images will be cached.</p></div>
 </div>
 </div>
 </div>
@@ -1076,6 +1098,13 @@ author(s) of the translation (the authors are noted in the <code>.po</code> file
 </div>
 </div>
 <div class="sect1">
+<h2 id="_navigations">Navigations</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The <code>core.Navigation</code> setting currently allows to configure the main
+navigation (no GUI yet). The corresponding map key is <code>core.Main</code>.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_modules">Modules</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Modules allow to add new functionality or alter Monsti&#8217;s
@@ -1189,7 +1218,7 @@ file named <code>include</code> at the root of the tree.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-02-18 16:50:45 CET
+ 2015-05-06 22:08:37 CEST
 </div>
 </div>
 </body>

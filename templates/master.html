@@ -1,19 +1,19 @@
 <!doctype html>
-<html class="no-js" lang="{{.Site.Locale}}">
+<html class="no-js" lang="{{.SiteSettings.StringValue "core.Locale"}}">
   <head>
     {{template "blocks/headers" .}}
     <link rel="stylesheet" type="text/css" href="/static/css/monsti.css" />
     <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
     <link rel="shortcut icon" href="/site-static/favicon.png" />
   </head>
-  <body class="{{.Page.Node.PathToID}} node-type-{{.Page.Node.TypeToID}}">
+  <body class="{{.Page.Node.PathToID}} node-type-{{idToClass .Page.Node.Type.Id}}">
     {{template "blocks/admin-bar" .}}
     <div class="site-wrap">
       <div class="top-wrap">
         <div class="header-wrap">
           <div class="header">
             <div class="site-title">
-              <a href="/">{{.Site.Title}}</a>
+              <a href="/">{{.SiteSettings.StringValue "core.Title"}}</a>
             </div>
             <div class="primary-nav">
               {{template "blocks/navigation" .Page.PrimaryNav}}

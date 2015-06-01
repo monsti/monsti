@@ -54,6 +54,7 @@ type MonstiService struct {
 	Services map[string][]string
 	// Mutex to syncronize data access
 	mutex         sync.RWMutex
+	siteMutexes   map[string]*sync.RWMutex
 	Settings      *settings
 	Logger        *log.Logger
 	Handler       *nodeHandler
@@ -65,6 +66,26 @@ type MonstiService struct {
 
 type PublishServiceArgs struct {
 	Service, Path string
+}
+
+func (i *MonstiService) InitSite(host *string, reply *bool) error {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	root := i.Settings.Monsti.GetSiteDataPath(filepath.Base(*host))
+	version, err := ioutil.ReadFile(filepath.Join(root, "version"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("Could not read version of site %v: %v", host, err)
+	}
+	if strings.Trim(string(version), " ") != monstiVersion {
+		return fmt.Errorf("Wrong database version for %v: %v, expected %v",
+			*host, version, monstiVersion)
+	}
+	i.siteMutexes[*host] = new(sync.RWMutex)
+	*reply = true
+	return nil
 }
 
 func (i *MonstiService) PublishService(args PublishServiceArgs,
@@ -250,6 +271,8 @@ type GetChildrenArgs struct {
 
 func (i *MonstiService) GetChildren(args GetChildrenArgs,
 	reply *[][]byte) error {
+	i.siteMutexes[args.Site].RLock()
+	defer i.siteMutexes[args.Site].RUnlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getChildren(site, args.Path)
 	*reply = ret
@@ -260,6 +283,8 @@ type GetNodeArgs struct{ Site, Path string }
 
 func (i *MonstiService) GetNode(args *GetNodeDataArgs,
 	reply *[]byte) error {
+	i.siteMutexes[args.Site].RLock()
+	defer i.siteMutexes[args.Site].RUnlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	ret, err := getNode(site, args.Path)
 	*reply = ret
@@ -270,6 +295,8 @@ type GetNodeDataArgs struct{ Site, Path, File string }
 
 func (i *MonstiService) GetNodeData(args *GetNodeDataArgs,
 	reply *[]byte) error {
+	i.siteMutexes[args.Site].RLock()
+	defer i.siteMutexes[args.Site].RUnlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
 	ret, err := ioutil.ReadFile(path)
@@ -288,15 +315,19 @@ type WriteSiteSettingsArgs struct {
 
 func (i *MonstiService) WriteSiteSettings(args *WriteSiteSettingsArgs,
 	reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	site := i.Settings.Monsti.GetSiteDataPath(args.Site)
 	path := filepath.Join(site, "settings.json")
-	if err := ioutil.WriteFile(path, []byte(args.Settings), 0600); err != nil {
+	if err := ioutil.WriteFile(path, []byte(args.Settings), 0660); err != nil {
 		return fmt.Errorf("Could not write site settings data: %v", err)
 	}
 	return nil
 }
 
 func (i *MonstiService) LoadSiteSettings(site string, reply *[]byte) error {
+	i.siteMutexes[site].RLock()
+	defer i.siteMutexes[site].RUnlock()
 	path := filepath.Join(i.Settings.Monsti.GetSiteDataPath(site),
 		"settings.json")
 	var err error
@@ -314,13 +345,15 @@ type WriteNodeDataArgs struct {
 
 func (i *MonstiService) WriteNodeData(args *WriteNodeDataArgs,
 	reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
-	err := os.MkdirAll(filepath.Dir(path), 0700)
+	err := os.MkdirAll(filepath.Dir(path), 0770)
 	if err != nil {
 		return fmt.Errorf("Could not create node directory: %v", err)
 	}
-	err = ioutil.WriteFile(path, []byte(args.Content), 0600)
+	err = ioutil.WriteFile(path, []byte(args.Content), 0660)
 	if err != nil {
 		return fmt.Errorf("Could not write node data: %v", err)
 	}
@@ -333,6 +366,8 @@ type RemoveNodeDataArgs struct {
 
 func (i *MonstiService) RemoveNodeData(args *RemoveNodeDataArgs,
 	reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	site := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	path := filepath.Join(site, args.Path[1:], filepath.Base(args.File))
 	if err := os.Remove(path); err != nil {
@@ -346,6 +381,8 @@ type RemoveNodeArgs struct {
 }
 
 func (i *MonstiService) RemoveNode(args *RemoveNodeArgs, reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	nodePath := filepath.Join(root, args.Node[1:])
@@ -386,9 +423,11 @@ type RenameNodeArgs struct {
 }
 
 func (i *MonstiService) RenameNode(args *RenameNodeArgs, reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	root := i.Settings.Monsti.GetSiteNodesPath(args.Site)
 	if err := os.MkdirAll(
-		filepath.Dir(filepath.Join(root, args.Target)), 0700); err != nil {
+		filepath.Dir(filepath.Join(root, args.Target)), 0770); err != nil {
 		return fmt.Errorf("Can't create parent directory: %v", err)
 	}
 	if err := os.Rename(
@@ -556,6 +595,8 @@ type FromCacheRet struct {
 
 func (i *MonstiService) FromCache(args *FromCacheArgs,
 	reply *FromCacheRet) error {
+	i.siteMutexes[args.Site].RLock()
+	defer i.siteMutexes[args.Site].RUnlock()
 	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	var err error
 	content, mods, err := fromCache(cacheRoot, args.Node, args.Id)
@@ -593,10 +634,10 @@ func writeRdeps(root, node string, rdeps CacheDepMap) error {
 		return fmt.Errorf("Could not marshal rdeps: %v", err)
 	}
 	rdepsPath := filepath.Join(root, node[1:], ".rdeps.json")
-	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(rdepsPath), 0770); err != nil {
 		return fmt.Errorf("Could not create node cache directory: %v", err)
 	}
-	if err := ioutil.WriteFile(rdepsPath, content, 0600); err != nil {
+	if err := ioutil.WriteFile(rdepsPath, content, 0660); err != nil {
 		return fmt.Errorf("Could not write rdeps: %v", err)
 	}
 	return nil
@@ -631,7 +672,7 @@ func toCache(root, node, id string, content []byte,
 	// Write cache to filesystem.
 	nodePath := filepath.Join(root, node[1:])
 	path := filepath.Join(nodePath, ".data", filepath.Base(id))
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0770); err != nil {
 		return fmt.Errorf("Could not create node cache directory: %v", err)
 	}
 	if mods != nil {
@@ -643,7 +684,7 @@ func toCache(root, node, id string, content []byte,
 	if err := enc.Encode(&data); err != nil {
 		return fmt.Errorf("Could not encode cache data: %v", err)
 	}
-	if err := ioutil.WriteFile(path, raw.Bytes(), 0600); err != nil {
+	if err := ioutil.WriteFile(path, raw.Bytes(), 0660); err != nil {
 		return fmt.Errorf("Could not write node cache: %v", err)
 	}
 
@@ -657,6 +698,8 @@ type ToCacheArgs struct {
 }
 
 func (i *MonstiService) ToCache(args *ToCacheArgs, reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	return toCache(cacheRoot, args.Node, args.Id, args.Content, args.Mods)
 }
@@ -708,6 +751,8 @@ type MarkDepArgs struct {
 }
 
 func (i *MonstiService) MarkDep(args *MarkDepArgs, reply *int) error {
+	i.siteMutexes[args.Site].Lock()
+	defer i.siteMutexes[args.Site].Unlock()
 	cacheRoot := i.Settings.Monsti.GetSiteCachePath(args.Site)
 	return markDep(cacheRoot, args.Dep, 0)
 }

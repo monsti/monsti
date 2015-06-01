@@ -1,0 +1,17 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "Embed": null,
+  "Public": true,
+  "PublishTime": "2014-11-12T15:14:00+01:00",
+  "Changed": "2015-05-04T13:40:46.665553685Z",
+  "Type": "core.Document",
+  "Fields": {
+    "core": {
+      "Body": "\u003cp\u003eFile:\u003c/p\u003e\r\n\r\n\u003cp\u003e\u003cimg alt=\"\" height=\"22\" src=\"/types/file\" width=\"111\" /\u003e\u003c/p\u003e\r\n\r\n\u003cp\u003eImage:\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u003cimg alt=\"\" height=\"187\" src=\"/types/image?size=example.Foo\" width=\"250\" /\u003e\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n\r\n\u003cp\u003e\u0026nbsp;\u003c/p\u003e\r\n",
+      "Description": "",
+      "Thumbnail": "",
+      "Title": "Node Types"
+    }
+  }
+}

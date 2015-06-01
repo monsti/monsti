@@ -20,8 +20,6 @@ package settings
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -96,10 +94,6 @@ type Monsti struct {
 		// Runtime data directory
 		Run string
 	}
-	// Sites hosted by this monsti instance.
-	//
-	// Load settings with *Monsti.LoadSiteSettings()
-	Sites map[string]Site
 }
 
 // GetServicePath returns the path to the given service's socket.
@@ -149,47 +143,6 @@ func (s Monsti) GetStaticsPath() string {
 // GetTemplatesPath returns the path to the global templates directory.
 func (s Monsti) GetTemplatesPath() string {
 	return filepath.Join(s.Directories.Share, "templates")
-}
-
-// loadSiteSettings returns the site settings in the given directory.
-func loadSiteSettings(sitesDir string) (map[string]Site, error) {
-	sitesPath := filepath.Join(sitesDir)
-	siteDirs, err := ioutil.ReadDir(sitesPath)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read sites directory: %v", err)
-	}
-	sites := make(map[string]Site)
-	for _, siteDir := range siteDirs {
-		siteName := siteDir.Name()
-		sitePath := filepath.Join(sitesPath, siteName)
-		_, err := os.Stat(filepath.Join(sitePath, "site.yaml"))
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		var siteSettings Site
-		err = yaml.Parse(filepath.Join(sitePath, "site.yaml"),
-			&siteSettings)
-		if err != nil {
-			return nil, fmt.Errorf("Could not load settings for site %q: %v",
-				siteName, err)
-		}
-		if len(siteSettings.Locale) == 0 {
-			siteSettings.Locale = "en"
-		}
-		sites[siteName] = siteSettings
-	}
-	return sites, nil
-}
-
-// LoadSiteSettings loads the configurated sites' settings.
-func (s *Monsti) LoadSiteSettings() error {
-	sites, err := loadSiteSettings(filepath.Join(s.Directories.Config, "sites"))
-	if err != nil {
-		return err
-	}
-	s.Sites = sites
-	return nil
 }
 
 // LoadModuleSettings loads the given module's configuration.

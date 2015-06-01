@@ -9,19 +9,18 @@ MODULES=daemon
 
 LOCALES=de
 
-MONSTI_VERSION=0.10.0
+MONSTI_VERSION=0.11.0
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
 
-TINYMCE_VERSION=4.1.7
 WEBSHIM_VERSION=1.15.5
 
 MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-tinymce-editor dep-jquery dep-webshim
+monsti: modules dep-webshim dep-onetimewidget
 
 .PHONY: bcrypt
 bcrypt: 
@@ -45,13 +44,12 @@ dist: all
 	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/doc
 	mkdir -p $(DIST_PATH)/etc
 	cp -R example/config/* $(DIST_PATH)/etc
-	mv $(DIST_PATH)/etc/sites/example $(DIST_PATH)/etc/sites/default
 	mkdir -p $(DIST_PATH)/run
 	mkdir -p $(DIST_PATH)/data
-	cp -R example/data/example $(DIST_PATH)/data/default
-	cp example/start.sh $(DIST_PATH)/
-	sed -i 's/\.\.\/go\///' $(DIST_PATH)/start.sh
-	sed -i 's/config/etc/' $(DIST_PATH)/start.sh
+	cp -R example/data/localhost $(DIST_PATH)/data/localhost
+	cp -p example/start.sh $(DIST_PATH)/start.sh
+	sed -e 's/\.\.\/go\///' -e 's/config/etc/' example/start.sh \
+		> $(DIST_PATH)/start.sh
 	tar -C dist -czf dist/monsti-$(MONSTI_VERSION).tar.gz monsti-$(MONSTI_VERSION)
 
 dist-deb: all
@@ -65,18 +63,17 @@ dist-deb: all
 	rm -f $(DIST_PATH)/usr/share/locale/*.pot
 	mkdir -p $(DIST_PATH)/usr/share/doc/monsti/examples
 	cp example/start.sh $(DIST_PATH)/usr/share/doc/monsti/examples
-	sed -i 's/\.\.\/go\///' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
-	sed -i 's/config/etc\/monsti/' $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
+	sed -e 's/config/etc\/monsti/' -e 's/\.\.\/go\///' \
+		example/start.sh > $(DIST_PATH)/usr/share/doc/monsti/examples/start.sh
 	cp CHANGES COPYING LICENSE README.md $(DIST_PATH)/usr/share/doc/monsti
 	mkdir -p $(DIST_PATH)/etc/monsti/sites
 	cp -R example/config/* $(DIST_PATH)/etc/monsti
-	sed -i 's/\.\.\/share/\/usr\/share\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	sed -i 's/\.\.\/data/\/var\/lib\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	sed -i 's/\.\.\/run/\/var\/run\/monsti/' $(DIST_PATH)/etc/monsti/monsti.yaml
-	mv $(DIST_PATH)/etc/monsti/sites/example $(DIST_PATH)/etc/monsti/sites/default
+	sed -e 's/\.\.\/run/\/var\/run\/monsti/' -e 's/\.\.\/data/\/var\/lib\/monsti/' \
+		-e 's/\.\.\/share/\/usr\/share\/monsti/' example/config/monsti.yaml \
+		> $(DIST_PATH)/etc/monsti/monsti.yaml
 	mkdir -p $(DIST_PATH)/var/run/monsti
 	mkdir -p $(DIST_PATH)/var/lib/monsti
-	cp -R example/data/example $(DIST_PATH)/usr/share/doc/monsti/examples/default
+	cp -R example/data/localhost $(DIST_PATH)/usr/share/doc/monsti/examples/localhost
 	find $(DIST_PATH) -type d -exec chmod 755 {} \;
 	find $(DIST_PATH) -not -type d -exec chmod 644 {} \;
 	chmod 755 $(DIST_PATH)/usr/bin/*
@@ -115,23 +112,13 @@ clean:
 	rm dist/ -Rf
 	$(MAKE) -C example/monsti-example-module clean
 
-dep-tinymce-editor: static/lib/tinymce/
-static/lib/tinymce/:
-	wget -nv http://download.moxiecode.com/tinymce/tinymce_$(TINYMCE_VERSION).zip
-	unzip -q tinymce_$(TINYMCE_VERSION).zip
-	rm tinymce_$(TINYMCE_VERSION).zip
+dep-onetimewidget: static/lib/onetimewidget/
+static/lib/onetimewidget/:
+	wget -nv https://github.com/chrneumann/onetimewidget/archive/master.zip
+	unzip -q master.zip
 	mkdir -p static/lib
-	mv tinymce/js/tinymce static/lib
-	rm tinymce -R
-	wget -nv "http://www.tinymce.com/i18n/download.php?download=de" -O tinymce_languages.zip
-	unzip -q tinymce_languages.zip -d static/lib/tinymce
-	rm tinymce_languages.zip
-
-dep-jquery: static/js/jquery.min.js
-static/js/jquery.min.js:
-	wget -nv http://code.jquery.com/jquery-1.8.2.min.js
-	mkdir -p static/lib
-	mv jquery-1.8.2.min.js static/lib/jquery.min.js
+	mv onetimewidget-master static/lib/onetimewidget
+	rm master.zip
 
 dep-webshim: static/lib/webshim/
 static/lib/webshim/:
@@ -145,8 +132,8 @@ locales: $(LOCALES:%=locale/%/LC_MESSAGES/monsti-daemon.mo)
 
 .PHONY: locale/monsti-daemon.pot
 locale/monsti-daemon.pot:
-	find templates/ core/ -name "*.html" -o -name "*.go"| xargs cat \
-	  | sed 's|{{G "\(.*\)"}}|gettext("\1");|g' \
+	find templates/ core/ api/ -name "*.html" -o -name "*.go"| xargs cat \
+	  | sed 's|{{G "\(.*\)"}}|\ngettext("\1");\n|g' \
 	  | xgettext -d monsti-daemon -L C -p locale/ -kG -kGN:1,2 \
 	      -o monsti-daemon.pot -
 
