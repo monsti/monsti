@@ -37,7 +37,7 @@ Features
  - No database system required; configuration and content is stored in
    human readable files. Xapian integration is planned for searching
    and indexing.
- - Internationalization ready (Included languages: de, en).
+ - Internationalization ready (Included languages: de, en, nl).
  - Easy to use (albeit basic at the current stage of development) web
    frontend.
  - Separation of code, configuration and presentation.
