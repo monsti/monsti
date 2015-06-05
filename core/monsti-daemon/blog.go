@@ -23,6 +23,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/url"
 
@@ -63,7 +64,7 @@ func getBlogPosts(req *service.Request, blogPath string, s *service.Session,
 
 func getBlogContext(reqId uint, embed *service.EmbedNode,
 	s *service.Session, settings *settings, renderer *mtemplate.Renderer) (
-	map[string][]byte, *service.CacheMods, error) {
+	map[string]interface{}, *service.CacheMods, error) {
 	req, err := s.Monsti().GetRequest(reqId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not get request: %v", err)
@@ -99,7 +100,7 @@ func getBlogContext(reqId uint, embed *service.EmbedNode,
 	mods := &service.CacheMods{
 		Deps: []service.CacheDep{{Node: req.NodePath, Descend: 1}},
 	}
-	return map[string][]byte{"BlogPosts": rendered}, mods, nil
+	return map[string]interface{}{"BlogPosts": template.HTML(string(rendered))}, mods, nil
 }
 
 func initBlog(settings *settings, session *service.Session,
@@ -138,7 +139,7 @@ func initBlog(settings *settings, session *service.Session,
 	handler := service.NewNodeContextHandler(sessions,
 		func(req uint, session *service.Session, nodeType string,
 			embedNode *service.EmbedNode) (
-			map[string][]byte, *service.CacheMods, error) {
+			map[string]interface{}, *service.CacheMods, error) {
 			switch nodeType {
 			case "core.Blog":
 				ctx, mods, err := getBlogContext(req, embedNode, session, settings, renderer)

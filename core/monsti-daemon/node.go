@@ -255,8 +255,12 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
+	renderData, err := form.RenderData()
+	if err != nil {
+		return fmt.Errorf("Could not get form render data: %v", err)
+	}
 	body, err := h.Renderer.Render("actions/removeform", mtemplate.Context{
-		"Form": form.RenderData(), "Node": c.Node},
+		"Form": renderData, "Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
@@ -351,6 +355,12 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 	return nil
 }
 
+type errRedirect service.Redirect
+
+func (e errRedirect) Error() string {
+	return "Redirect"
+}
+
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
@@ -392,6 +402,10 @@ func (h *nodeHandler) View(c *reqContext) error {
 	if rendered == nil {
 		rendered, mods, err = h.RenderNode(c, nil)
 		if err != nil {
+			if e, ok := err.(errRedirect); ok {
+				http.Redirect(c.Res, c.Req, e.URL, e.Status)
+				return nil
+			}
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
@@ -448,6 +462,23 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 		}
 	}
 	context := make(mtemplate.Context)
+
+	var renderNodeRet []service.RenderNodeRet
+	err := c.Serv.Monsti().EmitSignal("monsti.RenderNode",
+		service.RenderNodeArgs{c.Id, reqNode.Type.Id, embedNode}, &renderNodeRet)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
+	}
+	for i, _ := range renderNodeRet {
+		if renderNodeRet[i].Redirect != nil {
+			return nil, nil, errRedirect(*renderNodeRet[i].Redirect)
+		}
+		mods.Join(renderNodeRet[i].Mods)
+		for key, value := range renderNodeRet[i].Context {
+			context[key] = value
+		}
+	}
+
 	context["Embed"] = make(map[string]template.HTML)
 	// Embed nodes
 	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
@@ -461,24 +492,18 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 			template.HTML(rendered)
 	}
 	context["Node"] = reqNode
-	switch reqNode.Type.Id {
-	case "core.ContactForm":
-		if err := renderContactForm(c, context, c.Req.Form, h); err != nil {
-			return nil, nil, fmt.Errorf("Could not render contact form: %v", err)
-		}
-	}
 	context["Embedded"] = embedNode != nil
 
-	var ret []service.NodeContextRet
-	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext",
-		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &ret)
+	var nodeContextRet []service.NodeContextRet
+	err = c.Serv.Monsti().EmitSignal("monsti.NodeContext",
+		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &nodeContextRet)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
-	for i, _ := range ret {
-		mods.Join(ret[i].Mods)
-		for key, value := range ret[i].Context {
-			context[key] = template.HTML(value)
+	for i, _ := range nodeContextRet {
+		mods.Join(nodeContextRet[i].Mods)
+		for key, value := range nodeContextRet[i].Context {
+			context[key] = value
 		}
 	}
 
@@ -675,8 +700,12 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
+	renderData, err := form.RenderData()
+	if err != nil {
+		return fmt.Errorf("Could not get form render data: %v", err)
+	}
 	rendered, err := h.Renderer.Render("edit",
-		mtemplate.Context{"Form": form.RenderData()},
+		mtemplate.Context{"Form": renderData},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 
 	if err != nil {

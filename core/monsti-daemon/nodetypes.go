@@ -19,15 +19,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
-	"net/url"
-
-	"path"
-	"github.com/chrneumann/htmlwidgets"
-	gomail "gopkg.in/gomail.v1"
-	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/util/i18n"
-	"pkg.monsti.org/monsti/api/util/template"
 )
 import "pkg.monsti.org/monsti/api/service"
 
@@ -109,72 +101,5 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 		return fmt.Errorf("Could not register image node type: %v", err)
 	}
 
-	contactFormType := service.NodeType{
-		Id:        "core.ContactForm",
-		AddableTo: []string{"."},
-		Name:      i18n.GenLanguageMap(G("Contact form"), availableLocales),
-		Fields:    service.CoreFields,
-	}
-	if err := session.Monsti().RegisterNodeType(&contactFormType); err != nil {
-		return fmt.Errorf("Could not register contactform node type: %v", err)
-	}
-	return nil
-}
-
-type contactFormData struct {
-	Name, Email, Subject, Message string
-}
-
-func renderContactForm(c *reqContext, context template.Context,
-	formValues url.Values, h *nodeHandler) error {
-	G, _, _, _ := gettext.DefaultLocales.Use("",
-		c.SiteSettings.Fields["core.Locale"].Value().(string))
-	m := c.Serv.Monsti()
-	data := contactFormData{}
-	form := htmlwidgets.NewForm(&data)
-	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
-		ValidationError: G("Required.")}, "Name", G("Name"), "")
-	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
-		ValidationError: G("Required.")}, "Email", G("Email"), "")
-	form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
-		ValidationError: G("Required.")}, "Subject", G("Subject"), "")
-	form.AddWidget(&htmlwidgets.TextAreaWidget{MinLength: 1,
-		ValidationError: G("Required.")}, "Message", G("Message"), "")
-
-	switch c.Req.Method {
-	case "GET":
-		if _, submitted := formValues["submitted"]; submitted {
-			context["Submitted"] = 1
-		}
-	case "POST":
-		if form.Fill(formValues) {
-			mail := gomail.NewMessage()
-			mail.SetAddressHeader("From",
-				c.SiteSettings.StringValue("core.EmailAddress"),
-				c.SiteSettings.StringValue("core.EmailName"))
-			mail.SetAddressHeader("To",
-				c.SiteSettings.StringValue("core.OwnerEmail"),
-				c.SiteSettings.StringValue("core.OwnerName"))
-			mail.SetAddressHeader("Reply-To", data.Email, data.Name)
-			mail.SetHeader("Subject", data.Subject)
-			body := fmt.Sprintf("%v\n%v\n\n%v",
-				fmt.Sprintf(G("Received from contact form at %v"),
-					c.SiteSettings.StringValue("core.Title")),
-				fmt.Sprintf(G("Name: %v | Email: %v"), data.Name, data.Email),
-				data.Message)
-			mail.SetBody("text/plain", body)
-			mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
-				m.SendMailFunc()))
-			err := mailer.Send(mail)
-			if err != nil {
-				return fmt.Errorf("Could not send mail: %v", err)
-			}
-			http.Redirect(c.Res, c.Req, path.Dir(c.Node.Path)+"/?submitted", http.StatusSeeOther)
-			return nil
-		}
-	default:
-		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
-	}
-	context["Form"] = form.RenderData()
 	return nil
 }
