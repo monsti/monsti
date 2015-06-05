@@ -41,6 +41,8 @@ func init() {
 	gob.Register(new(MapFieldType))
 	gob.Register(new(CombinedFieldType))
 	gob.Register(new(IntegerFieldType))
+	gob.Register(new(DynamicTypeFieldType))
+	gob.Register(new(DummyFieldType))
 }
 
 type NestedMap map[string]interface{}
@@ -101,6 +103,7 @@ type Field interface {
 	FromFormField(NestedMap, *FieldConfig)
 
 	// TODO Replace ToFormField and FromFormField using the Form* methods.
+	// Needed for rendering of nested fields (see ListField).
 	FormWidget() htmlwidgets.Widget
 	FormData() interface{}
 	FromFormData(data interface{})
@@ -243,6 +246,150 @@ func (t CombinedField) ToFormField(form *htmlwidgets.Form, data NestedMap,
 }
 
 func (t *CombinedField) FromFormField(data NestedMap, field *FieldConfig) {
+}
+
+type DummyFieldType int
+
+func (_ DummyFieldType) Field() Field {
+	return new(DummyField)
+}
+
+// DummyField is a placeholder field that does nothing.
+type DummyField int
+
+func (t DummyField) Init(*MonstiClient, string) error {
+	return nil
+}
+
+func (t DummyField) Value() interface{} {
+	return nil
+}
+
+func (t DummyField) RenderHTML() interface{} {
+	return nil
+}
+
+func (t *DummyField) Load(f func(interface{}) error) error {
+	return nil
+}
+
+func (t DummyField) Dump() interface{} {
+	return nil
+}
+
+func (t DummyField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+}
+
+func (t *DummyField) FromFormField(data NestedMap, field *FieldConfig) {
+}
+
+func (f DummyField) FormData() interface{} {
+	return nil
+}
+
+func (f *DummyField) FromFormData(data interface{}) {
+}
+
+func (f DummyField) FormWidget() htmlwidgets.Widget {
+	return nil
+}
+
+// DynamicTypeFieldType describes a field that can hold a field of one
+// of the available types.
+type DynamicTypeFieldType struct {
+	// Holds the available types.
+	Fields []FieldConfig
+}
+
+func (t DynamicTypeFieldType) Field() Field {
+	return &DynamicTypeField{fieldType: &t}
+}
+
+// DynamicTypeField holds a field of arbitrary type.
+type DynamicTypeField struct {
+	// Stores the actual field.
+	Field Field
+	// The id of the field's config as defined in fieldType.Fields.
+	DynamicType string
+	fieldType   *DynamicTypeFieldType
+	monsti      *MonstiClient
+	site        string
+}
+
+func (f *DynamicTypeField) Init(m *MonstiClient, site string) error {
+	f.monsti = m
+	f.site = site
+	return nil
+}
+
+func (f DynamicTypeField) RenderHTML() interface{} {
+	return f.Field.RenderHTML()
+}
+
+func (f DynamicTypeField) Value() interface{} {
+	return f.Field
+}
+
+type dynamicTypeFieldJSON struct {
+	Type string
+	Data interface{}
+}
+
+func (f *DynamicTypeField) Load(dataFnc func(interface{}) error) error {
+	var data dynamicTypeFieldJSON
+	data.Data = json.RawMessage{}
+	if err := dataFnc(&data); err != nil {
+		return err
+	}
+	fieldDataFnc := func(in interface{}) error {
+		return json.Unmarshal(data.Data.([]byte), in)
+	}
+	var field Field
+	for _, v := range f.fieldType.Fields {
+		if v.Id == data.Type {
+			field = v.Type.Field()
+			break
+		}
+	}
+	if field == nil {
+		return fmt.Errorf("Unknown field type in DynamicField: %v", data.Type)
+	}
+	f.DynamicType = data.Type
+	field.Init(f.monsti, f.site)
+	if err := field.Load(fieldDataFnc); err != nil {
+		return fmt.Errorf("Could not parse combined field data: %v", err)
+	}
+	f.Field = field
+	return nil
+}
+
+func (f DynamicTypeField) Dump() interface{} {
+	var out dynamicTypeFieldJSON
+	out.Type = f.DynamicType
+	out.Data = f.Field.Dump()
+	return out
+}
+
+func (f DynamicTypeField) FormData() interface{} {
+	panic("Not implemented")
+	return nil
+}
+
+func (f *DynamicTypeField) FromFormData(data interface{}) {
+	panic("Not implemented")
+}
+
+func (f DynamicTypeField) FormWidget() htmlwidgets.Widget {
+	panic("Not implemented")
+	return nil
+}
+
+func (t DynamicTypeField) ToFormField(form *htmlwidgets.Form, data NestedMap,
+	field *FieldConfig, locale string) {
+}
+
+func (t *DynamicTypeField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type RefFieldType int
