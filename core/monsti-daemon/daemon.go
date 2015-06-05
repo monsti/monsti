@@ -40,7 +40,7 @@ import (
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
-const monstiVersion = "0.11.0"
+const monstiVersion = "0.12.0"
 
 // Settings for the application and the sites.
 type settings struct {

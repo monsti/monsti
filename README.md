@@ -10,10 +10,10 @@ tasks. More advanced tasks like adding new content types have to be
 done by writing modules in Go that communicate to Monsti via RPC
 using a high level API.
 
-Monsti is still under development and unstable. Don't expect any
-backward compatibility at this point. It's already in use to host some
-non critical websites, but the API and architecture still change a
-lot.
+Monsti should not be considered rock stable. The API and architecture
+still might change until the first stable release. But as it's already
+in use to host some websites, migrations to new releases will be as
+pleasant as possible and fully documented.
 
 If you have a problem, please first have a look at Monsti's manual in
 the `doc` directory or
