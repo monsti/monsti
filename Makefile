@@ -5,13 +5,13 @@ GO_GET=$(GO) get $(GO_COMMON_OPTS)
 GO_BUILD=$(GO) build $(GO_COMMON_OPTS)
 GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
-MODULES=daemon
+MODULES=daemon contactform
 
 LOCALES=de
 
 VCS_REVISION:=$(shell git rev-list HEAD --count)
 VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')
-MONSTI_VERSION=0.11.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
+MONSTI_VERSION=0.12.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)

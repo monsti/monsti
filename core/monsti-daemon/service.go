@@ -81,7 +81,7 @@ func (i *MonstiService) InitSite(host *string, reply *bool) error {
 	}
 	if strings.Trim(string(version), " ") != monstiVersion {
 		return fmt.Errorf("Wrong database version for %v: %v, expected %v",
-			*host, version, monstiVersion)
+			*host, string(version), monstiVersion)
 	}
 	i.siteMutexes[*host] = new(sync.RWMutex)
 	*reply = true
@@ -182,6 +182,7 @@ func (m *MonstiService) EmitSignal(args *Receive, ret *[][]byte) error {
 		m.subscriber[id] <- &signal{args.Name, args.Args, retChan}
 		emitRet := <-retChan
 		if len(emitRet.Error) > 0 {
+			done = true
 			return fmt.Errorf("Received error as signal response: %v", emitRet.Error)
 		}
 		(*ret)[i] = emitRet.Ret

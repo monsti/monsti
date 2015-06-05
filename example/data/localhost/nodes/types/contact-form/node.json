@@ -3,13 +3,46 @@
   "Hide": false,
   "Embed": null,
   "Public": true,
-  "PublishTime": "2014-11-12T15:14:31.198106103+01:00",
-  "Changed": "2014-11-12T15:14:31.198106133+01:00",
+  "PublishTime": "2014-11-12T15:14:00+01:00",
+  "Changed": "2015-06-04T06:51:24.396971265Z",
   "Type": "core.ContactForm",
   "Fields": {
     "core": {
-      "Body": "A contact form! Possibly non functional, as it requires a configured SMTP daemon.\u003cbr style=\"\" class=\"aloha-cleanme\"\u003e",
-      "Title": "Contact Form"
+      "Body": "\u003cp\u003eA contact form! Possibly non functional, as it requires a configured SMTP daemon.\u003c/p\u003e\r\n",
+      "ContactFormFields": null,
+      "Description": "",
+      "Thumbnail": "",
+      "Title": "Contact Form",
+      "ContactFormFields": [
+        {
+          "Name": "Name",
+          "Required": true,
+          "Field": {
+            "Type": "text"
+          }
+        },
+        {
+          "Name": "E-Mail",
+          "Required": true,
+          "Field": {
+            "Type": "text"
+          }
+        },
+        {
+          "Name": "Subject",
+          "Required": true,
+          "Field": {
+            "Type": "text"
+          }
+        },
+        {
+          "Name": "Message",
+          "Required": true,
+          "Field": {
+            "Type": "textarea"
+          }
+        }
+      ]
     }
   }
 }

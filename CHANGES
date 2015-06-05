@@ -1,8 +1,15 @@
 * 0.12.0 - unreleased
  - New features:
     + Added DynamicType and Dummy field types.
+    + Fields of contact forms are configurable.
+    + Added RenderNode signal (replaces NodeContext signal).
  - Changes:
+    + Deprecated NodeContext signal (use RenderNode signal!).
+    + Moved contact form to separate module.
+    + Changed fields (Method, FormData, Form, PostForm) of service.Request.
  - Fixed:
+    + Now calling FinishSignal in WaitSignal if an error occurs.
+    + Stop waiting for signal responses if an error occured.
 
 * 0.11.0 - released 2015/06/01
  - New features:

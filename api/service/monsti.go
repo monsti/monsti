@@ -312,7 +312,10 @@ func restoreFields(fields map[string]map[string]*json.RawMessage,
 			f := func(in interface{}) error {
 				return json.Unmarshal(*value, in)
 			}
-			out[field.Id].Load(f)
+			if err := out[field.Id].Load(f); err != nil {
+				return err
+			}
+
 		}
 	}
 	return nil
@@ -572,13 +575,6 @@ func (r RequestFile) ReadFile() ([]byte, error) {
 }
 */
 
-type RequestMethod uint
-
-const (
-	GetRequest = iota
-	PostRequest
-)
-
 type Action uint
 
 const (
@@ -604,13 +600,17 @@ type Request struct {
 	// The query values of the request URL.
 	Query url.Values
 	// Method of the request (GET,POST,...).
-	Method RequestMethod
+	Method string
 	// User session
 	Session *UserSession
 	// Action to perform (e.g. "edit").
 	Action Action
-	// FormData stores the requests form data.
-	FormData url.Values
+	// Form stores the requests form data.
+	// See net/http's Request.Form
+	Form url.Values
+	// PostForm stores the requests POST/PUT form data.
+	// See net/http's Request.PostForm
+	PostForm url.Values
 	/*
 			// The requested node.
 			Node *Node
@@ -849,6 +849,13 @@ func (s *MonstiClient) WaitSignal() error {
 		enc := gob.NewEncoder(buffer)
 		err = enc.Encode(argWrap{ret})
 		if err != nil {
+			signalRet.Err = fmt.Sprintf("service: Could not encode signal return value: %v", err)
+			finishErr := s.RPCClient.Call("Monsti.FinishSignal", signalRet, new(int))
+			if finishErr != nil {
+				return fmt.Errorf(
+					"service: Monsti.FinishSignal error after signal encode error: %v",
+					finishErr)
+			}
 			return fmt.Errorf("service: Could not encode signal return value: %v", err)
 		}
 	}

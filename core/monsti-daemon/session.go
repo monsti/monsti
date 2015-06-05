@@ -71,8 +71,13 @@ func (h *nodeHandler) Login(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Password = ""
+
+	renderData, err := form.RenderData()
+	if err != nil {
+		return fmt.Errorf("Could not get form render data: %v", err)
+	}
 	body, err := h.Renderer.Render("actions/loginform", template.Context{
-		"Form": form.RenderData()}, c.UserSession.Locale,
+		"Form": renderData}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render login form: %v", err)
@@ -160,10 +165,14 @@ func (h *nodeHandler) RequestPasswordToken(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 
+	renderData, err := form.RenderData()
+	if err != nil {
+		return fmt.Errorf("Could not get form render data: %v", err)
+	}
 	body, err := h.Renderer.Render("actions/request_password_token_form",
 		template.Context{
 			"Sent": sent,
-			"Form": form.RenderData()}, c.UserSession.Locale,
+			"Form": renderData}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render login form: %v", err)
@@ -262,11 +271,15 @@ func (h *nodeHandler) ChangePassword(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 
+	renderData, err := form.RenderData()
+	if err != nil {
+		return fmt.Errorf("Could not get form render data: %v", err)
+	}
 	body, err := h.Renderer.Render("actions/change_password",
 		template.Context{
 			"TokenInvalid": tokenInvalid,
 			"Changed":      changed,
-			"Form":         form.RenderData()}, c.UserSession.Locale,
+			"Form":         renderData}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		return fmt.Errorf("Can't render ChangePassword form: %v", err)

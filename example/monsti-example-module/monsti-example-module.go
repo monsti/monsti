@@ -138,14 +138,14 @@ func setup(c *module.ModuleContext) error {
 	handler := service.NewNodeContextHandler(c.Sessions,
 		func(id uint, session *service.Session, nodeType string,
 			embedNode *service.EmbedNode) (
-			map[string][]byte, *service.CacheMods, error) {
+			map[string]interface{}, *service.CacheMods, error) {
 			if nodeType == "example.ExampleType" {
 				req, err := session.Monsti().GetRequest(id)
 				if err != nil || req == nil {
 					return nil, nil, fmt.Errorf("Could not get request: %v", err)
 				}
-				return map[string][]byte{
-					"SignalFoo": []byte(fmt.Sprintf("Hello Signal! Site name: %v", req.Site)),
+				return map[string]interface{}{
+					"SignalFoo": fmt.Sprintf("Hello Signal! Site name: %v", req.Site),
 				}, nil, nil
 			}
 			return nil, nil, nil
