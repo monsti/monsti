@@ -113,6 +113,7 @@ func renderContactForm(req *service.Request, session *service.Session) (
 		name := combinedField.Fields["Name"].Value().(string)
 		required := combinedField.Fields["Required"].Value().(bool)
 		fieldId := fmt.Sprintf("field_%d", i)
+		dataFields = append(dataFields, dataField{fieldId, name})
 		data[fieldId] = ""
 		innerFieldType := combinedField.Fields["Field"].(*service.DynamicTypeField).DynamicType
 		var widget htmlwidgets.Widget
