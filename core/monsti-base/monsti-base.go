@@ -168,5 +168,5 @@ func renderContactForm(req *service.Request, session *service.Session) (
 }
 
 func main() {
-	module.StartModule("contactform", setup)
+	module.StartModule("base", setup)
 }
