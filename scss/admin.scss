@@ -3,6 +3,59 @@
 
 $default-border-radius: 2px;
 
+
+.site-wrap {
+  box-sizing: border-box;
+  max-width: 1200px;
+  min-width: 900px;
+  padding: 0 20px;
+  margin: 0 auto;
+  &> article {
+    padding: 70px 0 30px 0;
+  }
+}
+
+.main, .sidebar, .footer {
+  background: white;
+  border: 1px solid $border-color;
+  @include border-radius(3px);
+  padding: 20px 50px;
+
+}
+
+.bottom-wrap {
+  margin-top:3em;
+}
+
+.sidebar{
+  margin-top:2em;
+}
+
+.header{
+  margin-top:3em;
+}
+
+.site-title a{
+  display:block;
+  width:301px;
+  height:71px;
+  text-indent:-999999em;
+  background:url("/static/img/logo.png");
+  margin-bottom: 30px;
+}
+
+.top-wrap, .bottom-wrap {
+  max-width:960px;
+  margin:0 auto;
+  @include clearfix;
+}
+
+.footer {
+  margin-top: 30px;
+  @include box-shadow(#DDD 0 -20px 15px -15px);
+  border-top: 1px solid $border-color;
+}
+
 .site-wrap {
   background: white;
   padding: 0 50px 25px 50px;

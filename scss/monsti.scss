@@ -1,60 +1,92 @@
-@import "layout";
+@import "base";
+
+.header-wrap {
+  background: #EEE;
+  border-bottom: 3px solid #DDD;
+}
+
+header {
+  padding-top: 10px;
+  @include breakpoint(medium) {
+    padding-top: 20px;
+  }
+}
+
+
+.site-logo {
+  display: block;
+  margin: 0 auto;
+  img {
+    display: block;
+    max-width: 100%;
+  }
+  @include breakpoint(medium) {
+    margin-bottom: 30px;
+  }
+}
 
 .primary-nav {
   ul {
+    margin-left: -15px;
+    padding: 0;
+    margin-top: 10px;
     list-style:none;
-    background: #EEE;
-    border: thin solid $border-color;
-    overflow:hidden;
-    margin-bottom: 20px;
-    padding-left: 35px;
+    margin-bottom: -3px;
   }
   li {
     @include inline-block;
-    padding:0;
-    margin:0;
+    padding: 0;
+    margin: 0;
+    margin-right: 4px;
     &.active-below.child, &.active{
-      background:#ddd;
+      a {
+        border-bottom: 3px solid $secondary-color;
+      }
     }
     &:first-child a {
-    border-left:thin solid gray;
     }
   }
   a {
-    color: #333;
-    padding:0.5em 1em;
+    padding: 0 15px;
+    color: $primary-color;
+    font-weight: bold;
     display:block;
-    border-right:thin solid gray;
     text-decoration:none;
+    border-bottom: 3px solid rgba($primary-color, 0.2);
     &:hover {
-      background: $secondary-color;
-      color: white;
+      border-bottom: 3px solid $primary-color;
     }
   }
 }
 
-.content-wrap {
-  display: table;
-  width: 100%;
+body {
+  header, .main-and-aside-wrap, footer {
+    max-width: 1000px;
+    width: 90%;
+    margin: 0 auto;
+  }
 }
 
-.sidebar, .main {
-  vertical-align: top;
-  padding-bottom: 75px;
+footer {
+  border-top: 1px solid #DDD;
 }
 
-.sidebar {
-  border-left: none;
-  box-sizing: border-box;
-  width: 33.33%;
-  display: table-cell;
-  background: #EEE;
-  padding-top: 50px;
-}
-
-.main {
-  display: table-cell;
-  width: 66.66%;
-  padding-right: 50px;
-  box-sizing: border-box;
+@include breakpoint(medium) {
+  .main-and-aside-wrap {
+    max-width: 1000px;
+    display: table;
+    width: 100%;
+    padding-bottom: 30px;
+  }
+  main, .sidebar {
+    display: table-cell;
+    vertical-align: top;
+    padding-top: 20px;
+  }
+  main {
+    width: 66.6%;
+  }
+  .sidebar {
+    width: 33.4%;
+  }
 }

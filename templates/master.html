@@ -3,47 +3,36 @@
   <head>
     {{template "blocks/headers" .}}
     <link rel="stylesheet" type="text/css" href="/static/css/monsti.css" />
-    <link rel="stylesheet" type="text/css" href="/site-static/css/site.css" />
     <link rel="shortcut icon" href="/site-static/favicon.png" />
   </head>
   <body class="{{.Page.Node.PathToID}} node-type-{{idToClass .Page.Node.Type.Id}}">
     {{template "blocks/admin-bar" .}}
-    <div class="site-wrap">
-      <div class="top-wrap">
-        <div class="header-wrap">
-          <div class="header">
-            <div class="site-title">
-              <a href="/">{{.SiteSettings.StringValue "core.Title"}}</a>
-            </div>
-            <div class="primary-nav">
-              {{template "blocks/navigation" .Page.PrimaryNav}}
-            </div>
-          </div>
+    <div class="header-wrap">
+      <header>
+        <a class="site-logo" href="/"
+           ><img src="/static/img/logo.png"
+                 alt="{{.SiteSettings.StringValue "core.Title"}}"></a>
+        <div class="primary-nav">
+          {{template "blocks/navigation" .Page.PrimaryNav}}
         </div>
-        <div class="content-wrap">
-          <div class="messages">
-          </div>
-          <div class="main">
-            {{.Page.Content}}
-          </div>
-          <div class="sidebar">
-            {{if .Page.ShowSecondaryNav}}
-            <div class="secondary-nav">
-              {{template "blocks/navigation" .Page.SecondaryNav}}
-            </div>
-            {{end}}
-          </div>
-        </div>
-      </div>
-      <div class="bottom-wrap">
-        <div class="footer-wrap">
-          <div class="footer">
-            <p class="attribution">Powered by
-              <a href="http://www.monsti.org">Monsti</a>
-            </p>
-          </div>
-        </div>
-      </div>
+      </header>
     </div>
+    <div class="main-and-aside-wrap">
+      <main>
+        {{.Page.Content}}
+      </main>
+      <aside class="sidebar">
+        {{if .Page.ShowSecondaryNav}}
+        <div class="secondary-nav">
+          {{template "blocks/navigation" .Page.SecondaryNav}}
+        </div>
+        {{end}}
+      </aside>
+    </div>
+    <footer>
+      <p class="attribution">Powered by
+        <a href="http://www.monsti.org">Monsti</a>
+      </p>
+    </footer>
   </body>
 </html>
