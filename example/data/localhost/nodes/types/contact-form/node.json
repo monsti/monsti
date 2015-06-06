@@ -22,7 +22,7 @@
           }
         },
         {
-          "Name": "E-Mail",
+          "Name": "Email",
           "Required": true,
           "Field": {
             "Type": "text"

@@ -82,6 +82,10 @@ func setup(c *module.ModuleContext) error {
 	return nil
 }
 
+type dataField struct {
+	Id, Name string
+}
+
 func renderContactForm(req *service.Request, session *service.Session) (
 	*service.RenderNodeRet, error) {
 
@@ -99,9 +103,11 @@ func renderContactForm(req *service.Request, session *service.Session) (
 	}
 
 	data := make(service.NestedMap)
+	var dataFields []dataField
 	form := htmlwidgets.NewForm(data)
 
 	formFields := node.Fields["core.ContactFormFields"].(*service.ListField)
+
 	for i, field := range formFields.Fields {
 		combinedField := field.(*service.CombinedField)
 		name := combinedField.Fields["Name"].Value().(string)
@@ -146,10 +152,13 @@ func renderContactForm(req *service.Request, session *service.Session) (
 				siteSettings.StringValue("core.OwnerName"))
 			// mail.SetAddressHeader("Reply-To", data.Email, data.Name)
 			mail.SetHeader("Subject", "Contact form submit")
-			body := fmt.Sprintf("%v\n%v\n\n",
+			var fieldValues string
+			for _, v := range dataFields {
+				fieldValues += fmt.Sprintf("%v: %v\n", v.Name, data[v.Id])
+			}
+			body := fmt.Sprintf("%v\n\n%v",
 				fmt.Sprintf(G("Received from contact form at %v"),
-					siteSettings.StringValue("core.Title")),
-				fmt.Sprintf(G("Name:  | Email: ")))
+					siteSettings.StringValue("core.Title")), fieldValues)
 			mail.SetBody("text/plain", body)
 			mailer := gomail.NewCustomMailer("", nil, gomail.SetSendMail(
 				m.SendMailFunc()))
