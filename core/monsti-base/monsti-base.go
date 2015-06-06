@@ -32,6 +32,7 @@ import (
 var availableLocales = []string{"de", "en"}
 
 func setup(c *module.ModuleContext) error {
+	gettext.DefaultLocales.Domain = "monsti-daemon"
 	G := func(in string) string { return in }
 	m := c.Session.Monsti()
 
