@@ -48,13 +48,13 @@ type NodeContextArgs struct {
 }
 
 type NodeContextRet struct {
-	Context map[string]interface{}
+	Context map[string][]byte
 	Mods    *CacheMods
 }
 
 type nodeContextHandler struct {
 	f func(request uint, session *Session, nodeType string, embedNode *EmbedNode) (
-		map[string]interface{}, *CacheMods, error)
+		map[string][]byte, *CacheMods, error)
 	sessions *SessionPool
 }
 
@@ -81,7 +81,7 @@ func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 func NewNodeContextHandler(
 	sessions *SessionPool,
 	cb func(request uint, session *Session, nodeType string,
-		embedNode *EmbedNode) (map[string]interface{}, *CacheMods, error)) SignalHandler {
+		embedNode *EmbedNode) (map[string][]byte, *CacheMods, error)) SignalHandler {
 	return &nodeContextHandler{cb, sessions}
 }
 

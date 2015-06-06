@@ -499,7 +499,7 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 	for i, _ := range nodeContextRet {
 		mods.Join(nodeContextRet[i].Mods)
 		for key, value := range nodeContextRet[i].Context {
-			context[key] = value
+			context[key] = template.HTML(string(value))
 		}
 	}
 
