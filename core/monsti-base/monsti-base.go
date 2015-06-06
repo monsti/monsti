@@ -144,9 +144,9 @@ func renderContactForm(req *service.Request, session *service.Session) (
 		data["Message"] = ""
 		dataFields = []dataField{
 			{"Name", G("Name")},
-			{"Name", G("Email")},
-			{"Name", G("Subject")},
-			{"Name", G("Message")},
+			{"Email", G("Email")},
+			{"Subject", G("Subject")},
+			{"Message", G("Message")},
 		}
 		form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
 			ValidationError: G("Required.")}, "Name", G("Name"), "")
