@@ -174,7 +174,7 @@ func renderContactForm(req *service.Request, session *service.Session) (
 				siteSettings.StringValue("core.OwnerEmail"),
 				siteSettings.StringValue("core.OwnerName"))
 			// mail.SetAddressHeader("Reply-To", data.Email, data.Name)
-			mail.SetHeader("Subject", "Contact form submit")
+			mail.SetHeader("Subject", "Contact form submission")
 			var fieldValues string
 			for _, v := range dataFields {
 				fieldValues += fmt.Sprintf("%v: %v\n", v.Name, data[v.Id])
