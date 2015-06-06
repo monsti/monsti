@@ -1,0 +1,38 @@
+= Monsti 0.13.0 Release Notes
+:imagesdir: static/img
+:data-uri:
+:icons:
+:toc:
+:homepage: http://www.monsti.org
+
+== Notable Changes
+
+=== New base module
+
+A new module named `monsti-base` was added that implements base
+functionality like core node types. The module will always be
+automatically started.
+
+=== Configurable contact form fields
+
+Fields of the contact form may be configured using the
+`core.ContactFormFields` field. Have a look at the example.
+
+=== New signal `RenderNode`
+
+This signal was added to replace the `NodeContext` signal. It's more
+powerful, e.g. it allows for redirects.
+
+== Upgrade from 0.12.0
+
+Modules and sites should be able to run and compile without changes.
+
+=== Deprecation of NodeContext signal
+
+Please use the RenderNode instead of the NodeContext signal.
+
+=== service.Request struct changes
+
+The `Form` member now contains not only PUT/POST form values, but also
+URL parameters. The `PostForm` contains only the PUT/POST form
+values.
