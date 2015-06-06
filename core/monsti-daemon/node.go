@@ -255,12 +255,8 @@ func (h *nodeHandler) Remove(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	renderData, err := form.RenderData()
-	if err != nil {
-		return fmt.Errorf("Could not get form render data: %v", err)
-	}
 	body, err := h.Renderer.Render("actions/removeform", mtemplate.Context{
-		"Form": renderData, "Node": c.Node},
+		"Form": form.RenderData(), "Node": c.Node},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 	if err != nil {
 		panic("Can't render node remove formular: " + err.Error())
@@ -700,12 +696,8 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	renderData, err := form.RenderData()
-	if err != nil {
-		return fmt.Errorf("Could not get form render data: %v", err)
-	}
 	rendered, err := h.Renderer.Render("edit",
-		mtemplate.Context{"Form": renderData},
+		mtemplate.Context{"Form": form.RenderData()},
 		c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 
 	if err != nil {

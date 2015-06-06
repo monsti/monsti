@@ -163,7 +163,7 @@ func renderContactForm(req *service.Request, session *service.Session) (
 	default:
 		return nil, fmt.Errorf("Request method not supported: %v", req.Method)
 	}
-	context["Form"], err = form.RenderData()
+	context["Form"] = form.RenderData()
 	return &service.RenderNodeRet{Context: context}, err
 }
 

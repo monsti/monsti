@@ -79,13 +79,9 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 	default:
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
-	renderData, err := form.RenderData()
-	if err != nil {
-		return fmt.Errorf("Could not get form render data: %v", err)
-	}
 	rendered, err := h.Renderer.Render("actions/settings",
 		mtemplate.Context{
-			"Form":  renderData,
+			"Form":  form.RenderData(),
 			"Saved": c.Req.FormValue("saved"),
 		}, c.UserSession.Locale, h.Settings.Monsti.GetSiteTemplatesPath(c.Site))
 
