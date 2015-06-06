@@ -136,6 +136,28 @@ func renderContactForm(req *service.Request, session *service.Session) (
 		form.AddWidget(widget, fieldId, name, "")
 	}
 
+	if len(formFields.Fields) == 0 {
+		// Add default fields for backward compatibility
+		data["Name"] = ""
+		data["Email"] = ""
+		data["Subject"] = ""
+		data["Message"] = ""
+		dataFields = []dataField{
+			{"Name", G("Name")},
+			{"Name", G("Email")},
+			{"Name", G("Subject")},
+			{"Name", G("Message")},
+		}
+		form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+			ValidationError: G("Required.")}, "Name", G("Name"), "")
+		form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+			ValidationError: G("Required.")}, "Email", G("Email"), "")
+		form.AddWidget(&htmlwidgets.TextWidget{MinLength: 1,
+			ValidationError: G("Required.")}, "Subject", G("Subject"), "")
+		form.AddWidget(&htmlwidgets.TextAreaWidget{MinLength: 1,
+			ValidationError: G("Required.")}, "Message", G("Message"), "")
+	}
+
 	context := make(map[string]interface{})
 	switch req.Method {
 	case "GET":
