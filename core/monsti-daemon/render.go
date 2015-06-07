@@ -75,7 +75,7 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 			"Session": env.Session}, userLocale,
 			settings.Monsti.GetSiteTemplatesPath(site))
 		if err != nil {
-			panic("Can't render: " + err.Error())
+			panic("Can't render admin template: " + err.Error())
 		}
 		return ret, nil
 	}
@@ -146,7 +146,9 @@ func renderInMaster(r template.Renderer, content []byte, env masterTmplEnv,
 		"Session": env.Session}, userLocale,
 		settings.Monsti.GetSiteTemplatesPath(site))
 	if err != nil {
-		panic("Can't render: " + err.Error())
+		panic(fmt.Sprintf(
+			"Can't render master template for site %v: %v",
+			site, err))
 	}
 	return ret, mods
 }
