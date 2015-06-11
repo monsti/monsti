@@ -23,6 +23,10 @@ Fields of the contact form may be configured using the
 This signal was added to replace the `NodeContext` signal. It's more
 powerful, e.g. it allows for redirects.
 
+=== GUI for list fields
+
+A GUI has been added for editing list fields.
+
 == Upgrade from 0.12.0
 
 Modules and sites should be able to run and compile without changes.

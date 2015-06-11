@@ -2,6 +2,7 @@
  - New features:
     + Fields of contact forms are configurable.
     + Added RenderNode signal (replaces NodeContext signal).
+    + Added GUI for list fields.
  - Changes:
     + Deprecated NodeContext signal (use RenderNode signal!).
     + Moved contact form to separate module.

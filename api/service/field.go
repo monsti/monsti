@@ -745,7 +745,7 @@ func (t ListFieldType) Field() Field {
 
 type ListField struct {
 	Fields    []Field
-	fieldType FieldType
+	fieldType *ListFieldType
 	monsti    *MonstiClient
 	site      string
 }
@@ -773,7 +773,7 @@ func (f *ListField) Load(dataFnc func(interface{}) error) error {
 	if err := dataFnc(&data); err != nil {
 		return err
 	}
-	elementType := f.fieldType.(*ListFieldType).ElementType
+	elementType := f.fieldType.ElementType
 	for _, msg := range data {
 		fieldDataFnc := func(in interface{}) error {
 			return json.Unmarshal(msg, in)
@@ -814,30 +814,10 @@ func (f *ListField) FromFormData(data interface{}) {
 	}
 }
 
-func (f ListField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
-	/*
-		return &htmlwidgets.ListWidget{
-			InnerWidget: &htmlwidgets.TextWidget{},
-		}
-	*/
-}
-
-func (t ListField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	/*
-		data.Set(field.Id, t.Time)
-		form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
-			"Fields."+field.Id, field.Name.Get(locale), "")
-	*/
-}
-
-func (t *ListField) FromFormField(data NestedMap, field *FieldConfig) {
-	/*
-		time := data.Get(field.Id).(time.Time)
-		*t = DateTimeField{Time: time}
-	*/
+func (f ListField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	return &htmlwidgets.ListWidget{
+		InnerWidget: f.fieldType.ElementType.Field().FormWidget(locale, field),
+	}
 }
 
 type MapFieldType struct {
