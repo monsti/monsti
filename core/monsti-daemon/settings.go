@@ -49,8 +49,11 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 		if field.Hidden {
 			continue
 		}
-		settings.Fields[field.Id].ToFormField(form, formData.Fields,
-			field, c.UserSession.Locale)
+		formData.Fields.Set(field.Id, settings.Fields[field.Id].FormData())
+		widget := settings.Fields[field.Id].FormWidget(
+			c.UserSession.Locale, field)
+		form.AddWidget(widget, "Fields."+field.Id,
+			field.Name.Get(c.UserSession.Locale), "")
 	}
 
 	switch c.Req.Method {
@@ -59,7 +62,7 @@ func (h *nodeHandler) SettingsAction(c *reqContext) error {
 		if form.Fill(c.Req.Form) {
 			for _, field := range settings.FieldConfigs {
 				if !field.Hidden {
-					settings.Fields[field.Id].FromFormField(formData.Fields, field)
+					settings.Fields[field.Id].FromFormData(formData.Fields.Get(field.Id))
 				}
 			}
 			if err := m.WriteSiteSettings(c.Site, settings); err != nil {

@@ -598,8 +598,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if field.Hidden {
 			continue
 		}
-		formData.Node.Fields[field.Id].ToFormField(form, formData.Fields,
-			field, c.UserSession.Locale)
+		formData.Fields.Set(field.Id, formData.Node.Fields[field.Id].FormData())
+		widget := formData.Node.Fields[field.Id].FormWidget(
+			c.UserSession.Locale, field)
+		form.AddWidget(widget, "Fields."+field.Id,
+			field.Name.Get(c.UserSession.Locale), "")
 		if _, ok := field.Type.(*service.FileFieldType); ok {
 			fileFields = append(fileFields, field.Id)
 		}
@@ -660,7 +663,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				for _, field := range nodeType.Fields {
 					if !field.Hidden {
-						node.Fields[field.Id].FromFormField(formData.Fields, field)
+						node.Fields[field.Id].FromFormData(formData.Fields.Get(field.Id))
 					}
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site, node.Path, &node)

@@ -6,6 +6,7 @@
     + Deprecated NodeContext signal (use RenderNode signal!).
     + Moved contact form to separate module.
     + Changed fields (Method, FormData, Form, PostForm) of service.Request.
+    + Refactored service.Field.
  - Fixed:
     + Now calling FinishSignal in WaitSignal if an error occurs.
     + Stop waiting for signal responses if an error occured.
