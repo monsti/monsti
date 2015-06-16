@@ -736,8 +736,8 @@ func initFields(fields map[string]Field, configs []*FieldConfig,
 }
 
 type ListFieldType struct {
-	ElementType FieldType
-	AddLabel    i18n.LanguageMap
+	ElementType           FieldType
+	AddLabel, RemoveLabel i18n.LanguageMap
 }
 
 func (t ListFieldType) Field() Field {
@@ -813,12 +813,14 @@ func (f *ListField) FromFormData(data interface{}) {
 		}
 		f.Fields[idx].FromFormData(data)
 	}
+	f.Fields = f.Fields[:len(dataList)]
 }
 
 func (f ListField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	return &htmlwidgets.ListWidget{
 		InnerWidget: f.fieldType.ElementType.Field().FormWidget(locale, field),
 		AddLabel:    f.fieldType.AddLabel.Get(locale),
+		RemoveLabel: f.fieldType.RemoveLabel.Get(locale),
 	}
 }
 
