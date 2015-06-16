@@ -23,7 +23,7 @@ import (
 )
 import "pkg.monsti.org/monsti/api/service"
 
-var availableLocales = []string{"en", "de"}
+var availableLocales = []string{"en", "de", "nl"}
 
 func initNodeTypes(settings *settings, session *service.Session, logger *log.Logger) error {
 	G := func(in string) string { return in }

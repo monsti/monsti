@@ -35,9 +35,12 @@
   <input type="datetime-local" id="{{.Id}}" name="{{.Id}}" value="{{.Data}}">
 
   {{else if eq .Template "list"}}
-  {{range .Data}}
+  {{range .Data.Fields}}
   {{template "blocks/widget" .}}
   {{end}}
+  <button type="submit" name="htmlwidgets-action--add-to-list" value="{{.Id}}"
+          >{{with .Data.AddLabel}}{{.}}{{else}}Add{{end}}</button>
+
   {{else}}
   Unknown widget template: {{.Template}}
   {{end}}

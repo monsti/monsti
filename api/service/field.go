@@ -737,6 +737,7 @@ func initFields(fields map[string]Field, configs []*FieldConfig,
 
 type ListFieldType struct {
 	ElementType FieldType
+	AddLabel    i18n.LanguageMap
 }
 
 func (t ListFieldType) Field() Field {
@@ -806,17 +807,18 @@ func (f ListField) FormData() interface{} {
 
 func (f *ListField) FromFormData(data interface{}) {
 	dataList := data.([]interface{})
-	if len(dataList) != len(f.Fields) {
-		panic("Implement me!")
-	}
-	for idx, field := range f.Fields {
-		field.FromFormData(dataList[idx])
+	for idx, data := range dataList {
+		if idx == len(f.Fields) {
+			f.Fields = append(f.Fields, f.fieldType.ElementType.Field())
+		}
+		f.Fields[idx].FromFormData(data)
 	}
 }
 
 func (f ListField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	return &htmlwidgets.ListWidget{
 		InnerWidget: f.fieldType.ElementType.Field().FormWidget(locale, field),
+		AddLabel:    f.fieldType.AddLabel.Get(locale),
 	}
 }
 

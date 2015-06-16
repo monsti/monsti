@@ -113,6 +113,9 @@ func (r Renderer) Render(name string, context interface{},
 		"GN":        GN,
 		"GD":        GD,
 		"GDN":       GDN,
+		"Interface": func(in interface{}) interface{} {
+			return in
+		},
 		"RawHTML": func(in interface{}) template.HTML {
 			return template.HTML(fmt.Sprintf("%s", in))
 		},

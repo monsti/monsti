@@ -192,7 +192,7 @@ func (s *MonstiClient) LoadSiteSettings(site string) (*Settings, error) {
 			Hidden: true,
 			Type: &MapFieldType{
 				&ListFieldType{
-					&CombinedFieldType{map[string]FieldConfig{
+					ElementType: &CombinedFieldType{map[string]FieldConfig{
 						"id": {Type: new(TextFieldType)}}}}},
 		},
 	}
