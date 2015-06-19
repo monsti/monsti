@@ -53,6 +53,13 @@ Project
 Website: http://www.monsti.org/
 Code: http://www.gitorious.org/monsti | http://github.com/monsti
 
+Contributions
+-------------
+
+Please note that this project is released with a
+[Contributor Code of Conduct](CODE_OF_CONDUCT.md).
+By participating in this project you agree to abide by its terms.
+
 Acknowledgements
 ----------------
 
