@@ -24,7 +24,7 @@ import (
 	"pkg.monsti.org/monsti/api/util/module"
 )
 
-var availableLocales = []string{"de", "en"}
+var availableLocales = []string{"de", "en", "nl"}
 
 func setup(c *module.ModuleContext) error {
 	G := func(in string) string { return in }
@@ -106,16 +106,22 @@ func setup(c *module.ModuleContext) error {
 			{
 				Id:   "example.TextList",
 				Name: i18n.GenLanguageMap(G("Text list"), availableLocales),
-				Type: &service.ListFieldType{new(service.TextFieldType)},
+				Type: &service.ListFieldType{
+					ElementType: new(service.TextFieldType),
+					AddLabel:    i18n.GenLanguageMap(G("Add text entry"), availableLocales),
+					RemoveLabel: i18n.GenLanguageMap(G("Remove entry"), availableLocales),
+				},
 			},
 			{
-				Id:   "example.Map",
-				Name: i18n.GenLanguageMap(G("Map"), availableLocales),
-				Type: &service.MapFieldType{new(service.TextFieldType)},
+				Id:     "example.Map",
+				Hidden: true,
+				Name:   i18n.GenLanguageMap(G("Map"), availableLocales),
+				Type:   &service.MapFieldType{new(service.TextFieldType)},
 			},
 			{
-				Id:   "example.Combined",
-				Name: i18n.GenLanguageMap(G("Combined"), availableLocales),
+				Id:     "example.Combined",
+				Hidden: true,
+				Name:   i18n.GenLanguageMap(G("Combined"), availableLocales),
 				Type: &service.CombinedFieldType{
 					map[string]service.FieldConfig{
 						"Text": {
