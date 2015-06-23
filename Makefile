@@ -158,6 +158,6 @@ example/monsti-example-module/monsti-example-module:
 example-module: go/bin/monsti-example-module
 
 go/bin/monsti-example-module: example/monsti-example-module/monsti-example-module
-	cp example/monsti-example-module/monsti-example-module $(GOPATH)/bin
+	cp -f example/monsti-example-module/monsti-example-module $(GOPATH)/bin
 	rm -f templates/example
 	ln -sf ../example/monsti-example-module/templates templates/example

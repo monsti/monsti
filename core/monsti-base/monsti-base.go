@@ -45,7 +45,7 @@ func setup(c *module.ModuleContext) error {
 				Id:     "core.ContactFormFields",
 				Hidden: true,
 				Type: &service.ListFieldType{
-					&service.CombinedFieldType{map[string]service.FieldConfig{
+					ElementType: &service.CombinedFieldType{map[string]service.FieldConfig{
 						"Name":     {Type: new(service.TextFieldType)},
 						"Required": {Type: new(service.BoolFieldType)},
 						"Field": {Type: &service.DynamicTypeFieldType{
