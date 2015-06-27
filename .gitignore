@@ -1,4 +1,7 @@
 go/
+example/monsti-example-module/go
+example/monsti-example-module/monsti-example-module
 static/lib/
 dist/
-example/data/example/cache/
+templates/example
+example/data/localhost/cache/
