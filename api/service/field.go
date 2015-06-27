@@ -394,7 +394,7 @@ func (f RefField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widg
 		widget.MinLength = 1
 		widget.ValidationError = G("Required.")
 	}
-	return nil
+	return widget
 }
 
 type IntegerFieldType int
