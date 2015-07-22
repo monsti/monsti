@@ -19,7 +19,27 @@ package service
 import (
 	"encoding/gob"
 	"fmt"
+	"html/template"
+
+	"github.com/chrneumann/htmlwidgets"
 )
+
+func init() {
+	gob.RegisterName("monsti.NodeContextArgs", NodeContextArgs{})
+	gob.RegisterName("monsti.NodeContextRet", NodeContextRet{})
+	gob.RegisterName("monsti.RenderNodeArgs", RenderNodeArgs{})
+	gob.RegisterName("monsti.RenderNodeRet", RenderNodeRet{})
+	gob.Register(new(template.HTML))
+	gob.Register(new(htmlwidgets.RenderData))
+}
+
+// SignalHandler wraps a handler for a specific signal.
+type SignalHandler interface {
+	// Name returns the name of the signal to handle.
+	Name() string
+	// Handle handles a signal with given arguments.
+	Handle(args interface{}) (interface{}, error)
+}
 
 type NodeContextArgs struct {
 	Request   uint
@@ -30,19 +50,6 @@ type NodeContextArgs struct {
 type NodeContextRet struct {
 	Context map[string][]byte
 	Mods    *CacheMods
-}
-
-func init() {
-	gob.RegisterName("monsti.NodeContextArgs", NodeContextArgs{})
-	gob.RegisterName("monsti.NodeContextRet", NodeContextRet{})
-}
-
-// SignalHandler wraps a handler for a specific signal.
-type SignalHandler interface {
-	// Name returns the name of the signal to handle.
-	Name() string
-	// Handle handles a signal with given arguments.
-	Handle(args interface{}) (interface{}, error)
 }
 
 type nodeContextHandler struct {
@@ -69,9 +76,61 @@ func (r *nodeContextHandler) Handle(args interface{}) (interface{}, error) {
 
 // NewNodeContextHandler consructs a signal handler that adds some
 // template context for rendering a node.
+//
+// DEPRECATED: Use the more powerful RenderNode signal.
 func NewNodeContextHandler(
 	sessions *SessionPool,
 	cb func(request uint, session *Session, nodeType string,
 		embedNode *EmbedNode) (map[string][]byte, *CacheMods, error)) SignalHandler {
 	return &nodeContextHandler{cb, sessions}
+}
+
+type RenderNodeArgs struct {
+	Request   uint
+	NodeType  string
+	EmbedNode *EmbedNode
+}
+
+// Redirect configures a HTTP redirect with the given URL and HTTP status.
+type Redirect struct {
+	URL    string
+	Status int
+}
+
+type RenderNodeRet struct {
+	Context  map[string]interface{}
+	Redirect *Redirect
+	Mods     *CacheMods
+}
+
+type renderNodeHandler struct {
+	f        func(signal *RenderNodeArgs, session *Session) (*RenderNodeRet, error)
+	sessions *SessionPool
+}
+
+func (r *renderNodeHandler) Name() string {
+	return "monsti.RenderNode"
+}
+
+func (r *renderNodeHandler) Handle(args interface{}) (interface{}, error) {
+	session, err := r.sessions.New()
+	if err != nil {
+		return nil, fmt.Errorf("service: Could not get session: %v", err)
+	}
+	defer r.sessions.Free(session)
+	args_ := args.(RenderNodeArgs)
+	ret, err := r.f(&args_, session)
+	if ret == nil {
+		ret = new(RenderNodeRet)
+	}
+	return ret, err
+}
+
+// NewRenderNodeHandler consructs a signal handler that may add some
+// template context for rendering a node and issue redirects.
+func NewRenderNodeHandler(
+	sessions *SessionPool,
+	cb func(args *RenderNodeArgs, session *Session) (
+		*RenderNodeRet, error)) SignalHandler {
+	return &renderNodeHandler{cb, sessions}
 }

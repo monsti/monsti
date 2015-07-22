@@ -40,7 +40,7 @@ import (
 	"pkg.monsti.org/monsti/api/util/template"
 )
 
-const monstiVersion = "0.12.0"
+const monstiVersion = "0.13.0"
 
 // Settings for the application and the sites.
 type settings struct {
@@ -155,10 +155,11 @@ func main() {
 
 	// Start modules
 	monsti.moduleInit = make(map[string]chan bool)
-	for _, module := range settings.Modules {
+	modules := append([]string{"base"}, settings.Modules...)
+	for _, module := range modules {
 		monsti.moduleInit[module] = make(chan bool, 1)
 	}
-	for _, module := range settings.Modules {
+	for _, module := range modules {
 		executable := "monsti-" + module
 		cmd := exec.Command(executable, cfgPath)
 		cmd.Stderr = moduleLog{module, logger}
@@ -169,7 +170,7 @@ func main() {
 		}(module)
 	}
 	logger.Println("Waiting for modules to finish initialization...")
-	for _, module := range settings.Modules {
+	for _, module := range modules {
 		logger.Printf("Waiting for %q...", module)
 		<-monsti.moduleInit[module]
 	}

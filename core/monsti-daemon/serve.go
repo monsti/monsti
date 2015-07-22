@@ -74,10 +74,11 @@ func (n *nodeHandler) GetRequest(id uint) *service.Request {
 		NodePath: req.Node.Path,
 		Site:     req.Site,
 		Query:    req.Req.URL.Query(),
-		// TODO add method
+		Method:   req.Req.Method,
 		Session:  req.UserSession,
 		Action:   req.Action,
-		FormData: req.Req.PostForm,
+		Form:     req.Req.Form,
+		PostForm: req.Req.PostForm,
 		/*
 			Node:  req.Node,
 		*/

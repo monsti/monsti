@@ -89,6 +89,14 @@ You will need following tools to build the documentation:
 - http://www.gnu.org/software/src-highlite/[source-highlight]
 
 
+== Typical usage
+
+- Copy the example site's data to a new directory in the data
+  directory and name it matching the hostname of the new site.
+- Alter the templates according to you needs.
+- Create a new module to implement new functionality and custom node
+  types.
+
 == Architecture [[sec-architecture]]
 
 Monsti's master daemon provides the core functionality of Monsti. It
@@ -148,6 +156,16 @@ Map fields map string keys to fields of a configurable type.
 == Node types
 
 === Core Node Types
+
+==== core.ContactForm
+
+The contact form node type allows to realize contact forms with custom
+fields on your website. Currently, fields can only be configured
+directly in the node's json file. Have a look at the contact form in
+the example.
+
+For backward compatibility, contact forms without configured form
+fields will be provided with some default fields.
 
 ==== core.Path
 
@@ -242,6 +260,15 @@ for a detailed description.
 Have a look at the documented example module
 `monsti-example-module`. It shows how to setup a module and call
 Monsti's API, including use of signals.
+
+=== Signals
+
+Monsti includes a signal mechanism to alter functionality. For
+example, when a node gets visited and rendered, the `RenderNode`
+signal will be called which can be used for various tasks as to add
+content, process form submits, or redirect to another node. Have a
+look at the example how to use signals and refer to the service API
+documentation for a list of available signals.
 
 == Configuration
 

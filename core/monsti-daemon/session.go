@@ -71,6 +71,7 @@ func (h *nodeHandler) Login(c *reqContext) error {
 		return fmt.Errorf("Request method not supported: %v", c.Req.Method)
 	}
 	data.Password = ""
+
 	body, err := h.Renderer.Render("actions/loginform", template.Context{
 		"Form": form.RenderData()}, c.UserSession.Locale,
 		h.Settings.Monsti.GetSiteTemplatesPath(c.Site))

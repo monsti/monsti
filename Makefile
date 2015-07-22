@@ -5,11 +5,11 @@ GO_GET=$(GO) get $(GO_COMMON_OPTS)
 GO_BUILD=$(GO) build $(GO_COMMON_OPTS)
 GO_TEST=$(GO) test $(GO_COMMON_OPTS)
 
-MODULES=daemon
+MODULES=daemon base
 
 LOCALES=de
 
-MONSTI_VERSION=0.12.0
+MONSTI_VERSION=0.13.0
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
@@ -143,7 +143,7 @@ locale/monsti-daemon.pot:
 %.po: locale/monsti-daemon.pot
 	  msgmerge -s -U $@ $<
 
-doc: doc/manual.html
+doc: doc/manual.html doc/release_notes.html
 
 doc/%.html: doc/%.adoc
 	asciidoc $<
@@ -156,6 +156,6 @@ example/monsti-example-module/monsti-example-module:
 example-module: go/bin/monsti-example-module
 
 go/bin/monsti-example-module: example/monsti-example-module/monsti-example-module
-	cp example/monsti-example-module/monsti-example-module $(GOPATH)/bin
+	cp -f example/monsti-example-module/monsti-example-module $(GOPATH)/bin
 	rm -f templates/example
 	ln -sf ../example/monsti-example-module/templates templates/example

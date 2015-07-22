@@ -93,18 +93,9 @@ type Field interface {
 	// The dumped value must be something that can be marshalled into
 	// JSON by encoding/json.
 	Dump() interface{}
-	// Adds a form field to the given form.
-	//
-	// The nested map stores the field values used by the form. Locale
-	// is used for translations.
-	ToFormField(form *htmlwidgets.Form, values NestedMap, field *FieldConfig,
-		locale string)
-	// Load values from the form submission
-	FromFormField(NestedMap, *FieldConfig)
 
-	// TODO Replace ToFormField and FromFormField using the Form* methods.
 	// Needed for rendering of nested fields (see ListField).
-	FormWidget() htmlwidgets.Widget
+	FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget
 	FormData() interface{}
 	FromFormData(data interface{})
 }
@@ -138,32 +129,20 @@ func (t BoolField) Dump() interface{} {
 	return t
 }
 
-func (t BoolField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, t)
-	form.AddWidget(new(htmlwidgets.BoolWidget), "Fields."+field.Id,
-		field.Name.Get(locale), "")
-}
-
-func (t *BoolField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = BoolField(data.Get(field.Id).(bool))
-}
-
 func (t *BoolField) Bool() bool {
 	return bool(*t)
 }
 
 func (f BoolField) FormData() interface{} {
-	panic("Not implemented")
+	return f
 }
 
 func (f *BoolField) FromFormData(data interface{}) {
-	panic("Not implemented")
+	*f = BoolField(data.(bool))
 }
 
-func (f BoolField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+func (f BoolField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	return new(htmlwidgets.BoolWidget)
 }
 
 type CombinedFieldType struct {
@@ -236,16 +215,9 @@ func (f *CombinedField) FromFormData(data interface{}) {
 	panic("Not implemented")
 }
 
-func (f CombinedField) FormWidget() htmlwidgets.Widget {
+func (f CombinedField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	panic("Not implemented")
 	return nil
-}
-
-func (t CombinedField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-}
-
-func (t *CombinedField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type DummyFieldType int
@@ -277,13 +249,6 @@ func (t DummyField) Dump() interface{} {
 	return nil
 }
 
-func (t DummyField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-}
-
-func (t *DummyField) FromFormField(data NestedMap, field *FieldConfig) {
-}
-
 func (f DummyField) FormData() interface{} {
 	return nil
 }
@@ -291,7 +256,7 @@ func (f DummyField) FormData() interface{} {
 func (f *DummyField) FromFormData(data interface{}) {
 }
 
-func (f DummyField) FormWidget() htmlwidgets.Widget {
+func (f DummyField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	return nil
 }
 
@@ -380,16 +345,9 @@ func (f *DynamicTypeField) FromFormData(data interface{}) {
 	panic("Not implemented")
 }
 
-func (f DynamicTypeField) FormWidget() htmlwidgets.Widget {
+func (f DynamicTypeField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	panic("Not implemented")
 	return nil
-}
-
-func (t DynamicTypeField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-}
-
-func (t *DynamicTypeField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type RefFieldType int
@@ -421,33 +379,22 @@ func (t RefField) Dump() interface{} {
 	return string(t)
 }
 
-func (t RefField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, string(t))
+func (f RefField) FormData() interface{} {
+	return string(f)
+}
+
+func (f *RefField) FromFormData(data interface{}) {
+	*f = RefField(data.(string))
+}
+
+func (f RefField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	widget := new(htmlwidgets.TextWidget)
 	if field.Required {
 		widget.MinLength = 1
 		widget.ValidationError = G("Required.")
 	}
-	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *RefField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = RefField(data.Get(field.Id).(string))
-}
-
-func (f RefField) FormData() interface{} {
-	panic("Not implemented")
-}
-
-func (f *RefField) FromFormData(data interface{}) {
-	panic("Not implemented")
-}
-
-func (f RefField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+	return widget
 }
 
 type IntegerFieldType int
@@ -479,33 +426,22 @@ func (t IntegerField) Dump() interface{} {
 	return int(t)
 }
 
-func (t IntegerField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, int(t))
+func (f IntegerField) FormData() interface{} {
+	return int(f)
+}
+
+func (f *IntegerField) FromFormData(data interface{}) {
+	*f = IntegerField(data.(int))
+}
+
+func (f IntegerField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	widget := new(htmlwidgets.TextWidget)
 	if field.Required {
 		widget.MinLength = 1
 		widget.ValidationError = G("Required.")
 	}
-	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *IntegerField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = IntegerField(data.Get(field.Id).(int))
-}
-
-func (f IntegerField) FormData() interface{} {
-	panic("Not implemented")
-}
-
-func (f *IntegerField) FromFormData(data interface{}) {
-	panic("Not implemented")
-}
-
-func (f IntegerField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+	return widget
 }
 
 type TextFieldType int
@@ -537,33 +473,22 @@ func (t TextField) Dump() interface{} {
 	return string(t)
 }
 
-func (t TextField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, string(t))
+func (f TextField) FormData() interface{} {
+	return string(f)
+}
+
+func (f *TextField) FromFormData(data interface{}) {
+	*f = TextField(data.(string))
+}
+
+func (f TextField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	G, _, _, _ := gettext.DefaultLocales.Use("", locale)
 	widget := new(htmlwidgets.TextWidget)
 	if field.Required {
 		widget.MinLength = 1
 		widget.ValidationError = G("Required.")
 	}
-	form.AddWidget(widget, "Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *TextField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = TextField(data.Get(field.Id).(string))
-}
-
-func (f TextField) FormData() interface{} {
-	panic("Not implemented")
-}
-
-func (f *TextField) FromFormData(data interface{}) {
-	panic("Not implemented")
-}
-
-func (f TextField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+	return widget
 }
 
 type HTMLFieldType int
@@ -595,30 +520,18 @@ func (t HTMLField) Dump() interface{} {
 	return string(t)
 }
 
-func (t HTMLField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	//G, _, _, _ := gettext.DefaultLocales.Use("", locale)
-	data.Set(field.Id, string(t))
-	widget := form.AddWidget(new(htmlwidgets.TextAreaWidget), "Fields."+field.Id,
-		field.Name.Get(locale), "")
-	widget.Base().Classes = []string{"html-field"}
-}
-
-func (t *HTMLField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = HTMLField(data.Get(field.Id).(string))
-}
-
 func (f HTMLField) FormData() interface{} {
-	panic("Not implemented")
+	return string(f)
 }
 
 func (f *HTMLField) FromFormData(data interface{}) {
-	panic("Not implemented")
+	*f = HTMLField(data.(string))
 }
 
-func (f HTMLField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+func (f HTMLField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	widget := new(htmlwidgets.TextAreaWidget)
+	widget.Base().Classes = []string{"html-field"}
+	return widget
 }
 
 type FileFieldType int
@@ -649,28 +562,16 @@ func (t FileField) Dump() interface{} {
 	return ""
 }
 
-func (t FileField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, "")
-	form.AddWidget(new(htmlwidgets.FileWidget), "Fields."+field.Id,
-		field.Name.Get(locale), "")
-}
-
-func (t *FileField) FromFormField(data NestedMap, field *FieldConfig) {
-	*t = FileField(data.Get(field.Id).(string))
-}
-
 func (f FileField) FormData() interface{} {
-	panic("Not implemented")
+	return ""
 }
 
 func (f *FileField) FromFormData(data interface{}) {
-	panic("Not implemented")
+	*f = FileField(data.(string))
 }
 
-func (f FileField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+func (f FileField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	return new(htmlwidgets.FileWidget)
 }
 
 type DateTimeFieldType int
@@ -721,29 +622,16 @@ func (t DateTimeField) Dump() interface{} {
 	return t.Time.UTC().Format(time.RFC3339)
 }
 
-func (t DateTimeField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	data.Set(field.Id, t.Time)
-	form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
-		"Fields."+field.Id, field.Name.Get(locale), "")
-}
-
-func (t *DateTimeField) FromFormField(data NestedMap, field *FieldConfig) {
-	time := data.Get(field.Id).(time.Time)
-	*t = DateTimeField{Time: time}
-}
-
 func (f DateTimeField) FormData() interface{} {
-	panic("Not implemented")
+	return f.Time
 }
 
 func (f *DateTimeField) FromFormData(data interface{}) {
-	panic("Not implemented")
+	*f = DateTimeField{Time: data.(time.Time)}
 }
 
-func (f DateTimeField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
+func (f DateTimeField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	return &htmlwidgets.TimeWidget{Location: f.Location}
 }
 
 func initFields(fields map[string]Field, configs []*FieldConfig,
@@ -760,7 +648,8 @@ func initFields(fields map[string]Field, configs []*FieldConfig,
 }
 
 type ListFieldType struct {
-	ElementType FieldType
+	ElementType           FieldType
+	AddLabel, RemoveLabel i18n.LanguageMap
 }
 
 func (t ListFieldType) Field() Field {
@@ -769,7 +658,7 @@ func (t ListFieldType) Field() Field {
 
 type ListField struct {
 	Fields    []Field
-	fieldType FieldType
+	fieldType *ListFieldType
 	monsti    *MonstiClient
 	site      string
 }
@@ -797,7 +686,7 @@ func (f *ListField) Load(dataFnc func(interface{}) error) error {
 	if err := dataFnc(&data); err != nil {
 		return err
 	}
-	elementType := f.fieldType.(*ListFieldType).ElementType
+	elementType := f.fieldType.ElementType
 	for _, msg := range data {
 		fieldDataFnc := func(in interface{}) error {
 			return json.Unmarshal(msg, in)
@@ -830,38 +719,21 @@ func (f ListField) FormData() interface{} {
 
 func (f *ListField) FromFormData(data interface{}) {
 	dataList := data.([]interface{})
-	if len(dataList) != len(f.Fields) {
-		panic("Implement me!")
-	}
-	for idx, field := range f.Fields {
-		field.FromFormData(dataList[idx])
-	}
-}
-
-func (f ListField) FormWidget() htmlwidgets.Widget {
-	panic("Not implemented")
-	return nil
-	/*
-		return &htmlwidgets.ListWidget{
-			InnerWidget: &htmlwidgets.TextWidget{},
+	for idx, data := range dataList {
+		if idx == len(f.Fields) {
+			f.Fields = append(f.Fields, f.fieldType.ElementType.Field())
 		}
-	*/
+		f.Fields[idx].FromFormData(data)
+	}
+	f.Fields = f.Fields[:len(dataList)]
 }
 
-func (t ListField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-	/*
-		data.Set(field.Id, t.Time)
-		form.AddWidget(&htmlwidgets.TimeWidget{Location: t.Location},
-			"Fields."+field.Id, field.Name.Get(locale), "")
-	*/
-}
-
-func (t *ListField) FromFormField(data NestedMap, field *FieldConfig) {
-	/*
-		time := data.Get(field.Id).(time.Time)
-		*t = DateTimeField{Time: time}
-	*/
+func (f ListField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
+	return &htmlwidgets.ListWidget{
+		InnerWidget: f.fieldType.ElementType.Field().FormWidget(locale, field),
+		AddLabel:    f.fieldType.AddLabel.Get(locale),
+		RemoveLabel: f.fieldType.RemoveLabel.Get(locale),
+	}
 }
 
 type MapFieldType struct {
@@ -935,16 +807,9 @@ func (f *MapField) FromFormData(data interface{}) {
 	panic("Not implemented")
 }
 
-func (f MapField) FormWidget() htmlwidgets.Widget {
+func (f MapField) FormWidget(locale string, field *FieldConfig) htmlwidgets.Widget {
 	panic("Not implemented")
 	return nil
-}
-
-func (t MapField) ToFormField(form *htmlwidgets.Form, data NestedMap,
-	field *FieldConfig, locale string) {
-}
-
-func (t *MapField) FromFormField(data NestedMap, field *FieldConfig) {
 }
 
 type FieldType interface {

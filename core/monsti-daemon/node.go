@@ -351,6 +351,12 @@ func (h *nodeHandler) viewImage(c *reqContext) error {
 	return nil
 }
 
+type errRedirect service.Redirect
+
+func (e errRedirect) Error() string {
+	return "Redirect"
+}
+
 // ViewNode handles node views.
 func (h *nodeHandler) View(c *reqContext) error {
 	// Redirect if trailing slash is missing and if this is not a file
@@ -392,6 +398,10 @@ func (h *nodeHandler) View(c *reqContext) error {
 	if rendered == nil {
 		rendered, mods, err = h.RenderNode(c, nil)
 		if err != nil {
+			if e, ok := err.(errRedirect); ok {
+				http.Redirect(c.Res, c.Req, e.URL, e.Status)
+				return nil
+			}
 			return fmt.Errorf("Could not render node: %v", err)
 		}
 		if c.UserSession.User == nil && len(c.Req.Form) == 0 {
@@ -448,6 +458,23 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 		}
 	}
 	context := make(mtemplate.Context)
+
+	var renderNodeRet []service.RenderNodeRet
+	err := c.Serv.Monsti().EmitSignal("monsti.RenderNode",
+		service.RenderNodeArgs{c.Id, reqNode.Type.Id, embedNode}, &renderNodeRet)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
+	}
+	for i, _ := range renderNodeRet {
+		if renderNodeRet[i].Redirect != nil {
+			return nil, nil, errRedirect(*renderNodeRet[i].Redirect)
+		}
+		mods.Join(renderNodeRet[i].Mods)
+		for key, value := range renderNodeRet[i].Context {
+			context[key] = value
+		}
+	}
+
 	context["Embed"] = make(map[string]template.HTML)
 	// Embed nodes
 	embedNodes := append(reqNode.Type.Embed, reqNode.Embed...)
@@ -461,24 +488,18 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 			template.HTML(rendered)
 	}
 	context["Node"] = reqNode
-	switch reqNode.Type.Id {
-	case "core.ContactForm":
-		if err := renderContactForm(c, context, c.Req.Form, h); err != nil {
-			return nil, nil, fmt.Errorf("Could not render contact form: %v", err)
-		}
-	}
 	context["Embedded"] = embedNode != nil
 
-	var ret []service.NodeContextRet
-	err := c.Serv.Monsti().EmitSignal("monsti.NodeContext",
-		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &ret)
+	var nodeContextRet []service.NodeContextRet
+	err = c.Serv.Monsti().EmitSignal("monsti.NodeContext",
+		service.NodeContextArgs{c.Id, reqNode.Type.Id, embedNode}, &nodeContextRet)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not emit signal: %v", err)
 	}
-	for i, _ := range ret {
-		mods.Join(ret[i].Mods)
-		for key, value := range ret[i].Context {
-			context[key] = template.HTML(value)
+	for i, _ := range nodeContextRet {
+		mods.Join(nodeContextRet[i].Mods)
+		for key, value := range nodeContextRet[i].Context {
+			context[key] = template.HTML(string(value))
 		}
 	}
 
@@ -577,8 +598,11 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 		if field.Hidden {
 			continue
 		}
-		formData.Node.Fields[field.Id].ToFormField(form, formData.Fields,
-			field, c.UserSession.Locale)
+		formData.Fields.Set(field.Id, formData.Node.Fields[field.Id].FormData())
+		widget := formData.Node.Fields[field.Id].FormWidget(
+			c.UserSession.Locale, field)
+		form.AddWidget(widget, "Fields."+field.Id,
+			field.Name.Get(c.UserSession.Locale), "")
 		if _, ok := field.Type.(*service.FileFieldType); ok {
 			fileFields = append(fileFields, field.Id)
 		}
@@ -639,7 +663,7 @@ func (h *nodeHandler) Edit(c *reqContext) error {
 				}
 				for _, field := range nodeType.Fields {
 					if !field.Hidden {
-						node.Fields[field.Id].FromFormField(formData.Fields, field)
+						node.Fields[field.Id].FromFormData(formData.Fields.Get(field.Id))
 					}
 				}
 				err := c.Serv.Monsti().WriteNode(c.Site, node.Path, &node)

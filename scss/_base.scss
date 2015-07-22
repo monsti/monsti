@@ -1,8 +1,156 @@
 @import "compass";
 @import "htmlarea";
 
+@mixin breakpoint($point) {
+  @if $point == large {
+    /* Large desktop */
+    @media (min-width: 1200px) { @content; }
+  }
+  @else if $point == medium {
+    /* Portrait tablet to landscape and desktop */
+    @media (min-width: 768px) { @content; }
+  }
+  @else if $point == small {
+    /* Landscape phone to portrait tablet */
+    @media (min-width: 480px) { @content; }
+  }
+  /* At least 320px */
+}
+
+* {
+  box-sizing: border-box;
+} 
+
 $primary-color: #274661;
 $secondary-color: #F89B16;
 $border-color: #CCC;
 $widget-background: #FAFAFA;
 $widget-hover-background: #EEE;
+
+html {
+  font: 16px/23.3667px arial, sans-serif;
+  background: desaturate(lighten($primary-color, 70), 30);
+  position: relative;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  padding:0;
+  margin:0;
+  color: #666;
+}
+
+fieldset {
+  border:0;
+  padding:0;
+  margin:0;
+}
+
+form {
+  .field {
+    margin: 15px 0 10px 0;
+    label {
+      color: $primary-color;
+    }
+  }
+  .help {
+    display: block;
+    font-size: 80%;
+  }
+  .errors {
+    padding: 0;
+    li {
+      list-style-type: none;
+      color: #AA0000;
+    }
+  }
+}
+
+input[type=text], input[type=password], input[type=datetime-local], select,
+textarea, button, .button {
+  @include border-radius;
+  border: 1px solid $primary-color;
+  background: rgba($secondary-color, 0.05);
+  padding: 5px;
+  color: black;
+  width: 100%;
+  margin: 5px 0;
+}
+
+button {
+  background: $primary-color;
+  width: auto;
+  color: white;
+  padding: 5px 15px;
+  &:hover {
+    background: darken($primary-color, 10);
+    text-decoration: none;
+  }
+}
+
+textarea {
+  height: 150px;
+}
+
+h1, h2, h3, h4, h5 {
+  color: $primary-color;
+  font-weight: bold;
+}
+
+h1, h2, h3, h4 {
+  margin: 20px 0 10px;
+}
+
+h1 {
+  font-size: 120%;
+}
+
+h2 {
+  font-size: 110%;
+  font-weight: normal;
+}
+
+h3 {
+  font-size: 105%;
+}
+
+h4 {
+  font-size: 102%;
+}
+
+p {
+  margin: 10px 0;
+}
+
+strong, b {
+  font-weight: bold;
+  color:#444;
+}
+
+a {
+  color:#DD8403
+}
+
+.main > article {
+  padding-top: 5px;
+  &>h1, .page-title {
+    font-size: 130%;
+    border-bottom: 1px solid $border-color;
+    padding-bottom: 10px;
+  }
+}
+
+table {
+  margin: 20px 0;
+  th {
+    font-weight: bold;
+    background: #FAFAFA;
+  }
+  th, td {
+    padding: 3px 10px;
+  }
+  margin-left: -10px;
+}
