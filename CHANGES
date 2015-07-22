@@ -1,4 +1,4 @@
-* 0.13.0 - unreleased
+* 0.13.0 - released 2015/07/22
  - New features:
     + Fields of contact forms are configurable.
     + Added RenderNode signal (replaces NodeContext signal).
