@@ -4,7 +4,7 @@
 # Monsti expects the module binaries to be in $PATH and named
 # monsti-<modulename>, e.g. $PATH/monsti-my-addon
 # modules: [my-addon, another-addon]
-modules: [example-module]
+modules: [example-module, taxonomy]
 
 # Listen for HTTP connections on this address and port,
 # e.g. localhost:8080, :8080, yourdomain.com:80

@@ -1,0 +1,25 @@
+{
+  "Order": 0,
+  "Hide": false,
+  "Embed": null,
+  "Public": true,
+  "PublishTime": "2015-07-22T15:38:00+02:00",
+  "Changed": "2015-07-22T13:43:05.473807493Z",
+  "Type": "core.Vocabulary",
+  "Fields": {
+    "core": {
+      "Description": "A sample vocabulary",
+      "Title": "Vocabulary",
+      "VocabularyTerms": [
+        {
+          "Name": "foo",
+          "Title": "Foo"
+        },
+        {
+          "Name": "bar",
+          "Title": "Bar"
+        }
+      ]
+    }
+  }
+}
