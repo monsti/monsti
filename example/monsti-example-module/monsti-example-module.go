@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"pkg.monsti.org/monsti/api/service"
+	"pkg.monsti.org/monsti/api/taxonomy"
 	"pkg.monsti.org/monsti/api/util/i18n"
 	"pkg.monsti.org/monsti/api/util/module"
 )
@@ -133,6 +134,13 @@ func setup(c *module.ModuleContext) error {
 							Type: new(service.BoolFieldType),
 						},
 					}},
+			},
+			{
+				Id:   "example.Categories",
+				Name: i18n.GenLanguageMap(G("Categories"), availableLocales),
+				Type: taxonomy.TermsFieldSettings{
+					Vocabulary: "/types/vocabulary",
+				}.FieldType(),
 			},
 		},
 	}

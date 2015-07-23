@@ -13,24 +13,28 @@
     },
     "example": {
       "Bool": true,
+      "Categories": [
+        "Foo",
+        "Bar"
+      ],
+      "Combined": {
+        "Bool": true,
+        "Text": "Text Value"
+      },
       "DateTime": "2014-12-31T22:55:00Z",
-      "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e",
+      "HTMLArea": "\u003cp\u003e\u003cstrong\u003eHTML\u003c/strong\u003e Area\u003c/p\u003e\r\n",
       "Hidden": "This field won't show up in the web interface.",
+      "Map": {
+        "Key One": "Value One",
+        "Key Tree": "Value Three",
+        "Key Two": "Value Two"
+      },
       "Text": "Simple Text Field",
       "TextList": [
         "Entry one",
         "Entry two",
         "Entry tree"
-      ],
-      "Map": {
-        "Key One": "Value One",
-        "Key Two": "Value Two",
-        "Key Tree": "Value Three"
-      },
-      "Combined": {
-        "Text": "Text Value",
-        "Bool": true
-      }
+      ]
     }
   }
 }
