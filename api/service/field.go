@@ -650,7 +650,6 @@ func initFields(fields map[string]Field, configs []*FieldConfig,
 type ListFieldType struct {
 	ElementType           FieldType
 	AddLabel, RemoveLabel i18n.LanguageMap
-	Classes               []string
 }
 
 func (t ListFieldType) Field() Field {
@@ -830,4 +829,6 @@ type FieldConfig struct {
 	Required bool
 	// Hidden fields won't show up in the web interface.
 	Hidden bool
+	// Classes stores class names of the field.
+	Classes []string
 }
