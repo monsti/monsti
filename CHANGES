@@ -1,4 +1,6 @@
 * 0.14.0 - unreleased
+ - New features:
+    + Added basic experimental taxonomy support.
  - Changes:
     + Added classes for aligned or captioned images (CKEditor).
 
