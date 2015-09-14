@@ -63,6 +63,19 @@ func initNodeTypes(settings *settings, session *service.Session, logger *log.Log
 				Name:     i18n.GenLanguageMap(G("Body"), availableLocales),
 				Type:     new(service.HTMLFieldType),
 			},
+			{
+				Id:      "core.Categories",
+				Hidden:  true,
+				Name:    i18n.GenLanguageMap(G("Categories"), availableLocales),
+				Classes: []string{"categories"},
+				Type: &service.MapFieldType{
+					ElementType: &service.ListFieldType{
+						ElementType: new(service.TextFieldType),
+						AddLabel:    i18n.GenLanguageMap(G("Add term"), availableLocales),
+						RemoveLabel: i18n.GenLanguageMap(G("Remove term"), availableLocales),
+					},
+				},
+			},
 		},
 	}
 	if err := session.Monsti().RegisterNodeType(&documentType); err != nil {

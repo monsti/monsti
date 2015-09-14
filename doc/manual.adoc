@@ -183,6 +183,12 @@ can be accessed via the node's path without trailing slash.
 If the node's path is `/foo/my_image.jpeg/`, then the raw image data
 can be access via `/foo/my_image.jpeg`.
 
+
+==== core.Vocabulary (Experimental)
+
+The Vocabulary node type defines a taxonomy. Have a look at
+<<taxonomy>>.
+
 ===== Automatic resizing
 
 Monsti features automatic resizing of images. First, you have to
@@ -248,6 +254,20 @@ author(s) of the translation (the authors are noted in the `.po` files).
 
 The `core.Navigation` setting currently allows to configure the main
 navigation (no GUI yet). The corresponding map key is `core.Main`.
+
+[[taxonomy]]
+== Taxonomy (Experimental)
+
+There is really basic support for taxonomies in Monsti. You have to create
+a node of type `core.Vocabulary` to define the taxonomy and its terms
+(unless they are free form, i.e. tags, in which case you still have to
+create an empty vocabulary).
+
+Terms can be assigned to nodes using the `core.Categories` field. The
+field is a map from vocabulary path to terms.
+
+The API's `taxonomy` package contains functions to query for nodes
+belonging to some term.
 
 == Modules
 

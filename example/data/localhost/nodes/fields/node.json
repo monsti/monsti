@@ -13,10 +13,6 @@
     },
     "example": {
       "Bool": true,
-      "Categories": [
-        "Foo",
-        "Bar"
-      ],
       "Combined": {
         "Bool": true,
         "Text": "Text Value"

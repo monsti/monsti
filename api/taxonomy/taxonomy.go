@@ -16,28 +16,29 @@
 
 package taxonomy
 
-import (
-	"pkg.monsti.org/monsti/api/service"
-	"pkg.monsti.org/monsti/api/util/i18n"
-)
+import "pkg.monsti.org/monsti/api/service"
 
 var availableLocales = []string{"de", "en", "nl"}
 
-// TermsFieldSettings holds the settings of a terms field that allows
-// to specify terms.
-type TermsFieldSettings struct {
-	// Vocabulary is the path to the taxonomy's vocabulary.
-	Vocabulary string
-}
+// FindNodesByTerm retrieves nodes which have the given vocabulary's
+// term assigned.
+func FindNodesByTerm(m *service.MonstiClient, vocabulary,
+	term string) ([]*service.Node, error) {
+	/*
+		fields, err := m.GetFieldsByClass("term-field")
+		if err != nil {
+			return nil, fmt.Errorf("taxonomy: Could not retrieve term fields")
+		}
+		for _, field := range fields {
+			// search fields where vocabulary matches
+			if vocabulary == field.Data["core.Vocabulary"]
+			// ...
 
-// FieldType returns a field type to be used in node and field type
-// definitions.
-func (f TermsFieldSettings) FieldType() *service.ListFieldType {
-	G := func(in string) string { return in }
-	return &service.ListFieldType{
-		ElementType: new(service.TextFieldType),
-		AddLabel:    i18n.GenLanguageMap(G("Add term"), availableLocales),
-		RemoveLabel: i18n.GenLanguageMap(G("Remove term"), availableLocales),
-		Classes:     []string{"terms-field"},
-	}
+		}
+	*/
+	/* TODO
+	search nodes having this field with the given term
+	return nodes
+	*/
+	return nil, nil
 }
