@@ -2,6 +2,7 @@
 
 var monsti = monsti || {};
 
+// Setup Monsti's default configuration of CKEditor.
 (function() {
   var browserPrefix = window.location.toString().replace(
     "@@edit", "@@chooser?type=");
