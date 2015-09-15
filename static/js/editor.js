@@ -16,6 +16,7 @@ var monsti = monsti || {};
     extraPlugins: 'autogrow,image2,showblocks,onetimewidget',
     autoGrow_minHeight: 250,
     autoGrow_maxHeight: 600,
+    customConfig: '',
   };
   CKEDITOR.plugins.addExternal('onetimewidget', '/static/lib/onetimewidget/', 'plugin.js' );
 })();
