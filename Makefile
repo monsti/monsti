@@ -22,7 +22,7 @@ MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-webshim dep-onetimewidget
+monsti: modules dep-webshim
 
 .PHONY: bcrypt
 bcrypt: 
@@ -113,14 +113,6 @@ clean:
 	rm static/lib/ -Rf
 	rm dist/ -Rf
 	$(MAKE) -C example/monsti-example-module clean
-
-dep-onetimewidget: static/lib/onetimewidget/
-static/lib/onetimewidget/:
-	wget -nv https://github.com/chrneumann/onetimewidget/archive/master.zip
-	unzip -q master.zip
-	mkdir -p static/lib
-	mv onetimewidget-master static/lib/onetimewidget
-	rm master.zip
 
 dep-webshim: static/lib/webshim/
 static/lib/webshim/:
