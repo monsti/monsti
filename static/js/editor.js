@@ -11,12 +11,16 @@ var monsti = monsti || {};
     filebrowserImageBrowseUrl: browserPrefix + 'image',
     uiColor: '#E0D4C7',
     defaultLanguage: monsti.session.locale,
-    removePlugins: 'maximize,stylescombo',
+    removePlugins: 'maximize',
     removeButtons: 'SpecialChar',
     extraPlugins: 'autogrow,image2,showblocks',
     autoGrow_minHeight: 250,
     autoGrow_maxHeight: 600,
     customConfig: '',
+    image2_alignClasses: ['monsti-image--left', 'monsti-image--center',
+                          'monsti-image--right'],
+    image2_captionedClass: 'monsti-image--captioned',
+    contentsCss: ['/static/css/common.css'],
   };
 })();
 

@@ -1,4 +1,6 @@
 * 0.14.0 - unreleased
+ - Changes:
+    + Added classes for aligned or captioned images (CKEditor).
 
 * 0.13.0 - released 2015/07/22
  - New features:
