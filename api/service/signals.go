@@ -122,6 +122,9 @@ func (r *RenderNodeRet) SetContext(in map[string]interface{}) error {
 //
 // The data will be unmarshaled using Go's JSON package.
 func (r *RenderNodeRet) Context() (map[string]interface{}, error) {
+	if r.RawContext == nil {
+		return nil, nil
+	}
 	var unmarshaled map[string]interface{}
 	err := json.Unmarshal(r.RawContext, &unmarshaled)
 	if err != nil {
