@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.9" />
-<title>Monsti 0.13.0 Release Notes</title>
+<title>Monsti 0.14.0 Release Notes</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
 
@@ -733,7 +733,7 @@ asciidoc.install(2);
 </head>
 <body class="article">
 <div id="header">
-<h1>Monsti 0.13.0 Release Notes</h1>
+<h1>Monsti 0.14.0 Release Notes</h1>
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -744,46 +744,18 @@ asciidoc.install(2);
 <h2 id="_notable_changes">Notable Changes</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_new_base_module">New base module</h3>
-<div class="paragraph"><p>A new module named <code>monsti-base</code> was added that implements base
-functionality like core node types. The module will always be
-automatically started.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_configurable_contact_form_fields">Configurable contact form fields</h3>
-<div class="paragraph"><p>Fields of the contact form may be configured using the
-<code>core.ContactFormFields</code> field. Have a look at the example.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_new_signal_code_rendernode_code">New signal <code>RenderNode</code></h3>
-<div class="paragraph"><p>This signal was added to replace the <code>NodeContext</code> signal. It&#8217;s more
-powerful, e.g. it allows for redirects.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_gui_for_list_fields">GUI for list fields</h3>
-<div class="paragraph"><p>A GUI has been added for editing list fields.</p></div>
+<h3 id="_refactored_signal_code_rendernode_code">Refactored signal <code>RenderNode</code></h3>
+<div class="paragraph"><p>The signal&#8217;s return attribute Context has been replaced by its new
+Context and SetContext methods. The newly added RawContext should not
+be used directly.</p></div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_upgrade_from_0_12_0">Upgrade from 0.12.0</h2>
+<h2 id="_upgrade_from_0_13_0">Upgrade from 0.13.0</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Modules and sites should be able to run and compile without changes.</p></div>
-<div class="sect2">
-<h3 id="_deprecation_of_nodecontext_signal">Deprecation of NodeContext signal</h3>
-<div class="paragraph"><p>Please use the RenderNode instead of the NodeContext signal.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_service_request_struct_changes">service.Request struct changes</h3>
-<div class="paragraph"><p>The <code>Form</code> member now contains not only PUT/POST form values, but also
-URL parameters. The <code>PostForm</code> contains only the PUT/POST form
-values.</p></div>
-</div>
-<div class="sect2">
-<h3 id="_service_field_struct_changes">service.Field struct changes</h3>
-<div class="paragraph"><p>The ToFormField and FromFormField methods have been replaced by the
-Form* methods.</p></div>
-</div>
+<div class="paragraph"><p>Sites should be able to run and compile without changes.</p></div>
+<div class="paragraph"><p>You possibly have to fix your use of the RenderNode signal.</p></div>
 </div>
 </div>
 </div>
@@ -791,7 +763,7 @@ Form* methods.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-06-11 15:03:10 CEST
+ 2015-09-17 19:43:47 CEST
 </div>
 </div>
 </body>
