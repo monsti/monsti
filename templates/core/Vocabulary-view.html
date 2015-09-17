@@ -1,0 +1,13 @@
+<article class="{{if .Embedded}}embedded{{end}} node-type-core-Vocabulary">
+  <h1>{{(index .Node.Fields "core.Title").RenderHTML}}</h1>
+  <div>
+    {{(index .Node.Fields "core.Description").RenderHTML}}
+  </div>
+
+  <h2>Terms</h2>
+  <ul>
+    {{range ((index .Node.Fields "core.VocabularyTerms").Value)}}
+    <li>{{.Value.Title}}</li>
+    {{end}}
+  </ul>
+</article>

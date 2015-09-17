@@ -470,7 +470,11 @@ func (h *nodeHandler) RenderNode(c *reqContext, embedNode *service.EmbedNode) (
 			return nil, nil, errRedirect(*renderNodeRet[i].Redirect)
 		}
 		mods.Join(renderNodeRet[i].Mods)
-		for key, value := range renderNodeRet[i].Context {
+		retContext, err := renderNodeRet[i].Context()
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not get context: %v", err)
+		}
+		for key, value := range retContext {
 			context[key] = value
 		}
 	}

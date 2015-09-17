@@ -955,6 +955,11 @@ site. As the File node type, the raw content (i.e. the image itself)
 can be accessed via the node&#8217;s path without trailing slash.</p></div>
 <div class="paragraph"><div class="title">Example for raw image access</div><p>If the node&#8217;s path is <code>/foo/my_image.jpeg/</code>, then the raw image data
 can be access via <code>/foo/my_image.jpeg</code>.</p></div>
+</div>
+<div class="sect3">
+<h4 id="_core_vocabulary_experimental">core.Vocabulary (Experimental)</h4>
+<div class="paragraph"><p>The Vocabulary node type defines a taxonomy. Have a look at
+<a href="#taxonomy">[taxonomy]</a>.</p></div>
 <div class="sect4">
 <h5 id="_automatic_resizing">Automatic resizing</h5>
 <div class="paragraph"><p>Monsti features automatic resizing of images. First, you have to
@@ -1138,6 +1143,19 @@ navigation (no GUI yet). The corresponding map key is <code>core.Main</code>.</p
 </div>
 </div>
 <div class="sect1">
+<h2 id="taxonomy">Taxonomy (Experimental)</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>There is really basic support for taxonomies in Monsti. You have to create
+a node of type <code>core.Vocabulary</code> to define the taxonomy and its terms
+(unless they are free form, i.e. tags, in which case you still have to
+create an empty vocabulary).</p></div>
+<div class="paragraph"><p>Terms can be assigned to nodes using the <code>core.Categories</code> field. The
+field is a map from vocabulary path to terms.</p></div>
+<div class="paragraph"><p>The API&#8217;s <code>taxonomy</code> package contains functions to query for nodes
+belonging to some term.</p></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_modules">Modules</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>Modules allow to add new functionality or alter Monsti&#8217;s
@@ -1194,7 +1212,7 @@ directories:
 # Monsti expects the module binaries to be in $PATH and named
 # monsti-&lt;modulename&gt;, e.g. $PATH/monsti-my-addon
 # modules: [my-addon, another-addon]
-modules: [example-module]
+modules: [example-module, taxonomy]
 
 # Listen for HTTP connections on this address and port,
 # e.g. localhost:8080, :8080, yourdomain.com:80
@@ -1260,7 +1278,7 @@ file named <code>include</code> at the root of the tree.</p></div>
 <div id="footer">
 <div id="footer-text">
 Last updated
- 2015-06-06 09:16:08 CEST
+ 2015-09-14 16:06:01 CEST
 </div>
 </div>
 </body>

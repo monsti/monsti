@@ -18,6 +18,7 @@ package service
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"html/template"
 
@@ -98,9 +99,38 @@ type Redirect struct {
 }
 
 type RenderNodeRet struct {
-	Context  map[string]interface{}
+	// Raw context data. Set and get using the SetContext and Context methods.
+	RawContext []byte
+	// If set, perform this redirect.
 	Redirect *Redirect
 	Mods     *CacheMods
+}
+
+// SetContext sets the RawContext attribute using the given context data.
+//
+// The data will be marshaled using Go's JSON package.
+func (r *RenderNodeRet) SetContext(in map[string]interface{}) error {
+	var err error
+	r.RawContext, err = json.Marshal(in)
+	if err != nil {
+		return fmt.Errorf("Could not marshal value: %v", err)
+	}
+	return nil
+}
+
+// Context retreives the context data stored in the RawContext attribute.
+//
+// The data will be unmarshaled using Go's JSON package.
+func (r *RenderNodeRet) Context() (map[string]interface{}, error) {
+	if r.RawContext == nil {
+		return nil, nil
+	}
+	var unmarshaled map[string]interface{}
+	err := json.Unmarshal(r.RawContext, &unmarshaled)
+	if err != nil {
+		return nil, fmt.Errorf("Could not unmarshal value %v: %v", r.RawContext, err)
+	}
+	return unmarshaled, nil
 }
 
 type renderNodeHandler struct {
