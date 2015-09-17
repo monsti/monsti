@@ -16,7 +16,11 @@
 
 package taxonomy
 
-import "pkg.monsti.org/monsti/api/service"
+import (
+	"fmt"
+
+	"pkg.monsti.org/monsti/api/service"
+)
 
 var availableLocales = []string{"de", "en", "nl"}
 
@@ -24,21 +28,53 @@ var availableLocales = []string{"de", "en", "nl"}
 // term assigned.
 func FindNodesByTerm(m *service.MonstiClient, vocabulary,
 	term string) ([]*service.Node, error) {
-	/*
-		fields, err := m.GetFieldsByClass("term-field")
-		if err != nil {
-			return nil, fmt.Errorf("taxonomy: Could not retrieve term fields")
-		}
-		for _, field := range fields {
-			// search fields where vocabulary matches
-			if vocabulary == field.Data["core.Vocabulary"]
-			// ...
-
-		}
-	*/
+	panic("Unimplemented")
 	/* TODO
-	search nodes having this field with the given term
+	search nodes having core.Categories with the given vocabulary and term.
 	return nodes
 	*/
 	return nil, nil
+}
+
+type Term struct {
+	Name, Title, Parent string
+}
+
+// GetNodeTerms retreives all terms of the given node grouped by
+// vocabulary path.
+func GetNodeTerms(m *service.MonstiClient, site, nodePath string) (
+	map[string][]Term, *service.CacheMods, error) {
+	node, err := m.GetNode(site, nodePath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not get node: %v", err)
+	}
+	ret := make(map[string][]Term)
+	mods := &service.CacheMods{Deps: []service.CacheDep{{Node: nodePath}}}
+	for path, terms := range node.Fields["core.Categories"].(*service.MapField).Fields {
+		terms := terms.(*service.ListField).Fields
+		mods.Join(&service.CacheMods{Deps: []service.CacheDep{{Node: path}}})
+		vocabulary, err := m.GetNode(site, path)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not get vocabulary: %v", err)
+		}
+		for term, attrField := range vocabulary.Fields["core.VocabularyTerms"].(*service.MapField).Fields {
+			ignore := true
+			for _, v := range terms {
+				if v.(*service.TextField).Value().(string) == term {
+					ignore = false
+					break
+				}
+			}
+			if ignore {
+				continue
+			}
+			attributes := attrField.(*service.CombinedField).Fields
+			ret[path] = append(ret[path], Term{
+				Name:  term,
+				Title: attributes["Title"].Value().(string),
+				//				Parent: attributes["Parent"].Value().(string),
+			})
+		}
+	}
+	return ret, mods, nil
 }

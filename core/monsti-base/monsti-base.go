@@ -79,6 +79,26 @@ func setup(c *module.ModuleContext) error {
 		c.Logger.Fatalf("Could not add signal handler: %v", err)
 	}
 
+	nodeType = &service.NodeType{
+		Id:        "core.Vocabulary",
+		AddableTo: []string{"."},
+		Name:      i18n.GenLanguageMap(G("Vocabulary"), availableLocales),
+		Fields: []*service.FieldConfig{
+			{Id: "core.Title"},
+			{Id: "core.Description"},
+			{
+				Id:     "core.VocabularyTerms",
+				Hidden: true,
+				Type: &service.MapFieldType{
+					ElementType: &service.CombinedFieldType{map[string]service.FieldConfig{
+						"Title":  {Type: new(service.TextFieldType)},
+						"Parent": {Type: new(service.TextFieldType)},
+					},
+					}}}}}
+	if err := m.RegisterNodeType(nodeType); err != nil {
+		c.Logger.Fatalf("Could not register %q node type: %v", nodeType.Id, err)
+	}
+
 	return nil
 }
 
@@ -196,8 +216,16 @@ func renderContactForm(req *service.Request, session *service.Session) (
 	default:
 		return nil, fmt.Errorf("Request method not supported: %v", req.Method)
 	}
+	if err != nil {
+		return nil, err
+	}
 	context["Form"] = form.RenderData()
-	return &service.RenderNodeRet{Context: context}, err
+	ret := new(service.RenderNodeRet)
+	err = ret.SetContext(context)
+	if err != nil {
+		return nil, fmt.Errorf("Could not set context: %v", err)
+	}
+	return nil, nil
 }
 
 func main() {
