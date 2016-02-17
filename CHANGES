@@ -2,7 +2,7 @@
  - Changes:
     + Added classes for aligned or captioned images (CKEditor).
  - Fixed:
-    + Add support for Go 1.5
+    + Add support for Go 1.5, remove support for older versions.
 
 * 0.13.0 - released 2015/07/22
  - New features:
