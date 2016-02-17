@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"golang.org/x/crypto/bcrypt"
 	"pkg.monsti.org/monsti/api/service"
 	utesting "pkg.monsti.org/monsti/api/util/testing"
 )

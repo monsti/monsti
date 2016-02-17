@@ -5,6 +5,8 @@
     + Added classes for aligned or captioned images (CKEditor).
     + Changed RenderNode signal's return value attributes (use
       SetContext and Context methods instead).
+ - Fixed:
+    + Add support for Go 1.5
 
 * 0.13.0 - released 2015/07/22
  - New features:

@@ -94,7 +94,7 @@ go/src/pkg.monsti.org/monsti:
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
 $(MODULE_PROGRAMS): go/bin/%: go/src/pkg.monsti.org/monsti
-	$(GO_GET) pkg.monsti.org/monsti/core/$*
+	$(GO_GET) -insecure pkg.monsti.org/monsti/core/$*
 
 .PHONY: test
 test: monsti
