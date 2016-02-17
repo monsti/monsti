@@ -829,6 +829,4 @@ type FieldConfig struct {
 	Required bool
 	// Hidden fields won't show up in the web interface.
 	Hidden bool
-	// Classes stores class names of the field.
-	Classes []string
 }

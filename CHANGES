@@ -1,10 +1,6 @@
 * 0.14.0 - unreleased
- - New features:
-    + Added basic experimental taxonomy support.
  - Changes:
     + Added classes for aligned or captioned images (CKEditor).
-    + Changed RenderNode signal's return value attributes (use
-      SetContext and Context methods instead).
  - Fixed:
     + Add support for Go 1.5
 

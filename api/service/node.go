@@ -28,7 +28,7 @@ import (
 // by most node types.
 var CoreFields = []*FieldConfig{
 	{Id: "core.Title"}, {Id: "core.Description"}, {Id: "core.Thumbnail"},
-	{Id: "core.Body"}, {Id: "core.Categories"}}
+	{Id: "core.Body"}}
 
 type Node struct {
 	Path string `json:",omitempty"`
