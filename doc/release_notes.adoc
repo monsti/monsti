@@ -1,4 +1,4 @@
-= Monsti 0.14.0 Release Notes
+= Monsti 0.15.0 Release Notes
 :imagesdir: static/img
 :data-uri:
 :icons:
@@ -7,14 +7,10 @@
 
 == Notable Changes
 
-=== Refactored signal `RenderNode`
+=== Depend on Go 1.5
 
-The signal's return attribute Context has been replaced by its new
-Context and SetContext methods. The newly added RawContext should not
-be used directly.
+Monsti now depends on Go 1.5
 
-== Upgrade from 0.13.0
+== Upgrade from 0.14.0
 
 Sites should be able to run and compile without changes.
-
-You possibly have to fix your use of the RenderNode signal.
