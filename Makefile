@@ -9,7 +9,10 @@ MODULES=daemon base
 
 LOCALES=de
 
-MONSTI_VERSION=0.13.0
+MONSTI_VERSION=0.14.0
+#MONSTI_VERSION=0.14.0.dev.$(VCS_BRANCH).$(VCS_REVISION)
+#VCS_REVISION:=$(shell git rev-list HEAD --count)
+#VCS_BRANCH:=$(shell git branch | sed -n '/\* /s///p')
 DEB_VERSION=1
 
 DIST_PATH=dist/monsti-$(MONSTI_VERSION)
@@ -20,7 +23,7 @@ MODULE_PROGRAMS=$(MODULES:%=go/bin/monsti-%)
 
 all: monsti bcrypt example-module
 
-monsti: modules dep-webshim dep-onetimewidget
+monsti: modules dep-webshim
 
 .PHONY: bcrypt
 bcrypt: 
@@ -92,7 +95,7 @@ go/src/pkg.monsti.org/monsti:
 # Build module executable
 .PHONY: $(MODULE_PROGRAMS)
 $(MODULE_PROGRAMS): go/bin/%: go/src/pkg.monsti.org/monsti
-	$(GO_GET) pkg.monsti.org/monsti/core/$*
+	$(GO_GET) -insecure pkg.monsti.org/monsti/core/$*
 
 .PHONY: test
 test: monsti
@@ -111,14 +114,6 @@ clean:
 	rm static/lib/ -Rf
 	rm dist/ -Rf
 	$(MAKE) -C example/monsti-example-module clean
-
-dep-onetimewidget: static/lib/onetimewidget/
-static/lib/onetimewidget/:
-	wget -nv https://github.com/chrneumann/onetimewidget/archive/master.zip
-	unzip -q master.zip
-	mkdir -p static/lib
-	mv onetimewidget-master static/lib/onetimewidget
-	rm master.zip
 
 dep-webshim: static/lib/webshim/
 static/lib/webshim/:

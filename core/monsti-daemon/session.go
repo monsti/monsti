@@ -28,9 +28,9 @@ import (
 	"time"
 
 	"crypto/sha256"
-	"code.google.com/p/go.crypto/bcrypt"
 	"github.com/chrneumann/htmlwidgets"
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/gomail.v1"
 	"pkg.monsti.org/gettext"
 	"pkg.monsti.org/monsti/api/service"

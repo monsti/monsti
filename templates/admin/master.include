@@ -2,4 +2,5 @@ blocks/admin-bar
 blocks/headers
 blocks/headers-admin
 blocks/headers-edit
+blocks/headers-edit__post
 blocks/navigation

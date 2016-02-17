@@ -2,11 +2,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
-	"code.google.com/p/go.crypto/bcrypt"
-	"code.google.com/p/gopass"
+	"github.com/howeyc/gopass"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func error(args ...interface{}) {
@@ -15,18 +16,20 @@ func error(args ...interface{}) {
 }
 
 func main() {
-	password, err := gopass.GetPass("Enter password to be hashed: ")
+	fmt.Printf("Enter password to be hashed: ")
+	password, err := gopass.GetPasswd()
 	if err != nil {
 		error("Could not read password:", err)
 	}
-	confirmation, err := gopass.GetPass("Repeat password: ")
+	fmt.Printf("Repeat password: ")
+	confirmation, err := gopass.GetPasswd()
 	if err != nil {
 		error("Could not read password:", err)
 	}
-	if password != confirmation {
+	if bytes.Equal(password, confirmation) {
 		error("Passwords do not match.")
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 0)
+	hash, err := bcrypt.GenerateFromPassword(password, 0)
 	if err != nil {
 		error("Could not hash password:", err)
 	}

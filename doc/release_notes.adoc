@@ -1,4 +1,4 @@
-= Monsti 0.13.0 Release Notes
+= Monsti 0.15.0 Release Notes
 :imagesdir: static/img
 :data-uri:
 :icons:
@@ -7,41 +7,10 @@
 
 == Notable Changes
 
-=== New base module
+=== Depend on Go 1.5
 
-A new module named `monsti-base` was added that implements base
-functionality like core node types. The module will always be
-automatically started.
+Monsti now depends on Go 1.5
 
-=== Configurable contact form fields
+== Upgrade from 0.14.0
 
-Fields of the contact form may be configured using the
-`core.ContactFormFields` field. Have a look at the example.
-
-=== New signal `RenderNode`
-
-This signal was added to replace the `NodeContext` signal. It's more
-powerful, e.g. it allows for redirects.
-
-=== GUI for list fields
-
-A GUI has been added for editing list fields.
-
-== Upgrade from 0.12.0
-
-Modules and sites should be able to run and compile without changes.
-
-=== Deprecation of NodeContext signal
-
-Please use the RenderNode instead of the NodeContext signal.
-
-=== service.Request struct changes
-
-The `Form` member now contains not only PUT/POST form values, but also
-URL parameters. The `PostForm` contains only the PUT/POST form
-values.
-
-=== service.Field struct changes
-
-The ToFormField and FromFormField methods have been replaced by the
-Form* methods.
+Sites should be able to run and compile without changes.

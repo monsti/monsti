@@ -2,6 +2,7 @@
 
 var monsti = monsti || {};
 
+// Setup Monsti's default configuration of CKEditor.
 (function() {
   var browserPrefix = window.location.toString().replace(
     "@@edit", "@@chooser?type=");
@@ -10,13 +11,17 @@ var monsti = monsti || {};
     filebrowserImageBrowseUrl: browserPrefix + 'image',
     uiColor: '#E0D4C7',
     defaultLanguage: monsti.session.locale,
-    removePlugins: 'maximize,stylescombo',
+    removePlugins: 'maximize',
     removeButtons: 'SpecialChar',
-    extraPlugins: 'autogrow,image2,showblocks,onetimewidget',
+    extraPlugins: 'autogrow,image2,showblocks',
     autoGrow_minHeight: 250,
     autoGrow_maxHeight: 600,
+    customConfig: '',
+    image2_alignClasses: ['monsti-image--left', 'monsti-image--center',
+                          'monsti-image--right'],
+    image2_captionedClass: 'monsti-image--captioned',
+    contentsCss: ['/static/css/common.css'],
   };
-  CKEDITOR.plugins.addExternal('onetimewidget', '/static/lib/onetimewidget/', 'plugin.js' );
 })();
 
 // addCKEditor adds an CKEditor for the textarea with the given id.

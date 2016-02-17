@@ -17,7 +17,7 @@ https://gitorious.org/monsti/monsti/
 - make
 - C compiler
 - Git, Bazaar, Mercurial (to fetch Go packages)
-- Go 1.3 or later
+- Go 1.5 or later
 - wget
 
 
